@@ -12,3 +12,5 @@ __pycache__/
 *.pyc
 # Tier 1 must never be here; this line is a tripwire, not a permission
 memory/private/
+.Rhistory
+.RData

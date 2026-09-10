@@ -26,3 +26,13 @@ The ledger's ancestor. When a document is corrected after the fact, the correcti
 - **Wrong:** Cowork wrote the Codex review handoff as `HANDOFF-0006` (report `AUDIT-0003`) at 21:05, after Claude Code had already, correctly, numbered its proposed fixes `HANDOFF-0006…0012` at 20:24 and its fix plan `AUDIT-0003`. Cowork did not check the folder before assigning ids.
 - **Changed:** the Codex review handoff is now `HANDOFF-0013`, writing `AUDIT-0004`. Filename unchanged (`2026-09-09-review-proposed-fixes.md`). Proposed 0006–0012 keep their ids.
 - **Rule going forward:** whoever assigns the next id lists `docs/handoff/`, `docs/handoff/proposed/`, and `docs/audit/` first. Until the ledger issues ids automatically, this is a human/agent discipline.
+
+## 2026-09-09T23:35:00-07:00 — cowork — Dependency record: Codex CLI
+- **What:** `@openai/codex` 0.154.0, installed by Michou via `npm install -g` under nvm Node 25.9.0; signed in with his ChatGPT Plus account. Smoke test (`codex exec` reading `CLAUDE.md`) passed inside the repo.
+- **Why:** ADR-007 second builder / independent reviewer. First job: HANDOFF-0013.
+- **Note:** globally installed under nvm, so it lives in that Node version's `bin`; a Node version switch hides it. Candidate to move to a pinned Homebrew install once Homebrew exists.
+
+## 2026-09-09T23:45:00-07:00 — cowork — Scope error in the Finance disposal
+- **Wrong:** HANDOFF-0014 and the proposed HANDOFF-0016 targeted all of `~/Projects/Finance` for disposal, on Cowork's misreading of Michou's request. `~/Projects/Finance` (Active / Archive / past memos and theses) is his most important work product and is to be kept. The target was the old `finance-python` project inside it.
+- **Changed:** HANDOFF-0016 marked `abandoned` with `superseded_by: HANDOFF-0017`. AUDIT-0005 stands as a factual inventory (its counts are correct); its "disposal recommendation" section is void. HANDOFF-0017 re-scopes to `finance-python` only.
+- **Lesson:** when a request names a folder for deletion, confirm the exact path back before writing any handoff that could lead to deletion. Michou caught it before anything ran; the inventory-before-disposal rule is what made that possible.

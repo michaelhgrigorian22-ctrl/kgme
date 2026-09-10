@@ -4,10 +4,12 @@ type: handoff
 created: 2026-09-09T23:30:00-07:00
 from: claude-code
 to: claude-code
-status: proposed
+status: abandoned
 tier: 2
 depends_on: HANDOFF-0014
 audit_ref: "AUDIT-0005: 27,219 of 28,071 files are regenerable venvs and caches; 852 files (836.5 MB) are unique work product, including a never-committed finance-python tree."
+superseded_by: HANDOFF-0017
+reason: "Scope error: ~/Projects/Finance is to be kept; only finance-python is to be dismantled (Michou, 2026-09-09 23:40)"
 ---
 
 # Handoff 0016 (proposed) - Dispose of `~/Projects/Finance`: repoint, archive, then delete
