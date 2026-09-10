@@ -202,3 +202,25 @@ Ran 2026-09-09T20:22:00-07:00, after the git identity gate was unblocked by HAND
 - **File count.** `git ls-files | wc -l` → **31** files tracked (25 markdown documents + `.gitignore` + `AGENTS.md` symlink + `CLAUDE.md`; four `.DS_Store` files ignored). No remote is configured; `git remote -v` is empty.
 - **Downstream.** HANDOFF-0003 (`depends_on: HANDOFF-0002`) is now unblocked and can start.
 
+
+## HANDOFF-0015 — aliases
+
+Ran 2026-09-09T23:18:00-07:00. Scope was `~/.zshrc` only; `~/.codex/config.toml`, `~/.claude/settings.json`, and Warp settings were not touched.
+
+- **Backup.** `~/.zshrc` (5 lines, 201 bytes, last modified 2026-06-29) was copied to `~/.zshrc.bak.20260909` before any edit. `diff` of backup against the new file shows only the appended block below (lines 6–12); nothing above it changed.
+- **What was added.** The HANDOFF-0015 block, verbatim: `export KGME_HOME="$HOME/Projects/Automate"` and four aliases `kgme`, `kgme-claude`, `kgme-codex`, `kgme-codex-exec`. No prior `KGME` text existed in the file, so nothing was duplicated.
+- **Verification output** (fresh interactive `zsh -ic`):
+  ```
+  $ kgme && pwd
+  /Users/michaelgrigorian/Projects/Automate
+  $ type kgme-codex
+  kgme-codex is an alias for codex --cd "$KGME_HOME"
+  $ type kgme-codex-exec
+  kgme-codex-exec is an alias for codex --cd "$KGME_HOME" exec
+  $ type kgme-claude
+  kgme-claude is an alias for cd "$KGME_HOME" && claude
+  ```
+  Note for the record: in a non-interactive `zsh -c 'source ~/.zshrc; kgme'` the alias is not expanded because zsh parses the whole command line before the `source` runs; this is zsh behaviour, not a defect in the block. Any new Warp tab (interactive shell) picks the aliases up.
+- **Codex state correction.** AUDIT-0001 finding 10 recorded Codex CLI as not installed. As of this run `codex` is present at `~/.nvm/versions/node/v25.9.0/bin/codex`, version `codex-cli 0.154.0`, logged in (`codex login status` → "Logged in using ChatGPT"), with `~/.codex/config.toml` present (3,846 bytes, mode 0600, modified 2026-09-09 22:59; contents not opened). Finding 10 is therefore stale; the `kgme-codex` aliases have a consumer.
+- **Warp starting-directory setting (reported, not changed).** Warp has no `~/.warp/launch_configurations/` directory on this machine. The default new-tab directory is set in `~/.warp/tab_configs/startup_config.toml` (124 bytes, created 2026-04-16), whose single pane is `directory = "/Users/michaelgrigorian"`. That is the setting to repoint at `$KGME_HOME` (`/Users/michaelgrigorian/Projects/Automate`); in the Warp UI it lives under Settings → Features → Session (startup / new-tab directory), and Launch Configurations, if Michou later wants a named one, are saved to `~/.warp/launch_configurations/`. `~/.warp/settings.toml` has no directory-related key; the `dev.warp.Warp-Stable` preferences domain has `DefaultSessionMode = Terminal` and no working-directory key.
+- **Reversibility.** Delete lines 6–12 of `~/.zshrc`, or `cp ~/.zshrc.bak.20260909 ~/.zshrc`.
