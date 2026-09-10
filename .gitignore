@@ -1,0 +1,14 @@
+# KGME — proposed .gitignore (Claude Code confirms at git init)
+.DS_Store
+.env
+.env.*
+logs/*.jsonl
+memory/.obsidian/workspace.json
+memory/.obsidian/workspace-mobile.json
+memory/.obsidian/cache/
+memory/attachments/*.tmp
+__pycache__/
+.venv/
+*.pyc
+# Tier 1 must never be here; this line is a tripwire, not a permission
+memory/private/
