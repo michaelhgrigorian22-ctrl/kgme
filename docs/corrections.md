@@ -21,3 +21,8 @@ The ledger's ancestor. When a document is corrected after the fact, the correcti
 ## 2026-09-09T20:10:00-07:00 — cowork — Report frontmatter did not match the schema
 - **Wrong:** HANDOFF-0001 told Claude Code to write the audit with `type: audit` and no `status` field; `docs/schema-v1.md` defines the type as `report` with `status: final`. HANDOFF-0002's lint caught the missing `status`.
 - **Changed:** `docs/audit/2026-09-09-machine-audit.md` frontmatter now `type: report`, `status: final`. Future handoffs specify report frontmatter from the schema.
+
+## 2026-09-09T21:40:00-07:00 — cowork — Handoff and report id collision
+- **Wrong:** Cowork wrote the Codex review handoff as `HANDOFF-0006` (report `AUDIT-0003`) at 21:05, after Claude Code had already, correctly, numbered its proposed fixes `HANDOFF-0006…0012` at 20:24 and its fix plan `AUDIT-0003`. Cowork did not check the folder before assigning ids.
+- **Changed:** the Codex review handoff is now `HANDOFF-0013`, writing `AUDIT-0004`. Filename unchanged (`2026-09-09-review-proposed-fixes.md`). Proposed 0006–0012 keep their ids.
+- **Rule going forward:** whoever assigns the next id lists `docs/handoff/`, `docs/handoff/proposed/`, and `docs/audit/` first. Until the ledger issues ids automatically, this is a human/agent discipline.
