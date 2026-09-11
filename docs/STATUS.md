@@ -19,7 +19,7 @@ The one place that says what is true *now*. Historical records are never edited;
 ## Gates before anything is scheduled (ADR-013 §6)
 | Gate | State | Governing record |
 |---|---|---|
-| Completed backup + tested restore | **MET 2026-09-11 13:12 PDT** (Backblaze 10.0.1.1038; PEK enabled per Michou 12:54; 1-year version history; restore of one file hash-verified; AUDIT-0007) | HANDOFF-0019 — done |
+| Completed backup + tested restore | **MET 2026-09-11 13:12 PDT** (Backblaze 10.0.1.1038; PEK enabled per Michou 12:54; 1-year version history; restore of one file hash-verified; AUDIT-0007). git remote: private, pushed (`michaelhgrigorian22-ctrl/kgme`, 2026-09-11 14:15, AUDIT-0009) | HANDOFF-0019 — done; HANDOFF-0023 — done |
 | Ledger durable and tracked | ADR-012 proposed; `.gitignore` corrected; no ledger written yet | ADR-012 |
 | Repo-scoped permissions + hooks | not built; global settings are `auto` mode (AUDIT-0002) | ADR-013 §2 |
 | Canary tests per worker | not built | ADR-013 §3 |
