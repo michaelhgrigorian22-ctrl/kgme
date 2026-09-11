@@ -1,7 +1,7 @@
 ---
 id: ADR-016
 type: decision
-status: proposed
+status: accepted
 created: 2026-09-11T15:30:00-07:00
 author: cowork
 source: stated

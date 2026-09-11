@@ -1,7 +1,7 @@
 ---
 id: ADR-014
 type: decision
-status: proposed
+status: accepted
 created: 2026-09-10T09:40:00-07:00
 author: cowork
 source: stated

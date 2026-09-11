@@ -1,7 +1,7 @@
 ---
 id: ADR-015
 type: decision
-status: proposed
+status: accepted
 created: 2026-09-11T09:30:00-07:00
 author: cowork
 source: stated
