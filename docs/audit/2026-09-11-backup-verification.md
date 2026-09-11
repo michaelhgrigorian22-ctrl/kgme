@@ -78,3 +78,28 @@ Identical to the on-disk hash of the six 42-byte `~/.cache/uv/archive-v0/` copie
 ## Gate
 
 **Gate 1 (completed backup + tested restore): MET, 2026-09-11T13:12:00-07:00**
+
+## HANDOFF-0020 — firewall
+
+Prior state, recorded 2026-09-11T13:06:00-07:00, verbatim from `/usr/libexec/ApplicationFirewall/socketfilterfw`:
+
+```
+--getglobalstate:    Firewall is disabled. (State = 0)
+--getallowsigned:    Automatically allow built-in signed software ENABLED.
+                     Automatically allow downloaded signed software ENABLED.
+--getallowsignedapp: (not a query flag in this macOS build; the tool printed its usage text. --getallowsigned above covers both signed-software settings.)
+--getstealthmode:    Firewall stealth mode is off
+--getblockall:       Firewall has block all state set to disabled.
+```
+
+Michou ran `sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on` in his own terminal tab (his report: password entered, no confirmation text printed). New state, verified 2026-09-11T13:40:00-07:00:
+
+```
+--getglobalstate:  Firewall is enabled. (State = 1)
+--getallowsigned:  Automatically allow built-in signed software ENABLED.
+                   Automatically allow downloaded signed software ENABLED.
+--getstealthmode:  Firewall stealth mode is off
+--getblockall:     Firewall has block all state set to disabled.
+```
+
+Only the global state changed. Reversal: `sudo … --setglobalstate off` restores the recorded state exactly.
