@@ -4,10 +4,12 @@ type: handoff
 created: 2026-09-09T20:24:00-07:00
 from: claude-code
 to: claude-code
-status: proposed
 tier: 2
 depends_on: HANDOFF-0001
 audit_ref: "No Time Machine destination configured; latest-backup mount fails."
+status: abandoned
+superseded_by: HANDOFF-0019
+reason: "Michou has no external drive; chose Backblaze (2026-09-11). Tier 1 backup decision resolved as encrypted off-machine via private encryption key."
 ---
 
 # Handoff 0006 (proposed) — Configure a Time Machine destination

@@ -4,10 +4,12 @@ type: handoff
 created: 2026-09-09T20:24:00-07:00
 from: claude-code
 to: claude-code
-status: proposed
 tier: 2
 depends_on: HANDOFF-0008
 audit_ref: "GitHub CLI (`gh`) not installed."
+status: superseded
+superseded_by: HANDOFF-0022
+reason: "Reissued by Cowork with the amendments from AUDIT-0004 (Codex review), 2026-09-11."
 ---
 
 # Handoff 0009 (proposed) — Install `gh` via Homebrew

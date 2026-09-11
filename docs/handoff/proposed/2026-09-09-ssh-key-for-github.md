@@ -4,10 +4,12 @@ type: handoff
 created: 2026-09-09T20:24:00-07:00
 from: claude-code
 to: claude-code
-status: proposed
 tier: 2
 depends_on: HANDOFF-0001
 audit_ref: "`~/.ssh` does not exist; no SSH key material for a GitHub remote."
+status: superseded
+superseded_by: HANDOFF-0023
+reason: "Reissued by Cowork with the amendments from AUDIT-0004 (Codex review), 2026-09-11."
 ---
 
 # Handoff 0010 (proposed) — Generate an ed25519 SSH key for GitHub

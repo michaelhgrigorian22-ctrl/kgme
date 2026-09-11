@@ -11,6 +11,8 @@ supersedes: HANDOFF-0016
 audit_ref: "AUDIT-0006: one real finance-python at ~/Projects/Finance/ARCHIVE PITCHES - SUMMER 26 INTERNSHIP/finance-python; 24,667 regenerable files (906 MB venv), 80 unique files (6.16 MB), never committed; 3 dead paths referenced by VS Code and Claude Code state."
 ---
 
+> **Decision recorded 2026-09-11 (Michou, via Cowork):** the current modeling conventions file is `~/Projects/Finance/Active/MODELING_CONVENTIONS_V2.md`. Step (c) repoints `~/.claude/CLAUDE.md` line 16 and `~/AGENTS.md` line 16 to it (shown-diff-then-approve). The June root copy and the MRVL copy are left untouched.
+
 # Handoff 0018 (proposed) - Dismantle `finance-python`: repoint, archive, then delete
 
 ## Scope, stated first

@@ -2,7 +2,8 @@
 .DS_Store
 .env
 .env.*
-logs/*.jsonl
+# logs/ledger/*.jsonl are DURABLE and tracked (ADR-012); only scratch logs are ignored
+logs/scratch/
 memory/.obsidian/workspace.json
 memory/.obsidian/workspace-mobile.json
 memory/.obsidian/cache/
@@ -14,3 +15,5 @@ __pycache__/
 memory/private/
 .Rhistory
 .RData
+# Backblaze restore staging (Michou, 2026-09-11); restored files are never committed
+KGME_BB_RESTORATIONS/

@@ -1,5 +1,5 @@
 ---
-id: {{date:YYYYMMDD}}T{{time:HHmm}}
+id: {{date:YYYYMMDD}}T{{time:HHmmss}}
 type: note
 created: {{date:YYYY-MM-DDTHH:mm:ssZ}}
 modified: {{date:YYYY-MM-DDTHH:mm:ssZ}}
