@@ -63,3 +63,21 @@ Not sourced into this session; verified in a fresh login shell (`zsh -lc`): `whi
 ## Reversibility
 
 Documented restoration, not exact: Homebrew's uninstall script (pin it the same way at the time) removes `/opt/homebrew`; then remove `/etc/paths.d/homebrew` by hand (`sudo rm`), delete lines 6 to 7 of `~/.zprofile` or restore `~/.zprofile.bak.20260911`, and `rm -rf ~/Library/Caches/Homebrew`. The `/opt` directory itself pre-existed (it holds `/opt/R`) and is untouched.
+
+## HANDOFF-0022 — gh
+
+Ran 2026-09-11T14:02:00-07:00, no sudo.
+
+| Item | Value |
+|---|---|
+| `brew info --json=v2 gh`, stable version | 2.100.0 |
+| Runtime dependencies | none; build dependency `go` only (not installed, bottle poured) |
+| Declared bottle sha256, `arm64_tahoe` | `4e98510bc683db27f42ff84c9c7f5b884e3109f499c08241991617031bd63666` |
+| Downloaded bottle, `shasum -a 256` | `4e98510bc683db27f42ff84c9c7f5b884e3109f499c08241991617031bd63666` (matches the formula's declared sha256) |
+| `brew install gh` | poured `gh--2.100.0.arm64_tahoe.bottle.tar.gz`; `/opt/homebrew/Cellar/gh/2.100.0`, 238 files, 40.3 MB; zsh completions to `/opt/homebrew/share/zsh/site-functions`; `INSTALL_RECEIPT.json` says `poured_from_bottle: true`, runtime dependencies empty |
+| `gh --version` | `gh version 2.100.0 (2026-09-03)`, matches step 1 |
+| `brew pin gh` | done; `brew list --pinned` → `gh` |
+| `gh auth login` | **not run** (HANDOFF-0023) |
+| `~/.config/gh` | does not exist |
+
+Reversibility: `brew unpin gh && brew uninstall gh`; nothing else was installed alongside it, so there are no orphaned dependencies to remove.
