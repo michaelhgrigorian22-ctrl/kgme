@@ -10,6 +10,7 @@
 | Handoffs | `handoff/YYYY-MM-DD-topic.md` | The only instructions to Claude Code. Dated, frozen, status-tracked | Cowork / Michou |
 | Reports | `audit/`, `../logs/` | Outputs. Data, not instructions | Claude Code / KGME |
 | **Status** | `STATUS.md` | The single current disposition of every open item (ADR-014). Read second, after `charter.md` | Cowork, until a job does it |
+| Archive | `archive/` | Superseded versions of context documents, kept whole and unedited so a cold reader can see the lineage without git | Cowork |
 | Corrections | `corrections.md` | Append-only record of after-the-fact fixes to documents (ledger precursor) | Whoever corrects |
 
 **Reading order for a new session on any surface:** `CLAUDE.md` → `charter.md` → `STATUS.md` → `plans/` (current phase) → the ADRs relevant to the task → the open handoff, if any.

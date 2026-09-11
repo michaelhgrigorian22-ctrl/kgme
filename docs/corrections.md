@@ -45,3 +45,8 @@ The ledger's ancestor. When a document is corrected after the fact, the correcti
 ## 2026-09-10T09:45:00-07:00 — cowork — Ledger contradiction (ADR-003 vs ADR-004 vs .gitignore)
 - **Wrong:** ADR-004 listed `logs/` as regenerable and `.gitignore` excluded `logs/*.jsonl`, while ADR-003 made the ledger authoritative. Found by the external audit (finding 1).
 - **Changed:** ADR-012 (proposed) defines three data classes and makes the ledger durable and tracked; `.gitignore` now tracks `logs/ledger/` and ignores only `logs/scratch/`. ADR-004 is partially superseded on acceptance.
+
+## 2026-09-11T23:40:00-07:00 — cowork — Deletion gate written for Time Machine on a Backblaze machine
+- **Wrong:** HANDOFF-0018 (drafted by Claude Code from Cowork's HANDOFF-0017 template) gated its deletion step on `tmutil latestbackup`, which can never succeed since Michou chose Backblaze on 2026-09-11. Cowork's HANDOFF-0024 then re-gated all of step (a) on the Backblaze log, blunter than necessary: a backup gate on regenerable content protects nothing.
+- **Changed:** ruling recorded — the gate applies only to items whose originals are unique-but-archived; regenerable content needs no gate. Michou ran the deletions himself (global `rm -rf` deny held, as designed) and ruled the unit's working copy stays. HANDOFF-0024 abandoned as unnecessary; kept as the record.
+- **Lesson:** gates name the *evidence*, not the *tool*; and a handoff template must be re-read when an upstream decision (backup method) changes.

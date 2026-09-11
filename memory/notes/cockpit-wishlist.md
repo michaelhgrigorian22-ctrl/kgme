@@ -36,7 +36,12 @@ Preserve the grammar, replace the surface. The cockpit should feel local and key
 - **"Optimized" mode** — no selection; the cockpit answers with the most efficient model for the question. Must show which model answered, why, and what it cost, and be overridable in one keystroke. (stated 2026-09-11)
 - **Claude-style commands and tools across all models** — the same slash commands and the same tool set regardless of which model is answering. (stated 2026-09-11)
 
+## Transparency
+- **See the code running in VS Code while in the app.** The editor follows what the agents and jobs are doing, live. (stated 2026-09-11)
+- **Everything coded is visible in VS Code, organized within the project.** Everything trackable and easily auditable; nothing hidden in an app bundle or a separate tree. (stated 2026-09-11)
+
 ## Aesthetic
+- **Cyberpunk.** The graphic design has to be cyberpunk. (stated 2026-09-11)
 - 
 
 ## Things I do NOT want

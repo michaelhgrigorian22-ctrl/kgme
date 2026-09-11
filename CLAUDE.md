@@ -60,6 +60,7 @@ memory/              the Obsidian vault (Tier 2/3 only)
 jobs/                scheduled jobs: <name>/job.md + run.py        (Phase 1+)
 tools/               MCP servers, one per capability; read and write as separate tools
 router/              llm.py: ask(provider, prompt) + policy layer  (Phase 1+)
+cockpit/             the local app: a view over the ledger (ADR-017)   (Phase 1+)
 launchd/             plists + install script                        (Phase 1+)
 logs/                append-only JSONL run ledger (gitignored except its schema)
 ```

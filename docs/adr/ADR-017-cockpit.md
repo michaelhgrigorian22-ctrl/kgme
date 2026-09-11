@@ -25,6 +25,10 @@ KGME gets a **cockpit**: a small local application that does four things and no 
 
 **Form factor, per ADR-015.** A Python service on `localhost` serving a plain HTML/JS page; "an app on the computer" is that page installed to the Dock from the browser (Chrome "Install page as app" / Safari "Add to Dock"). No Electron. If a native shell is ever wanted (menu-bar item, notifications), the same page is wrapped in Tauri — decided then, not now. The interactive terminal UIs remain available and untouched for when Michou wants them directly.
 
+**Where it lives (Michou's requirement, 2026-09-11).** The cockpit is a directory in this repository — `cockpit/` — not a separate project, not a hidden install, not a bundle. It opens in VS Code as part of the KGME workspace alongside `docs/`, `memory/`, `jobs/`, `tools/`, `router/`. Every file is plain text under ADR-015, every dependency is in the same `uv.lock`, every change is a commit tied to a handoff, and the only state it holds at runtime is what it writes to the ledger. No generated bundles are committed; no build step is required to read it. If a line of the cockpit cannot be found in VS Code and explained from its docstring, it does not belong in the cockpit.
+
+**VS Code follows the run (Michou's wish, 2026-09-11).** Two mechanisms, both cheap. For agent runs: every file edit or read in the event stream triggers `code --goto <file>:<line>`, so the editor jumps to what the agent is touching as it happens, and the Source Control panel shows the diff forming live. For KGME's own Python jobs: a VS Code launch configuration per job runs it under the debugger (`ms-python.debugpy` is already installed), so execution is visible line by line on demand. Neither requires the cockpit to embed an editor.
+
 **Not the Agent SDK, for now.** Anthropic's Agent SDK is the polished library route but its terms direct products to API-key billing rather than a claude.ai subscription; for a personal tool on the Max plan, the documented subprocess route (`-p` + JSON output) is the right one. The SDK stays an option if API billing is ever chosen.
 
 ## Build order (Phase 1, after Loop 0)
