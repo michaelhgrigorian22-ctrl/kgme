@@ -2,9 +2,9 @@
 id: HANDOFF-0018
 type: handoff
 created: 2026-09-10T09:25:00-07:00
-from: claude-code
+from: michou
 to: claude-code
-status: proposed
+status: open
 tier: 2
 depends_on: HANDOFF-0017
 supersedes: HANDOFF-0016
@@ -13,7 +13,7 @@ audit_ref: "AUDIT-0006: one real finance-python at ~/Projects/Finance/ARCHIVE PI
 
 > **Decision recorded 2026-09-11 (Michou, via Cowork):** the current modeling conventions file is `~/Projects/Finance/Active/MODELING_CONVENTIONS_V2.md`. Step (c) repoints `~/.claude/CLAUDE.md` line 16 and `~/AGENTS.md` line 16 to it (shown-diff-then-approve). The June root copy and the MRVL copy are left untouched.
 
-# Handoff 0018 (proposed) - Dismantle `finance-python`: repoint, archive, then delete
+# Handoff 0018 - Dismantle `finance-python`: repoint, archive, then delete
 
 ## Scope, stated first
 The disposal unit is exactly `~/Projects/Finance/ARCHIVE PITCHES - SUMMER 26 INTERNSHIP/finance-python/` and the outside references AUDIT-0006 §5 lists. **Nothing else under `~/Projects/Finance` is touched**, including the sibling `equity-quicktester/` and its venv, the `ALBEMARLE ` folder, and the three `MODELING_CONVENTIONS` copies. `~/Reference/FinanceToolkit` and `~/Reference/OpenBB` are out of scope.
