@@ -3,7 +3,7 @@ id: STATUS
 type: note
 status: active
 created: 2026-09-10T09:50:00-07:00
-modified: 2026-09-14T22:25:00-07:00
+modified: 2026-09-15T09:05:00-07:00
 author: cowork
 source: stated
 tier: 2
@@ -11,22 +11,22 @@ tier: 2
 
 # KGME — current status (ADR-014)
 
-The one place that says what is true *now*. Historical records are never edited; this file is. Last updated 2026-09-14 22:25 PDT by Claude Code (Phase 1 deliberation, AUDIT-0011).
+The one place that says what is true *now*. Historical records are never edited; this file is. Last updated 2026-09-15 09:05 PDT by Claude Code (HANDOFF-0027 and 0028 done, AUDIT-0014).
 
 ## Phase
-**Phase 0 — Prepare: complete as of 2026-09-11**, except the housekeeping list below. **Phase 1 — Loop 0 and the cockpit: open as of 2026-09-14.** Plan amended that evening after a four-model deliberation (AUDIT-0011); build order at `plans/phase-1-loop-0.md`, fifteen proposals HANDOFF-0025…0039 under `handoff/proposed/`, ADR-019 (ledger event schema) proposed. Code starts when Michou adopts HANDOFF-0025. Nothing runs unattended. No runtime code exists yet.
+**Phase 0 — Prepare: complete as of 2026-09-11**, except the housekeeping list below. **Phase 1 — Loop 0 and the cockpit: open as of 2026-09-14.** Plan amended that evening after a four-model deliberation (AUDIT-0011); build order at `plans/phase-1-loop-0.md`. Done: HANDOFF-0025 packaging (AUDIT-0012), 0026 ledger (AUDIT-0013), 0027 permissions and 0028 hook pair (AUDIT-0014); ADR-019 accepted. Open: 0030 schema v1.2 until 0031's dry run. Next to adopt: 0029 `kgme review`. Nothing runs unattended; the hooks run on every Claude Code tool call in the repository.
 
 ## Gates before anything is scheduled (ADR-013 §6)
 | Gate | State | Record |
 |---|---|---|
 | Completed backup + tested restore | **MET** 2026-09-11 — Backblaze (private key, 1-year history), restore hash-verified; private GitHub remote `michaelhgrigorian22-ctrl/kgme` in sync | AUDIT-0007, AUDIT-0009 |
 | Charter accepted | **MET** 2026-09-11 — v0.2 accepted; v0.1 archived; four `[REVIEW]` refinements open, non-blocking | `charter.md` |
-| Ledger durable and tracked | ADR-012 accepted; `.gitignore` tracks `logs/ledger/`; **no ledger written yet**; event shape fixed by ADR-019 (proposed) | HANDOFF-0026 |
-| Repo-scoped permissions + hooks | **not built**; global settings are `auto` mode with a wide allowlist (AUDIT-0002) | HANDOFF-0027 (settings), 0028 (hook pair) |
+| Ledger durable and tracked | **MET** 2026-09-15 — ADR-019 accepted; `kgme/ledger.py` the one writer; `logs/ledger/2026-09.jsonl` tracked and holding real events since the hooks went live; `logs/trace/` untracked for read-only tool calls | HANDOFF-0026, AUDIT-0013 |
+| Repo-scoped permissions + hooks | **MET** 2026-09-15 — `.claude/settings.json` in ask-mode with explicit allow and deny (0027); pre-tool guard and post-tool ledger hooks live on every call (0028). Interactive sessions: deny and prompt proven by Michou; background-job sessions keep deny and the hooks but not the prompt, carried into 0032's canary matrix | AUDIT-0014 |
 | Canary tests per worker | **not built** | HANDOFF-0032; network cells advisory until LuLu (0038) |
 
 ## Ground layer (done)
-Firewall on · Homebrew 6.0.22 (pinned installer `8949852`, analytics off) · `gh` 2.100.0 pinned · `gh auth` over HTTPS via credential helper · Codex CLI 0.154.0 · shell aliases (`kgme`, `kgme-claude`, `kgme-codex`) · git identity set · ADR-001…018 accepted · every handoff 0001–0023 done; 0024 abandoned as unnecessary.
+Firewall on · Homebrew 6.0.22 (pinned installer `8949852`, analytics off) · `gh` 2.100.0 pinned · `gh auth` over HTTPS via credential helper · Codex CLI 0.154.0 · shell aliases (`kgh`, `kgme-claude`, `kgme-codex`) and the `kgme` function · Python 3.13 via uv, PyYAML 6.0.3, ruff 0.16.7, pytest 9.1.1 pinned · git identity set · ADR-001…018 accepted · every handoff 0001–0023 done; 0024 abandoned as unnecessary.
 
 ## finance-python (done)
 Unit reduced to its 80 human files (6.3 MB) at `~/Projects/Finance/ARCHIVE PITCHES - SUMMER 26 INTERNSHIP/finance-python/`; byte-identical hash-verified archive with git baseline at `~/Archive/finance-python-2026-09/`; ~24,667 regenerable files / 906 MB removed; global conventions pointer → `Active/MODELING_CONVENTIONS_V2.md`; `~/.claude.json` dead keys and stale Claude Code state removed; two memory notes archived. **Michou's ruling: the working copy stays in place.** `~/Projects/Finance` untouched otherwise.
@@ -42,7 +42,7 @@ Unit reduced to its 80 human files (6.3 MB) at `~/Projects/Finance/ARCHIVE PITCH
 | First three workers | daily brief and coursework→calendar named; third waits for ten real friction entries (2026-09-14) | HANDOFF-0039 |
 | Weekly review slot | **Decided 2026-09-14:** Sunday 18:00 PT | first held at Phase 1 exit (0039) |
 | Working copy of finance-python | stays for now; delete later or not at all | — |
-| `kgme` shell alias | **Decided 2026-09-14:** the CLI owns `kgme`; the `cd` alias is renamed, default `kgh` unless Michou names another | HANDOFF-0025 |
+| `kgme` shell alias | **Done 2026-09-14:** `kgh` jumps to the repo; `kgme` is a shell function over `uv run --frozen --project` | HANDOFF-0025 |
 | Review gate | **Decided 2026-09-14:** a blocking-class finding opens a fix-and-re-review loop between models, bounded per ADR-016, escalating to Michou at the bound | HANDOFF-0025 (protocol), 0029 (command) |
 | Schema v1.2 | **Decided 2026-09-14:** validator covers `memory/` and `docs/`; repair by schema rule for append-only types, never by editing an ADR | HANDOFF-0030 |
 
