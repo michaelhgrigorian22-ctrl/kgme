@@ -41,7 +41,14 @@ blocklist = [
 read_only_tools = ["Read", "Grep", "Glob", "LS", "TodoRead"]
 # File tools (Read, Edit, Write, Glob, Grep, ...) may name paths outside the repository only under
 # these roots (HANDOFF-0028 rule 2). Bash is fenced by the blocklist and the settings deny list.
-allow_outside = ["~/.claude/jobs", "~/.claude/plans", "/tmp", "/private/tmp", "/dev/null"]
+allow_outside = [
+    "~/.claude/jobs",
+    "~/.claude/plans",
+    "~/.claude/projects",  # Claude Code's own per-project memory trees (lessons, MEMORY.md)
+    "/tmp",
+    "/private/tmp",
+    "/dev/null",
+]
 
 [models]
 # Review-loop identifiers. Human-readable copy: docs/readers/review-loop.md. Keep in sync by hand.
