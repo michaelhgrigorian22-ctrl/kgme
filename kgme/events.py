@@ -197,7 +197,7 @@ def stream_for(event: dict, read_only_tools: list[str]) -> str:
         return "ledger"
     if event["kind"] not in ("intent", "outcome"):
         return "ledger"
-    if event["status"] == "refused":
+    if event["status"] == "refused" or event["class"] == "blocking":
         return "ledger"
     return "trace" if job[len("tool:") :] in read_only_tools else "ledger"
 

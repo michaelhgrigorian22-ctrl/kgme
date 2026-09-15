@@ -35,7 +35,7 @@ A reviewer that must resolve links needs `-s workspace-write -c 'sandbox_workspa
 ## The bound (ADR-016)
 - Strikes count **distinct blocking root causes**, never attempts. The same root cause across three cycles is one strike with an attempt count.
 - **Tooling failures never count:** sandbox without network, HTTP 429, `curl` 000, a reviewer timeout. They are `transient`, retried within ADR-016's bound, and if exhausted they reclassify to `blocking: exhausted` against the tooling, not the diff.
-- **Halt** when three distinct blocking root causes stand unresolved, or when one root cause has gone three cycles without resolution.
+- **Halt** when three distinct blocking root causes are still unresolved after the builder's fix cycle and the re-review, or when one root cause has gone three cycles without resolution. A first-cycle review may raise any number of findings; strikes are what survives a fix. (Wording amended by Michou 2026-09-15 after the first halt fired at the end of cycle one, before any fix attempt.)
 - A halt sends Michou the ADR-016 escalation packet, one screen: what failed, its class, the evidence, the options (override / reject / retry), a recommended default, and what happens if he does nothing (nothing is committed). The intended reply is one word.
 
 ## What the loop never does

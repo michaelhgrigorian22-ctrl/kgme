@@ -62,6 +62,11 @@ def scratch_dir(settings: dict, base: Path | None = None) -> Path:
     return _path_setting(settings, "scratch_dir", base)
 
 
+def scratch_test_dir(settings: dict, base: Path | None = None) -> Path:
+    """`logs/scratch-test/`, where hook tests put payloads and error lines."""
+    return _path_setting(settings, "scratch_test_dir", base)
+
+
 def payloads_dir(settings: dict, base: Path | None = None) -> Path:
     """`logs/scratch/payloads/`, raw tool inputs referenced by hash from ledger lines."""
     return _path_setting(settings, "payloads_dir", base)

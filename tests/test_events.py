@@ -130,6 +130,8 @@ def test_redact_leaves_ordinary_text_and_ulids_alone() -> None:
 @pytest.mark.blocking
 def test_stream_rule() -> None:
     assert events.stream_for(event(kind="intent", job="tool:Read"), READ_ONLY) == "trace"
+    blocked = event(kind="intent", job="tool:Read", class_="blocking")
+    assert events.stream_for(blocked, READ_ONLY) == "ledger"
     assert (
         events.stream_for(event(kind="outcome", status="ok", job="tool:Grep"), READ_ONLY) == "trace"
     )
