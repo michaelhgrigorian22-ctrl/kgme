@@ -1,0 +1,45 @@
+# KGME configuration. The one TOML file every module reads through kgme/config.py (ADR-015).
+# Paths are relative to the repository root unless absolute. No secrets here, ever (ADR-008).
+
+[paths]
+vault = "memory"
+ledger_dir = "logs/ledger"            # git-tracked, never deleted (ADR-012, ADR-019 §2)
+trace_dir = "logs/trace"              # untracked, read-only tool events (ADR-019 §2)
+ledger_test_dir = "logs/ledger-test"  # tests write here, never to the real streams
+trace_test_dir = "logs/trace-test"
+scratch_dir = "logs/scratch"
+payloads_dir = "logs/scratch/payloads"
+# Tier 1 is a separate repository elsewhere on disk (ADR-002). As of 2026-09-14 it does not
+# exist yet (Michou, HANDOFF-0025 review F2); when it does, its absolute path is added here,
+# path string only. The relative entry is the in-repo tripwire from .gitignore.
+tier1_paths = ["memory/private"]
+
+[cockpit]
+host = "127.0.0.1"
+port = 8642
+
+[clean]
+# Named targets for `kgme clean` (HANDOFF-0033). Roots are the only places it may delete.
+targets = { briefs = "memory/agent/brief", agent = "memory/agent", scratch = "logs/scratch", trace = "logs/trace", ledger-test = "logs/ledger-test" }
+cache_globs = ["**/__pycache__", ".ruff_cache", ".pytest_cache"]
+venv = ".venv"
+
+[hooks]
+# Resolved-path blocklist for the pre-tool guard (HANDOFF-0028). Patterns, never contents.
+blocklist = [
+    "~/.ssh",
+    "~/Library/Keychains",
+    "~/.claude/.credentials.json",
+    "~/.codex/auth.json",
+    "**/.env",
+    "**/.env.*",
+    "memory/private",
+]
+# Hook pairs for these tools go to logs/trace/; every other tool goes to logs/ledger/ (ADR-019 §2).
+read_only_tools = ["Read", "Grep", "Glob", "LS", "TodoRead"]
+
+[models]
+# Review-loop identifiers. Human-readable copy: docs/readers/review-loop.md. Keep in sync by hand.
+reviewer = "gpt-6-astra"
+reviewer_alternate = "gpt-5.6-sol"
+arbiter = "claude-opus-5"

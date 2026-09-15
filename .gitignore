@@ -4,6 +4,10 @@
 .env.*
 # logs/ledger/*.jsonl are DURABLE and tracked (ADR-012); only scratch logs are ignored
 logs/scratch/
+# logs/trace/ is the untracked read-only tool stream (ADR-019 §2); test streams never enter git
+logs/trace/
+logs/ledger-test/
+logs/trace-test/
 memory/.obsidian/workspace.json
 memory/.obsidian/workspace-mobile.json
 memory/.obsidian/cache/
