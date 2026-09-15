@@ -18,7 +18,7 @@ Michou ruled 2026-09-14 that the validator covers `memory/` and `docs/` and that
 ## What (schema v1.2, proposed rules)
 1. `modified` is not required on append-only types (`decision`, `handoff`, `report`): an append-only record is never modified by construction. No ADR file is touched.
 2. `note` is permitted under `docs/` and `docs/plans/` (governance notes: STATUS, roadmap, plans) and under `memory/inbox/` (human captures). The `note` row's "Lives in" column gains those three locations.
-3. `docs/charter.md` is exempted from type validation by path, with the reason written into the schema: the charter is governed by charter §8, changes only by ADR plus approval, and adding an eleventh type for one file would break the ceiling for no gain.
+3. `docs/charter.md` and its `type: charter`: **pending Michou's separate ruling (2026-09-14).** The options are a path exemption with the reason written into the schema (the charter is governed by charter §8), or an eleventh type by ADR. Until he rules, the validator treats the charter as a path exemption and reports it as `advisory`, never `blocking`.
 4. `memory/templates/` is excluded from validation by path; templates are not notes.
 5. Any `docs/` file still failing after rules 1 to 4 (a missing `status`, a naive date) is fixed by a minimal frontmatter edit shown as a diff per ADR-004. Expected set after a dry run of the validator: to be listed by HANDOFF-0031's first run and attached here.
 6. `schema-v1.md` version line becomes 1.2 with a changelog entry; `status: draft` stays until Michou says otherwise.
