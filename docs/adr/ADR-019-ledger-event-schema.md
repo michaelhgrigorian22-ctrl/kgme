@@ -1,7 +1,9 @@
 ---
 id: ADR-019
 type: decision
-status: proposed
+status: accepted
+accepted_by: michou
+accepted: 2026-09-14T22:52:00-07:00
 created: 2026-09-14T22:25:00-07:00
 author: claude-code
 source: inferred
