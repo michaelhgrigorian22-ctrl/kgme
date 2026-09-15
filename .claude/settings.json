@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "defaultMode": "default",
+    "allow": [
+      "Bash(uv run *)",
+      "Bash(make check)",
+      "Bash(make canary-agents)",
+      "Bash(git status)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(ls *)",
+      "Read",
+      "Edit(/kgme/**)",
+      "Edit(/tests/**)",
+      "Edit(/tools/**)",
+      "Edit(/jobs/**)",
+      "Edit(/cockpit/**)",
+      "Edit(/memory/agent/**)",
+      "Edit(/logs/**)",
+      "Edit(/docs/audit/**)",
+      "Edit(/docs/handoff/proposed/**)",
+      "Write(/kgme/**)",
+      "Write(/tests/**)",
+      "Write(/tools/**)",
+      "Write(/jobs/**)",
+      "Write(/cockpit/**)",
+      "Write(/memory/agent/**)",
+      "Write(/logs/**)",
+      "Write(/docs/audit/**)",
+      "Write(/docs/handoff/proposed/**)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(rm -fr *)",
+      "Bash(rm -r *)",
+      "Bash(sudo *)",
+      "Bash(security *)",
+      "Bash(curl * | bash)",
+      "Bash(curl * | sh)",
+      "Bash(wget * | sh)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/*.env)",
+      "Read(~/.ssh/**)",
+      "Read(~/Library/Keychains/**)",
+      "Read(~/.claude/.credentials.json)",
+      "Read(~/.codex/auth.json)",
+      "Read(memory/private/**)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/tools/hooks/pre_tool_guard.sh",
+            "timeout": 5,
+            "statusMessage": "KGME guard"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/tools/hooks/post_tool_ledger.sh",
+            "timeout": 10,
+            "statusMessage": "KGME ledger"
+          }
+        ]
+      }
+    ]
+  }
+}
