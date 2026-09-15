@@ -17,4 +17,5 @@ Format: `- YYYY-MM-DD HH:MM — what happened — what KGME should have done`
 
 ## Entries
 
-- 2026-09-09 — (example) had to open Canvas to check when the problem set is due — KGME should have had it in the daily brief
+- 2026-09-15 — 00:30 — opening a reader in word created a temp file, shouldnt 
+- 2026-09-15 — 00:30 — no kgh in terminal off rip, made committing difficult for a sec 
