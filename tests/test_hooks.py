@@ -406,3 +406,16 @@ def test_post_hook_never_blocks_and_records_its_own_failure_in_test_scratch() ->
     assert "JSONDecodeError" in after.splitlines()[-1]
     live_after = live.read_bytes() if live.exists() else None
     assert live_after == live_before
+
+
+@pytest.mark.blocking
+def test_a_tilde_word_that_names_no_user_is_a_literal_not_a_crash() -> None:
+    """`~330` in a table or `~nosuchuser/x` must not crash the guard: a crash fails closed and
+    refuses the whole call (found 2026-09-17 when a report edit carried a `~330` cell)."""
+    decision = decide("Bash", {"command": "echo '| ~330 |' and cat ~nosuchuser-kgme/notes.md"})
+    assert decision.allowed, decision.reason
+    assert any(p.name == "~330" for p in decision.paths)
+    assert guard.expand_home("~330") == Path("~330")
+    assert guard.expand_home("~") == Path.home()
+    still_fenced = decide("Bash", {"command": "cat ~/.ssh/id_ed25519"})
+    assert not still_fenced.allowed, "a real home expansion still reaches the blocklist"

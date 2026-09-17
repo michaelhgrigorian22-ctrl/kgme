@@ -60,11 +60,25 @@ def fragments(text: str) -> list[str]:
     return found
 
 
+def expand_home(fragment: str) -> Path:
+    """`~` and `~user` expanded when the shell would expand them; otherwise the literal path.
+
+    A tilde word that names no user (`~330` in a table, `~nosuchuser/x`) stays literal and is
+    resolved against the working directory like any other word. `expanduser` raises on it,
+    and a guard that raises fails closed and refuses the call (learned 2026-09-17).
+    """
+    path = Path(fragment)
+    try:
+        return path.expanduser()
+    except RuntimeError:
+        return path
+
+
 def resolve_all(fragment_list: list[str], cwd: Path) -> tuple[Path, ...]:
     """Each fragment as an absolute path against `cwd`, symlinks followed."""
     resolved = []
     for fragment in fragment_list:
-        path = Path(fragment).expanduser()
+        path = expand_home(fragment)
         absolute = path if path.is_absolute() else cwd / path
         resolved.append(absolute.resolve())
     return tuple(resolved)
@@ -99,7 +113,7 @@ def script_candidates(tool_name: str, tool_input: dict, cwd: Path) -> tuple[Path
             if Path(word).name in RUNNERS:
                 seen_runner = True
             executed = index == 0 or seen_runner
-            path = Path(word).expanduser()
+            path = expand_home(word)
             absolute = (path if path.is_absolute() else cwd / path).resolve()
             if executed and absolute.suffix in SCRIPT_SUFFIXES and absolute not in found:
                 found.append(absolute)
