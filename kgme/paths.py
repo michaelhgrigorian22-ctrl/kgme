@@ -72,6 +72,21 @@ def payloads_dir(settings: dict, base: Path | None = None) -> Path:
     return _path_setting(settings, "payloads_dir", base)
 
 
+def audit_dir(settings: dict, base: Path | None = None) -> Path:
+    """`docs/audit/`, where reports and review audits live."""
+    return _path_setting(settings, "audit_dir", base)
+
+
+def handoff_dir(settings: dict, base: Path | None = None) -> Path:
+    """`docs/handoff/`, the adopted handoffs."""
+    return _path_setting(settings, "handoff_dir", base)
+
+
+def review_prompt(settings: dict, base: Path | None = None) -> Path:
+    """`tools/review/prompt.md`, the fixed reviewer prompt template."""
+    return _path_setting(settings, "review_prompt", base)
+
+
 def tier1_paths(settings: dict, base: Path | None = None) -> list[Path]:
     """Paths that no agent may read. Only the paths; never what is behind them."""
     return [resolve(p, base) for p in settings["paths"]["tier1_paths"]]

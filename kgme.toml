@@ -10,6 +10,9 @@ trace_test_dir = "logs/trace-test"
 scratch_dir = "logs/scratch"
 payloads_dir = "logs/scratch/payloads"
 scratch_test_dir = "logs/scratch-test"  # hook tests write payloads and errors here, never to the live scratch
+audit_dir = "docs/audit"                # reports; kgme review writes AUDIT-NNNN-review-* here
+handoff_dir = "docs/handoff"            # adopted handoffs; kgme review finds a handoff by its id here
+review_prompt = "tools/review/prompt.md"
 # Tier 1 is a separate repository elsewhere on disk (ADR-002). As of 2026-09-14 it does not
 # exist yet (Michou, HANDOFF-0025 review F2); when it does, its absolute path is added here,
 # path string only. The relative entry is the in-repo tripwire from .gitignore.
