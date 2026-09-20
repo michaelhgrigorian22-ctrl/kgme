@@ -7,7 +7,8 @@ Outputs: strings.
 Side effects: none, except `audit_text`, which reads the clock for its `created` field.
 """
 
-from kgme import events
+from datetime import datetime
+
 from kgme.review import LoopState
 from kgme.review_parse import Finding, counts, open_blocking
 
@@ -55,7 +56,7 @@ def audit_text(
         for f in findings
     )
     tally = counts(findings)
-    now = events.now_iso()
+    now = datetime.now().astimezone().isoformat(timespec="seconds")
     return (
         f"---\nid: AUDIT-{number:04d}\ntype: report\nstatus: final\nhandoff: {handoff}\n"
         f'author: codex\nsource: inferred\nsources: ["{handoff}", "staged diff sha256 {sha}"]\n'

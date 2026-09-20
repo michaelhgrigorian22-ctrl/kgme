@@ -1,3 +1,14 @@
+---
+id: DOCS-README
+type: note
+created: 2026-09-09T22:41:48-07:00
+modified: 2026-09-20T15:31:58-07:00
+status: active
+tier: 2
+source: stated
+author: cowork
+---
+
 # KGME documents — index and reading order
 
 | Kind | Where | Treatment | Who writes |

@@ -1,15 +1,15 @@
 """The `kgme` command line.
 
 Purpose: one entry point, one subcommand per capability, each built by its own handoff.
-Until a handoff lands, its subcommand says so and exits 2, except `lint`, which is a no-op
-that exits 0 so `make check` runs green before HANDOFF-0031 (HANDOFF-0025 step 5).
+Until a handoff lands, its subcommand says so and exits 2. `lint` (HANDOFF-0031) validates
+every note under the configured roots against the schema and exits 1 on a blocking finding.
 `ledger` (HANDOFF-0026) reads both streams or appends one human-authored event. `review`
 (HANDOFF-0029) runs one cycle of the review loop, or records a ruling or an override.
 Inputs: argv.
-Outputs: exit code; one line on stdout or stderr, or a review's escalation packet.
+Outputs: exit code; one line per finding or event, a summary, or a review's escalation packet.
 Side effects: `ledger note`, `review`, `review rule`, and `review override` append to the real
 ledger; `review` also runs `make check` and `codex exec`, writes the scratch patch, a payload,
-and an audit file under `docs/audit/`. `ledger read` and `review --dry-run` write nothing.
+and an audit file under `docs/audit/`. `lint`, `ledger read`, and `review --dry-run` only read.
 """
 
 import argparse
@@ -30,7 +30,16 @@ def build_parser() -> argparse.ArgumentParser:
     subcommands = parser.add_subparsers(dest="command", required=True)
     subcommands.add_parser("brief", help="Loop 0: write today's brief from the vault")
     subcommands.add_parser("clean", help="delete disposable outputs by named target")
-    subcommands.add_parser("lint", help="validate every note under memory/ and docs/")
+    lint_parser = subcommands.add_parser("lint", help="validate every note under memory/ and docs/")
+    lint_parser.add_argument(
+        "--root", action="append", help="lint this root instead of kgme.toml's"
+    )
+    lint_parser.add_argument(
+        "--include-cosmetic", action="store_true", help="print cosmetic findings"
+    )
+    lint_parser.add_argument(
+        "--base", help="directory the folder rules and exemptions are relative to (repo root)"
+    )
     review_parser = subcommands.add_parser("review", help="run the review loop on the staged diff")
     review_parser.add_argument("--handoff", help="the handoff id under review, e.g. HANDOFF-0029")
     review_parser.add_argument("--reviewer", help="Codex model id; default from kgme.toml [models]")
@@ -74,14 +83,45 @@ def main(argv: list[str] | None = None) -> int:
     """Dispatch. Returns the exit code; `sys.exit` happens only at the console-script edge."""
     args = build_parser().parse_args(argv)
     if args.command == "lint":
-        print("kgme lint: not built (HANDOFF-0031); no-op, exit 0")
-        return 0
+        return run_lint(args)
     if args.command == "ledger":
         return run_ledger(args)
     if args.command == "review":
         return run_review(args)
     print(f"kgme {args.command}: not built ({NOT_BUILT[args.command]})", file=sys.stderr)
     return 2
+
+
+def run_lint(args: argparse.Namespace) -> int:
+    """`kgme lint` (HANDOFF-0031): one line per finding, a summary, exit 1 on any blocking one."""
+    from pathlib import Path
+
+    from kgme import config, lint, paths, vault
+
+    settings = config.read_config()
+    section = settings["lint"]
+    base = Path(args.base).resolve() if args.base else paths.root()
+    roots = (
+        [Path(r).resolve() for r in args.root]
+        if args.root
+        else [paths.resolve(r, base) for r in section["roots"]]
+    )
+    exempt = [paths.resolve(p, base) for p in section["exempt"]]
+    try:
+        notes = vault.read_notes(roots, exempt, tuple(section["skip_dirs"]), base)
+    except FileNotFoundError as error:
+        print(f"kgme lint: {error}", file=sys.stderr)
+        return 2
+    findings = lint.lint_files(notes)
+    for finding in findings:
+        if finding.cls != "cosmetic" or args.include_cosmetic:
+            print(finding.line())
+    tally = lint.counts(findings)
+    print(
+        f"kgme lint: {len(notes)} notes, {tally['blocking']} blocking, "
+        f"{tally['advisory']} advisory, {tally['cosmetic']} cosmetic"
+    )
+    return 1 if tally["blocking"] else 0
 
 
 def run_review(args: argparse.Namespace) -> int:

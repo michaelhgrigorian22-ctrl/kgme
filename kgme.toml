@@ -18,6 +18,12 @@ review_prompt = "tools/review/prompt.md"
 # path string only. The relative entry is the in-repo tripwire from .gitignore.
 tier1_paths = ["memory/private"]
 
+[lint]
+# `kgme lint` walks these roots and skips what docs/schema-v1.md §Scope exempts (HANDOFF-0031).
+roots = ["memory", "docs"]
+exempt = ["memory/templates", "memory/attachments", "docs/archive", "docs/charter.md", "docs/schema-v1.md"]
+skip_dirs = [".obsidian"]
+
 [cockpit]
 host = "127.0.0.1"
 port = 8642
