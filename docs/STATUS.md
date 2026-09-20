@@ -3,7 +3,7 @@ id: STATUS
 type: note
 status: active
 created: 2026-09-10T09:50:00-07:00
-modified: 2026-09-15T09:05:00-07:00
+modified: 2026-09-20T13:40-07:00
 author: cowork
 source: stated
 tier: 2
@@ -11,10 +11,10 @@ tier: 2
 
 # KGME — current status (ADR-014)
 
-The one place that says what is true *now*. Historical records are never edited; this file is. Last updated 2026-09-15 09:05 PDT by Claude Code (HANDOFF-0027 and 0028 done, AUDIT-0014).
+The one place that says what is true *now*. Historical records are never edited; this file is. Last updated 2026-09-20 13:40 PDT by Claude Code (HANDOFF-0029 done, AUDIT-0016).
 
 ## Phase
-**Phase 0 — Prepare: complete as of 2026-09-11**, except the housekeeping list below. **Phase 1 — Loop 0 and the cockpit: open as of 2026-09-14.** Plan amended that evening after a four-model deliberation (AUDIT-0011); build order at `plans/phase-1-loop-0.md`. Done: HANDOFF-0025 packaging (AUDIT-0012), 0026 ledger (AUDIT-0013), 0027 permissions and 0028 hook pair (AUDIT-0014); ADR-019 accepted. Open: 0030 schema v1.2 until 0031's dry run. Next to adopt: 0029 `kgme review`. Nothing runs unattended; the hooks run on every Claude Code tool call in the repository.
+**Phase 0 — Prepare: complete as of 2026-09-11**, except the housekeeping list below. **Phase 1 — Loop 0 and the cockpit: open as of 2026-09-14.** Plan amended that evening after a four-model deliberation (AUDIT-0011); build order at `plans/phase-1-loop-0.md`. Done: HANDOFF-0025 packaging (AUDIT-0012), 0026 ledger (AUDIT-0013), 0027 permissions and 0028 hook pair (AUDIT-0014), 0029 `kgme review` (AUDIT-0016, reviewed by itself over five cycles); ADR-019 accepted. Open: 0030 schema v1.2 until 0031's dry run. Next to adopt: 0031 validator; its reviews run through `kgme review`. Nothing runs unattended; the hooks run on every Claude Code tool call in the repository.
 
 ## Gates before anything is scheduled (ADR-013 §6)
 | Gate | State | Record |
@@ -43,7 +43,7 @@ Unit reduced to its 80 human files (6.3 MB) at `~/Projects/Finance/ARCHIVE PITCH
 | Weekly review slot | **Decided 2026-09-14:** Sunday 18:00 PT | first held at Phase 1 exit (0039) |
 | Working copy of finance-python | stays for now; delete later or not at all | — |
 | `kgme` shell alias | **Done 2026-09-14:** `kgh` jumps to the repo; `kgme` is a shell function over `uv run --frozen --project` | HANDOFF-0025 |
-| Review gate | **Decided 2026-09-14:** a blocking-class finding opens a fix-and-re-review loop between models, bounded per ADR-016, escalating to Michou at the bound | HANDOFF-0025 (protocol), 0029 (command) |
+| Review gate | **Built 2026-09-17:** `kgme review` runs the loop from the ledger; halt when one root cause stands blocking three consecutive cycles or three survive a fix cycle; `kgme review rule` records the arbiter, `kgme review override` records Michou. First halt, override, and arbitration all happened on its own review | AUDIT-0016, `docs/readers/review-loop.md` |
 | Schema v1.2 | **Decided 2026-09-14:** validator covers `memory/` and `docs/`; repair by schema rule for append-only types, never by editing an ADR | HANDOFF-0030 |
 
 ## Proposals still open (`docs/handoff/proposed/`)
