@@ -2,10 +2,10 @@
 id: HANDOFF-0032
 type: handoff
 created: 2026-09-14T22:25:00-07:00
-from: claude-code
+from: michou
 to: claude-code
 tier: 2
-status: proposed
+status: open
 depends_on: [HANDOFF-0028, HANDOFF-0031]
 plan_ref: PLAN-PHASE-1 step 7
 ---
