@@ -13,10 +13,13 @@ author: human
 # {{date:dddd D MMMM YYYY}}
 
 ## Today
+<!-- what happened, any project; one line each is enough -->
 
-## Due
+## Learned
+
+## Problems and solutions
+
+## Tomorrow
 
 ## Friction
 <!-- one line here is fine; move it to [[friction-log]] when you have a minute -->
-
-## Notes
