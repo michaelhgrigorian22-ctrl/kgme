@@ -1,0 +1,12 @@
+# Agent profile: Codex CLI as reviewer, `codex exec -s read-only` (ADR-013 §1, HANDOFF-0032).
+# Codex has no hook layer; its boundary in Phase 1 is the vendor's read-only sandbox, which
+# refuses writes and network but not reads. The agent tier of the canary matrix measures that,
+# and its read cells are advisory (layer missing) until a read boundary exists for Codex.
+name = "codex-reviewer"
+kind = "agent-profile"
+max_tier = 2
+read_paths = ["."]
+# Read-only: nothing, anywhere. Its review lands in the ledger through kgme review, not by its hand.
+write_paths = []
+tools = ["shell"]
+network_destinations = ["chatgpt.com:443", "api.openai.com:443"]

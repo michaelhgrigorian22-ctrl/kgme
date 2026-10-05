@@ -49,7 +49,27 @@
       "Read(~/Library/Keychains/**)",
       "Read(~/.claude/.credentials.json)",
       "Read(~/.codex/auth.json)",
-      "Read(memory/private/**)"
+      "Read(memory/private/**)",
+      "Edit(/CLAUDE.md)",
+      "Write(/CLAUDE.md)",
+      "Edit(/docs/*.md)",
+      "Write(/docs/*.md)",
+      "Edit(/docs/adr/**)",
+      "Write(/docs/adr/**)",
+      "Edit(/docs/plans/**)",
+      "Write(/docs/plans/**)",
+      "Edit(/docs/readers/**)",
+      "Write(/docs/readers/**)",
+      "Edit(/docs/archive/**)",
+      "Write(/docs/archive/**)",
+      "Edit(/docs/handoff/*.md)",
+      "Write(/docs/handoff/*.md)",
+      "Edit(/memory/notes/**)",
+      "Write(/memory/notes/**)",
+      "Edit(/memory/inbox/**)",
+      "Write(/memory/inbox/**)",
+      "Edit(/memory/daily/**)",
+      "Write(/memory/daily/**)"
     ]
   },
   "hooks": {

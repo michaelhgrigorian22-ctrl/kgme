@@ -1,0 +1,11 @@
+# Worker manifest for the cockpit (ADR-013 §1, HANDOFF-0032; the app itself is HANDOFF-0037).
+# A read-only view over the ledger: it reads the streams and its own files, writes nothing,
+# and connects nowhere. It listens on 127.0.0.1 (kgme.toml [cockpit]); listening is not a
+# destination. A manifest narrows, never widens.
+name = "cockpit"
+kind = "app"
+max_tier = 2
+read_paths = ["logs/ledger", "logs/trace", "cockpit", "kgme.toml"]
+write_paths = []
+tools = ["serve"]
+network_destinations = []

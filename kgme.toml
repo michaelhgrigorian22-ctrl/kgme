@@ -46,6 +46,10 @@ blocklist = [
     "**/*.env",
     "memory/private",
 ]
+# Human-authored paths (ADR-004): file-writing tools (Write, Edit, MultiEdit, NotebookEdit) may not
+# name them; an approved diff is applied through Bash instead. A directory covers its subtree, a
+# glob covers one level. Guard rule 4 (HANDOFF-0032 follow-up, Michou 2026-09-23).
+human_paths = ["CLAUDE.md", "docs/*.md", "docs/adr", "docs/plans", "docs/readers", "docs/archive", "docs/handoff/*.md", "memory/notes", "memory/inbox", "memory/daily"]
 # Hook pairs for these tools go to logs/trace/; every other tool goes to logs/ledger/ (ADR-019 §2).
 read_only_tools = ["Read", "Grep", "Glob", "LS", "TodoRead"]
 # File tools (Read, Edit, Write, Glob, Grep, ...) may name paths outside the repository only under
@@ -59,8 +63,16 @@ allow_outside = [
     "/dev/null",
 ]
 
+[canary]
+# The agent tier of the canary matrix (make canary-agents, HANDOFF-0032). Enforcement does not
+# depend on the model, so the cheapest capable model runs the Claude Code cells; the Codex cells
+# run [models].reviewer, the profile they certify. One cell is one model run, bounded in seconds.
+claude_model = "claude-haiku-4-5-20251001"
+claude_max_turns = 2
+cell_timeout = 150
+
 [models]
 # Review-loop identifiers. Human-readable copy: docs/readers/review-loop.md. Keep in sync by hand.
 reviewer = "gpt-6-astra"
 reviewer_alternate = "gpt-5.6-sol"
-arbiter = "claude-opus-5"
+arbiter = "claude-opus-5-5"

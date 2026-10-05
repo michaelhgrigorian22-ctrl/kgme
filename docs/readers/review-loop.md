@@ -3,7 +3,7 @@ id: READER-REVIEW-LOOP
 type: note
 status: active
 created: 2026-09-14T23:10:00-07:00
-modified: 2026-09-17T13:10:00-07:00
+modified: 2026-09-23T19:05:00-07:00
 author: claude-code
 source: stated
 tier: 2
@@ -19,7 +19,7 @@ tier: 2
 | Builder | Claude Code | the session's model | interactive or `claude -p` | Writes the diff |
 | Reviewer | Codex CLI | `gpt-6-astra` | `codex exec -s read-only -m gpt-6-astra --json` | Default reviewer; Codex config default model |
 | Reviewer, alternate | Codex CLI | `gpt-5.6-sol` | `codex exec -s read-only -m gpt-5.6-sol --json` | Used when Astra reviewed the previous cycle on the same root cause |
-| Arbiter | Claude | Opus 5 (`claude-opus-5`) | Agent tool, model `opus`, read-only | One arbitration per disputed finding; the other lab from the reviewer |
+| Arbiter | Claude | Opus 5.5 (`claude-opus-5-5`) | Agent tool, model `opus`, read-only | One arbitration per disputed finding; the other lab from the reviewer |
 | Also available | Codex CLI | `gpt-5.6-luna`, `gpt-5.6-terra` | same form | Present in the Codex model cache on this machine; unassigned |
 
 A reviewer that must resolve links needs `-s workspace-write -c 'sandbox_workspace_write.network_access=true'` plus a do-not-write instruction and a pre/post SHA-256 check of the tree; read-only is for everything else.

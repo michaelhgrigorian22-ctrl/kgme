@@ -24,10 +24,11 @@ and the OS-level boundary (HANDOFF-0038) closes it.
 import os
 import re
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 PATH_KEYS = ("file_path", "path", "notebook_path", "directory")
 FILE_TOOLS = ("Read", "Edit", "Write", "NotebookEdit", "MultiEdit", "Glob", "Grep", "LS")
+WRITE_TOOLS = ("Write", "Edit", "MultiEdit", "NotebookEdit")
 SCRIPT_SUFFIXES = (".py", ".sh", ".zsh", ".bash")
 RUNNERS = ("python", "python3", "sh", "bash", "zsh", "source", ".", "run", "exec", "nohup")
 FRAGMENT_SPLIT = re.compile(r"[\s;|&()<>`'\"{}\[\],=:]+")
@@ -137,6 +138,23 @@ def _name_matches(part: str, pattern: str) -> bool:
     return part == pattern or part.startswith(pattern + ".")
 
 
+def is_human_path(path: Path, repo_root: Path, human_paths: tuple[str, ...]) -> bool:
+    """True if `path` is human-authored per `kgme.toml` `[hooks].human_paths`: an entry names a
+    file, a directory and everything under it, or a one-level glob over the repository-relative
+    path (`docs/*.md`). Paths outside the repository are not human paths; rule 2 has them."""
+    try:
+        rel = PurePosixPath(path.relative_to(repo_root).as_posix())
+    except ValueError:
+        return False
+    for entry in human_paths:
+        if "*" in entry:
+            if rel.full_match(entry):
+                return True
+        elif rel == PurePosixPath(entry) or PurePosixPath(entry) in rel.parents:
+            return True
+    return False
+
+
 def is_blocklisted(path: Path, blocklist: list[Path], name_patterns: list[str]) -> bool:
     """True if `path` is, or is under, a blocklisted root, or any part matches a name pattern."""
     if any(_under(path, root) for root in blocklist):
@@ -156,6 +174,7 @@ def decide(
     allow_outside: list[Path],
     extra_paths: tuple[Path, ...] = (),
     uninspectable: tuple[Path, ...] = (),
+    human_paths: tuple[str, ...] = (),
 ) -> Decision:
     """The rule (HANDOFF-0028, ADR-013 §2):
 
@@ -164,11 +183,23 @@ def decide(
        a root in `allow_outside`. A Bash line that executes a script the guard could not
        inspect (outside the allowed roots, or unreadable) is refused for the same reason.
     3. Everything else is allowed; the settings file still decides whether to ask.
+    4. A file-writing tool (`Write`, `Edit`, `MultiEdit`, `NotebookEdit`) naming a
+       human-authored path (`human_paths`) is refused: the diff is shown, approved, and applied
+       through Bash (ADR-004). HANDOFF-0032 follow-up, Michou's ruling of 2026-09-23.
     """
     paths = candidate_paths(tool_name, tool_input, cwd) + tuple(extra_paths)
     for path in paths:
         if is_blocklisted(path, blocklist, name_patterns):
             return Decision(False, paths, f"refused: {tool_name} names a blocklisted path {path}")
+    if tool_name in WRITE_TOOLS:
+        for path in paths:
+            if is_human_path(path, repo_root, human_paths):
+                return Decision(
+                    False,
+                    paths,
+                    f"refused: {tool_name} names a human-authored path {path}; show the diff, "
+                    "get approval, apply it through Bash (ADR-004)",
+                )
     if tool_name in FILE_TOOLS:
         for path in paths:
             if not _under(path, repo_root) and not is_under_any(path, allow_outside):

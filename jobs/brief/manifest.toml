@@ -1,0 +1,14 @@
+# Worker manifest for the brief job (ADR-013 §1, HANDOFF-0032). Checked by kgme/policy.py before
+# every effect the job performs. Paths are repository-relative. A manifest narrows, never widens:
+# the blocklist and Tier 1 roots in kgme.toml are refused whatever is declared here.
+name = "brief"
+kind = "python-job"
+max_tier = 2
+# Inputs of kgme brief v1 (HANDOFF-0034): human notes, machine notes, the day, the friction log.
+read_paths = ["memory/notes", "memory/agent", "memory/daily", "memory/inbox", "memory/templates", "kgme.toml"]
+# The one artefact. Its temp file lives beside it (same directory, then os.replace).
+# Ledger events go through kgme/ledger.py, the trusted writer, and are not declared as job effects.
+write_paths = ["memory/agent/brief"]
+tools = ["read", "write"]
+# v1 makes no model call (Michou, 2026-09-14); v2 adds one destination here when it does.
+network_destinations = []

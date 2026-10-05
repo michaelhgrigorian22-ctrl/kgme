@@ -9,6 +9,8 @@ reads the ledger. `read_script_text` reads one script file. Nothing here writes.
 
 import hashlib
 import json
+import os
+import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -16,6 +18,9 @@ from pathlib import Path
 from kgme import config, ledger, paths
 
 SUMMARY_BUDGET = 150
+# HANDOFF-0032: the one ambient switch, and only for a canary run id (adopted exception to
+# ADR-015's explicit configuration; recorded in AUDIT-0026). A stray value routes nothing.
+CANARY_STREAMS = re.compile(r"^canary:[0-7][0-9A-HJKMNP-TV-Z]{25}$")
 FILE_TOOLS = ("Read", "Edit", "Write", "NotebookEdit", "MultiEdit", "Glob", "Grep", "LS")
 
 
@@ -38,9 +43,13 @@ def read_payload() -> dict:
 
 
 def read_places(argv: list[str]) -> tuple[Places, dict]:
-    """The real places, or the gitignored test places when called with `--test-streams`."""
+    """The real places, or the gitignored test places when called with `--test-streams`, or
+    when `KGME_TEST_STREAMS` carries a canary run id (`canary:<ULID>`): a `claude -p` run the
+    canary matrix launches (HANDOFF-0032) inherits it, so its hook pairs land in the test
+    streams and never in git. Any other value is ignored."""
     settings = config.read_config()
-    if "--test-streams" in argv:
+    flagged = CANARY_STREAMS.match(os.environ.get("KGME_TEST_STREAMS", ""))
+    if "--test-streams" in argv or flagged:
         # Errors go to the test scratch; payloads stay under logs/scratch/payloads/, the one
         # prefix ADR-019 §1 allows for payload_ref, in a subdirectory tests may delete.
         scratch = paths.scratch_test_dir(settings)
