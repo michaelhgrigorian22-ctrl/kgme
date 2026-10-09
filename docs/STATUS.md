@@ -3,7 +3,7 @@ id: STATUS
 type: note
 status: active
 created: 2026-09-10T09:50:00-07:00
-modified: 2026-09-20T13:40:00-07:00
+modified: 2026-10-08T19:35:00-07:00
 author: cowork
 source: stated
 tier: 2
@@ -11,10 +11,10 @@ tier: 2
 
 # KGME — current status (ADR-014)
 
-The one place that says what is true *now*. Historical records are never edited; this file is. Last updated 2026-09-20 13:40 PDT by Claude Code (HANDOFF-0029 done, AUDIT-0016).
+The one place that says what is true *now*. Historical records are never edited; this file is. Last updated 2026-10-08 19:35 PDT by Claude Code (HANDOFF-0032 done, AUDIT-0026).
 
 ## Phase
-**Phase 0 — Prepare: complete as of 2026-09-11**, except the housekeeping list below. **Phase 1 — Loop 0 and the cockpit: open as of 2026-09-14.** Plan amended that evening after a four-model deliberation (AUDIT-0011); build order at `plans/phase-1-loop-0.md`. Done: HANDOFF-0025 packaging (AUDIT-0012), 0026 ledger (AUDIT-0013), 0027 permissions and 0028 hook pair (AUDIT-0014), 0029 `kgme review` (AUDIT-0016, reviewed by itself over five cycles); ADR-019 accepted. Open: 0030 schema v1.2 until 0031's dry run. Next to adopt: 0031 validator; its reviews run through `kgme review`. Nothing runs unattended; the hooks run on every Claude Code tool call in the repository.
+**Phase 0 — Prepare: complete as of 2026-09-11**, except the housekeeping list below. **Phase 1 — Loop 0 and the cockpit: open as of 2026-09-14.** Plan amended that evening after a four-model deliberation (AUDIT-0011); build order at `plans/phase-1-loop-0.md`. Done: HANDOFF-0025 packaging (AUDIT-0012), 0026 ledger (AUDIT-0013), 0027 permissions and 0028 hook pair (AUDIT-0014), 0029 `kgme review` (AUDIT-0016, reviewed by itself over five cycles), 0030 schema v1.3 and 0031 validator (AUDIT-0022), 0032 canary tests and worker manifests (AUDIT-0026, seven cycles, two overrides); ADR-019 accepted. Next to adopt: 0040 `kgme sync` (step 7b, added by Cowork 2026-10-08), then 0033 `kgme clean`; their reviews run through `kgme review`. Nothing runs unattended; the hooks run on every Claude Code tool call in the repository.
 
 ## Gates before anything is scheduled (ADR-013 §6)
 | Gate | State | Record |
@@ -23,7 +23,7 @@ The one place that says what is true *now*. Historical records are never edited;
 | Charter accepted | **MET** 2026-09-11 — v0.2 accepted; v0.1 archived; four `[REVIEW]` refinements open, non-blocking | `charter.md` |
 | Ledger durable and tracked | **MET** 2026-09-15 — ADR-019 accepted; `kgme/ledger.py` the one writer; `logs/ledger/2026-09.jsonl` tracked and holding real events since the hooks went live; `logs/trace/` untracked for read-only tool calls | HANDOFF-0026, AUDIT-0013 |
 | Repo-scoped permissions + hooks | **MET** 2026-09-15 — `.claude/settings.json` in ask-mode with explicit allow and deny (0027); pre-tool guard and post-tool ledger hooks live on every call (0028). Interactive sessions: deny and prompt proven by Michou; background-job sessions keep deny and the hooks but not the prompt, carried into 0032's canary matrix | AUDIT-0014 |
-| Canary tests per worker | **not built** | HANDOFF-0032; network cells advisory until LuLu (0038) |
+| Canary tests per worker | **MET for the Phase 1 workers 2026-09-28** — fast tier (20 cells, manifests and guard) in `make check`; agent tier (`make canary-agents`, 10 live cells) run ten times 2026-09-20 to 2026-09-28, no cell `fail` since Michou's ruling of 2026-09-23 (project deny rules on human paths, guard rule 4). Residuals named cell by cell: four inconclusive cells where the worker made no call and so exercised no layer (Claude env in every run and tier1 in the last runs, the model declining on its own; Codex rm-rf and write-outside, Codex replying REFUSED without a command); Codex read cells advisory (no read boundary, deferred to 0038); both network cells advisory until LuLu (0038); every canary intent records the `~/.claude/settings.json` digest | AUDIT-0026; reviews AUDIT-0027 to AUDIT-0029 and the cycle that follows the override |
 
 ## Ground layer (done)
 Firewall on · Homebrew 6.0.22 (pinned installer `8949852`, analytics off) · `gh` 2.100.0 pinned · `gh auth` over HTTPS via credential helper · Codex CLI 0.154.0 · shell aliases (`kgh`, `kgme-claude`, `kgme-codex`) and the `kgme` function · Python 3.13 via uv, PyYAML 6.0.3, ruff 0.16.7, pytest 9.1.1 pinned · git identity set · ADR-001…018 accepted · every handoff 0001–0023 done; 0024 abandoned as unnecessary.
