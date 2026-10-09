@@ -3,7 +3,7 @@ id: PLAN-PHASE-1
 type: note
 status: active
 created: 2026-09-11T23:50:00-07:00
-modified: 2026-09-14T22:25:00-07:00
+modified: 2026-10-08T19:30:00-07:00
 author: cowork
 source: stated
 tier: 2
@@ -27,6 +27,7 @@ Phase 0 built the ground: backup proven, repo off-machine, toolchain pinned, cha
 | 5 | **Schema v1.2 and the `docs/` repair.** Append-only types drop `modified`; `note` admitted under `docs/`, `docs/plans/`, `memory/inbox/`; charter exempted by path; templates excluded; no ADR edited | 0030 | — | Without it the validator fails on KGME's own documents on day one |
 | 6 | **Validator.** `kgme/lint.py`, `kgme/vault.py`, `tools/schema/lint.py`; covers `memory/` and `docs/`; findings carry ADR-016 classes; `make check` runs it | 0031 | 0, 5 | The reference example of the ten-minute standard |
 | 7 | **Canary tests and worker manifests.** Fast tier in `make check`; agent tier in `make canary-agents`; every cell a ledger event labelled by enforcement layer | 0032 | 1, 3, 6 | Gate "canary tests" on STATUS |
+| 7b | **`kgme sync`: push on every commit, ledger committed at session end.** Post-commit hook pushes; `SessionEnd` hook commits `logs/ledger/` by pathspec and pushes; never force, never blocking, offline is `transient` | 0040 | 0, 1 | Added 2026-10-08: the remote sat two commits behind for weeks; Gate 1 is only met while pushes happen |
 | 8 | **`kgme clean`.** Named targets only, allowlisted roots, one event per deletion; bare `rm -rf` stays denied | 0033 | 1 | Loop 0's reconstruction test deletes with it |
 | 9 | **Loop 0 — `kgme brief` v1.** Manual, read-only, local, no model call; four acceptance tests with classes; `--dry-run`; reminder, task, daily templates shipped | 0034 | 1, 6, 8 | The loop |
 | 10 | **Seed the vault.** Michou's own act: real reminders, tasks, daily notes, ten friction entries | 0035 | 9 | The vault is empty; an empty brief measures nothing |
