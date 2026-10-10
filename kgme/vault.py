@@ -12,7 +12,10 @@ from pathlib import Path
 
 
 def is_exempt(path: Path, exempt: list[Path], skip_dirs: tuple[str, ...]) -> bool:
-    """True if `path` is an exempt file, lies under an exempt directory, or has a skipped part."""
+    """True if `path` is an exempt file, lies under an exempt directory, has a skipped part, or
+    is a `README.md`: the index of its folder, not a note (schema v1.4, HANDOFF-0041)."""
+    if path.name == "README.md":
+        return True
     if any(part in skip_dirs for part in path.parts):
         return True
     for root in exempt:

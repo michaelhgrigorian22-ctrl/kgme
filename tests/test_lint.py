@@ -4,7 +4,8 @@ Purpose: one fixture per violation class yields exactly its finding with the exp
 exempt paths are skipped and overlapping roots read a file once; datetimes are judged on the
 raw text and nulls are refused where the schema requires an instant; provenance needs real
 names; duplicate keys are caught however they are spelled; a boolean key does not stop the
-scan; a mistyped root is an error; the real `memory/` and `docs/` carry no blocking finding.
+scan; a mistyped root is an error; a `README.md` is skipped by name and `CDH` ids are a
+family (v1.4); the real `memory/` and `docs/` carry no blocking finding.
 Inputs: `tests/fixtures/vault/`, inline notes, the real repository roots, `kgme.toml`.
 Outputs: pytest assertions.
 Side effects: none. Reads only.
@@ -96,6 +97,24 @@ def test_exempt_paths_skipped_roots_ordered_and_overlaps_read_once() -> None:
     assert len(overlapping) == len({rel for rel, _ in overlapping}) == len(per_root[0])
     with pytest.raises(FileNotFoundError):
         fixture_notes([FIXTURES / "nowhere"])
+
+
+@pytest.mark.blocking
+def test_readme_is_exempt_by_name_and_cdh_ids_are_a_family(tmp_path: Path) -> None:
+    """Schema v1.4 (HANDOFF-0041): any `README.md` is the index of its folder, not a note."""
+    bare = "# An index\n\n- one\n"
+    for rel in ("docs/handoff/some-track/README.md", "docs/design/x/README.md"):
+        (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / rel).write_text(bare)
+    (tmp_path / "docs" / "handoff" / "some-track" / "index.md").write_text(bare)
+    read = vault.read_notes([tmp_path / "docs"], [], (), tmp_path)
+    assert [rel for rel, _ in read] == ["docs/handoff/some-track/index.md"]
+    assert rules(bare, "docs/handoff/some-track/index.md") == [("frontmatter", "blocking")]
+    assert vault.is_exempt(Path("docs/README.md"), [], ())
+    assert not vault.is_exempt(Path("docs/readme.md"), [], ())
+    assert rules(note(id="CDH-0007")) == []
+    assert rules(note(id="AUDIT-CDH-0007")) == []
+    assert rules(note(id="CDX-0007")) == [("id-format", "advisory")]
 
 
 @pytest.mark.blocking

@@ -97,6 +97,8 @@ ID_FAMILIES = (
     re.compile(r"^ADR-\d{3}$"),
     re.compile(r"^HANDOFF-\d{4}$"),
     re.compile(r"^AUDIT-\d{4}$"),
+    re.compile(r"^CDH-\d{4}$"),
+    re.compile(r"^AUDIT-CDH-\d{4}$"),
     re.compile(r"^PLAN-[A-Z0-9-]+$"),
     re.compile(r"^READER-[A-Z0-9-]+$"),
     re.compile(r"^(STATUS|ROADMAP|CORRECTIONS)$"),

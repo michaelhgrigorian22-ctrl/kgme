@@ -2,15 +2,15 @@
 id: SCHEMA
 type: schema
 status: draft
-version: 1.3
+version: 1.4
 created: 2026-09-09T19:50:00-07:00
-modified: 2026-09-20T15:31:58-07:00
+modified: 2026-10-09T22:33:00-07:00
 author: cowork
 source: stated
 tier: 2
 ---
 
-# KGME note schema — v1.3 (draft)
+# KGME note schema — v1.4 (draft)
 
 Governs every Markdown file under `memory/` and `docs/`, minus the exemptions in **Scope** below. Defined by ADR-005; widened from `memory/` alone to both roots by Michou's ruling of 2026-09-14 (AUDIT-0011, HANDOFF-0030). Think of the vault as a data frame: each note is a row, the frontmatter is the typed columns, the body is one free-text column, and `type` decides which columns are required. Anything a query or a script needs goes above the line; anything for a human goes below it.
 
@@ -24,6 +24,7 @@ The validator (`kgme lint`, HANDOFF-0031) walks `memory/` and `docs/`. These pat
 | `memory/attachments/`, `.obsidian/` | Binaries and app state, not Markdown notes. |
 | `docs/charter.md`, `docs/schema-v1.md` | The two governance singletons. Each declares its own kind (`type: charter`, `type: schema`) and is governed by its own procedure — the charter by charter §8, this file by **Versioning** below — not by the type table. Michou ruled 2026-09-14 for a path exemption over an eleventh type: the ten-type ceiling exists for the vault, and a type with exactly one file would spend it on nothing. The validator neither checks nor reports these two files. |
 | `docs/archive/` | Superseded versions of documents, moved out of their home folders on purpose. An archived file may share its `id` with the live document it was a version of (`docs/archive/charter-v0.1.md` and `docs/charter.md` are both `CHARTER`), and its folder no longer matches its type. What is in the archive was valid when it was live; it is not re-validated. |
+| any `README.md` | The index of its folder — the "start here" an agent or a human is pointed at (`docs/README.md`, `docs/handoff/<track>/README.md`, `docs/design/<canvas>/<assets>/README.md`). A table of contents, not a note, and it lives beside what it indexes for the same reason the handoff folder is its own small ledger. Michou's ruling of 2026-10-09 (Cowork's recommendation adopted, from Claude Code's lint note on `docs/handoff/cockpit-design/`): an exemption by name, as the charter is exempt by path, over moving such files to `docs/readers/`. A README may still carry frontmatter by convention (`docs/README.md` does); the validator neither checks nor reports it. (v1.4) |
 
 Everything else under the two roots is a note and is validated.
 
@@ -31,7 +32,7 @@ Everything else under the two roots is a note and is validated.
 
 | Field | Type | Rule |
 |---|---|---|
-| `id` | string | Stable, opaque, unique among validated notes. **Never changes**, even if the file is renamed. Two families: vault notes carry a second-resolution timestamp from the template when a human writes them (`20260910T143205`) and a ULID when an agent does; governance documents carry a named id — `ADR-NNN`, `HANDOFF-NNNN`, `AUDIT-NNNN`, `PLAN-*`, `READER-*`, or a singleton name (`STATUS`, `ROADMAP`, `CORRECTIONS`). Uniqueness is `blocking`; format drift is `advisory`. Scripts key off `id`, never the filename. |
+| `id` | string | Stable, opaque, unique among validated notes. **Never changes**, even if the file is renamed. Two families: vault notes carry a second-resolution timestamp from the template when a human writes them (`20260910T143205`) and a ULID when an agent does; governance documents carry a named id — `ADR-NNN`, `HANDOFF-NNNN`, `AUDIT-NNNN`, `CDH-NNNN` and `AUDIT-CDH-NNNN` (the cockpit design track's own sequence under HANDOFF-0036; v1.4), `PLAN-*`, `READER-*`, or a singleton name (`STATUS`, `ROADMAP`, `CORRECTIONS`). Uniqueness is `blocking`; format drift is `advisory`. Scripts key off `id`, never the filename. |
 | `type` | enum | One of the ten types below. |
 | `created` | datetime | ISO 8601 with offset: `2026-09-09T14:32:00-07:00`. |
 | `modified` | datetime | Same format. Updated by whoever edits. **Not required on the append-only types** (`decision`, `handoff`, `report`): an append-only record is never modified by construction, so the field would only ever repeat `created`. Permitted while a `decision` or `handoff` is still `proposed`; it stops changing on acceptance or adoption. (v1.2) |
@@ -99,7 +100,8 @@ Email reader about the chapter 2 draft.
 Before any agent writes to `memory/` or `docs/`, the validator (`kgme lint`, the `kgme/lint.py` module of HANDOFF-0031; the first code artefact in KGME after packaging and the ledger) checks: frontmatter present and parseable; all required fields for the type, with the v1.2 exceptions above; `id` unique across both roots minus `docs/archive/`; `type` in the allowed set; type-specific required fields present; `created`, and `modified` where required, are ISO 8601 with offset; `source: fetched` has `origin`; `source: inferred` has `sources`; the file sits in a folder its `type` allows; the exempt paths in **Scope** are skipped. Reports created before 2026-09-14, the day v1.2 widened the schema to `docs/`, are held to the fields that existed when they were written: `period`, and `origin` under `source: fetched` or `sources` under `source: inferred`, are required of reports created on or after that date (v1.3). Findings carry an ADR-016 class: the checks above are `blocking`; unknown fields and id-format drift are `advisory`; whitespace is `cosmetic`. Only `blocking` fails the run. The HANDOFF-0002 lint checked only three keys and does not count as validation.
 
 ## Versioning
-This is v1.3 (draft). Changelog:
+This is v1.4 (draft). Changelog:
+- **1.4 (2026-10-09)** — any `README.md` is exempt by name: the index of its folder, not a note (Michou's ruling, 2026-10-09, same reasoning as the charter exemption; prompted by the handoff-track and design-asset READMEs). Named id families gain `CDH-NNNN` and `AUDIT-CDH-NNNN` for the cockpit design track. No note is edited to fit the schema; the validator follows under HANDOFF-0041. No migration: it only relaxes.
 - **1.3 (2026-09-20)** — reports created before 2026-09-14 are held to the fields that existed when they were written; `period`, and `origin` or `sources`, apply to reports created on or after that date. HANDOFF-0031's first dry run found the ten Phase 0 reports without them; per the provenance rule the schema moved and the records did not (Michou's ruling, 2026-09-20).
 - **1.2 (2026-09-14)** — scope widened to `docs/`; exempt paths named with reasons (templates, attachments, the charter and this file by Michou's ruling, the archive); append-only types (`decision`, `handoff`, `report`) no longer require `modified`; `handoff` uses `from` in place of `author` and does not require `source`; `note` admitted under `memory/inbox/`, `docs/` root, `docs/plans/`, `docs/readers/`; `decision` and `handoff` gain `proposed`, `handoff` gains `superseded`; `completed` required only on `done`; unknown fields permitted and reported as `advisory`; id families named; findings classed per ADR-016; paths written from the repository root. No note was edited to fit the schema; the schema was fitted to the record (HANDOFF-0030).
 - 1.1 (2026-09-10) — second-resolution human ids; `sources` list for inferred notes; one-source-class rule; validation section.

@@ -1,6 +1,6 @@
 """The schema validator, pure half: one note's text and path to a list of classed findings.
 
-Purpose: apply `docs/schema-v1.md` v1.3 to a note (HANDOFF-0031). The tables live in
+Purpose: apply `docs/schema-v1.md` v1.4 to a note (HANDOFF-0031). The tables live in
 `kgme/schema.py`, the YAML loading in `kgme/frontmatter.py`; reading files and printing live
 in `kgme/vault.py` and `kgme/cli.py`.
 Inputs: the note's text, its repo-relative path, and the ids seen so far.
