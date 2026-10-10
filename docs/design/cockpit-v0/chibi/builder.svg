@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 280" width="240" height="280" class="chibi actor-builder" data-actor="builder" data-portrait="35 9 167 167" style="--garment:#c39745;--garment-shade:#806039;--garment-light:#e7b958;--face:#f1c6a4;--face-shade:#cb937b;--face-light:#ffe3c6;--tool:#e1ad42;--tool-shade:#94703a;--tool-light:#f4d489;--print:#493326;--dark:#211f2a;--accent:#6f8290" fill="var(--dark)" stroke="var(--dark)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" role="img" aria-labelledby="builder-title builder-desc">
+<title id="builder-title">The builder: tired worker with jackhammer</title>
+<desc id="builder-desc">Original layered SVG for CDH-0001. Six semantic material roles with restrained cel shading. Decorative; actor and event facts belong in adjacent text.</desc>
+<style>.chibi .eyes-closed,.chibi .effect-fire,.chibi .effect-halo,.chibi .effect-melt,.chibi .chalk{display:none}</style>
+<g class="effect-fire" >
+<path d="M48 250Q29 229 42 210q7 13 12 11-6-28 11-49-1 25 11 25 13-31 19-38 0 30 17 42 19-9 20-26 24 25 13 44 23-12 21-36 30 29 22 56l16-15q8 33-24 41H74Z" fill="var(--accent)" stroke="none" opacity=".82"/>
+<path d="M55 250q-5-18 9-24 0 14 12 13l16-22 7 27 28-20 4 24 24-12 8 14z" fill="var(--face-light)" stroke="none" opacity=".64"/>
+</g>
+<g class="effect-melt" >
+<path d="M63 255q-20 5-13 11 12 7 33 1 7 12 26 3 14 7 24-2 35 7 45-2 4-8-25-12z" fill="var(--garment)" stroke-width="1.8"/>
+<ellipse cx="61" cy="273" rx="5" ry="2" fill="var(--garment)" stroke="none"/>
+<ellipse cx="172" cy="271" rx="7" ry="2" fill="var(--garment)" stroke="none"/>
+</g>
+<g class="effect-halo" >
+<ellipse cx="121" cy="15" rx="33" ry="7" fill="none" stroke="var(--accent)" stroke-width="4"/>
+<path d="M167 16l1.6800000000000002 4.08 4.32 1.92-4.32 1.6800000000000002-1.6800000000000002 4.32-1.6800000000000002-4.32-4.32-1.6800000000000002 4.32-1.92Z" fill="var(--accent)" stroke-width="1.3"/>
+</g>
+<g class="figure" >
+<g class="body" >
+<g class="boots" >
+<path d="M68 235l30-1 6 21q7 6 3 11l-46 1q-4-12 7-17z" fill="var(--dark)" />
+<path d="M131 235l29-1 5 16q19 7 18 16l-50 1-5-10z" fill="var(--dark)" />
+<path d="M62 254q18-9 37 3l2 8-41 0z" fill="var(--tool-shade)" />
+<path d="M133 255q26-8 45 5v6h-45z" fill="var(--tool-shade)" />
+<path d="M63 262h39M132 262h45" fill="none" stroke="var(--tool-light)" stroke-width="1.3"/>
+<path d="M75 245l15-1M76 252h13M135 245l15-1" fill="none" stroke="var(--garment-light)" stroke-width="1.5"/>
+</g>
+<path d="M75 143Q55 148 50 171l15 48 9 23 32-2 13-24 12 28 36-2 7-51-24-47z" fill="var(--dark)" />
+<path d="M73 153l15-8 9 23 38-2 11-24 16 13-7 26 20 53q-20 14-40 2l-15-28-10 33q-20 9-35-3l-2-51z" fill="var(--garment)" />
+<path d="M135 170l-2 25 23 34 10-4-9-31 1-31z" fill="var(--garment-shade)" stroke="none"/>
+<path d="M80 165l10-9 4 32-12-2z" fill="var(--garment-light)" stroke="none"/>
+<g class="cheetah-print" >
+<path d="M89 181q-2-5 5-5l5 2-1 5 -3 2-3-2z" fill="var(--print)" stroke="none"/>
+<path d="M113 178q-2-5 5-5l5 2-1 5 -3 2-3-2z" fill="var(--print)" stroke="none"/>
+<path d="M140 188q-2-5 5-5l5 2-1 5 -3 2-3-2z" fill="var(--print)" stroke="none"/>
+<path d="M76 211q-2-5 5-5l5 2-1 5 -3 2-3-2z" fill="var(--print)" stroke="none"/>
+<path d="M93 223q-2-5 5-5l5 2-1 5 -3 2-3-2z" fill="var(--print)" stroke="none"/>
+<path d="M97 204q-2-5 5-5l5 2-1 5 -3 2-3-2z" fill="var(--print)" stroke="none"/>
+<path d="M136 213q-2-5 5-5l5 2-1 5 -3 2-3-2z" fill="var(--print)" stroke="none"/>
+<path d="M148 232q-2-5 5-5l5 2-1 5 -3 2-3-2z" fill="var(--print)" stroke="none"/>
+<path d="M82 234q-2-5 5-5l5 2-1 5 -3 2-3-2z" fill="var(--print)" stroke="none"/>
+<path d="M152 168q-2-5 5-5l5 2-1 5 -3 2-3-2z" fill="var(--print)" stroke="none"/>
+</g>
+<path d="M100 168h32v26q-14 8-32-1z" fill="var(--garment)" stroke-width="1.8"/>
+<path d="M106 173h18m-38-20-5 19m59-22-6 19" fill="none" stroke="var(--garment-light)" stroke-width="3"/>
+<ellipse cx="90" cy="173" rx="3" ry="3" fill="var(--tool-light)" />
+<ellipse cx="137" cy="172" rx="3" ry="3" fill="var(--tool-light)" />
+<path d="M61 157q-18 1-18 19l12 24 19-10-7-31z" fill="var(--dark)" />
+<path d="M145 152q23-4 31 15l-2 25-29 6-10-16z" fill="var(--dark)" />
+<path d="M151 171l20 5-2 14-23 1-5-10z" fill="var(--face)" />
+<path d="M154 184l15-3-1 9-19 0z" fill="var(--face-shade)" stroke="none"/>
+</g>
+<g class="head" >
+<path d="M59 60q-8 30-12 38l-10 10 14-1-3 13 14-4-1 15 19-4q15 18 65 12l20-13 15 6-3-13 15 2-8-18 6-11-16-24z" fill="var(--dark)" />
+<path d="M66 78q-12 2-13 16-1 17 17 19l7 9q20 18 49 20 32-3 40-28 23-2 25-22-1-14-17-12l-11-28-81 4z" fill="var(--face)" />
+<path d="M67 92q-9-9-9 5l9 8m106-13q11-12 11 0l-9 9" fill="var(--face-shade)" stroke-width="1.5"/>
+<path d="M75 117q27 27 66 13l23-15q-5 31-39 30-35-4-50-28z" fill="var(--face-shade)" stroke="none"/>
+<path d="M63 80l6 20 15-31 5 29 14-13 21 18-3-30 14 15 3-19 27 19-5-28-81-5z" fill="var(--dark)" />
+<path d="M75 73l-6 16 4-29 18-4 7 15-3 11-5-13z" fill="var(--tool-shade)" opacity=".48" stroke="none"/>
+<path d="M124 63l4 25-13-13 5-13z" fill="var(--garment-shade)" opacity=".5" stroke="none"/>
+<g class="eyes-open" >
+<path d="M75 103l30 4q-4 15-18 12-10-3-12-16z" fill="var(--face-light)" />
+<ellipse cx="93" cy="109" rx="6" ry="8" fill="var(--tool-shade)" stroke="none"/>
+<ellipse cx="93" cy="109" rx="2.5" ry="5" fill="var(--dark)" stroke="none"/>
+<path d="M130 104l33-8q-1 20-18 20-12 0-15-12z" fill="var(--face-light)" />
+<ellipse cx="149" cy="103" rx="6" ry="8" fill="var(--tool-shade)" stroke="none"/>
+<ellipse cx="149" cy="102" rx="2.5" ry="5" fill="var(--dark)" stroke="none"/>
+<path d="M73 102l33 5m23-3 35-9" fill="none" stroke="var(--dark)" stroke-width="3.5"/>
+<path d="M79 95l24 6m28-5 26-9" fill="none" stroke="var(--dark)" stroke-width="3"/>
+</g>
+<g class="eyes-closed" >
+<path d="M77 109q13 8 27 2m28-5q17 5 28-5" fill="none" stroke="var(--dark)" stroke-width="3"/>
+</g>
+<path d="M118 107l-4 12 8 0" fill="var(--face-shade)" stroke-width="1.2"/>
+<path d="M94 132q15-6 31-1" fill="none" stroke="var(--dark)" stroke-width="2.2"/>
+<path d="M86 126l2 3m4 3 1 3m8 2 0 3m10-5-1 4m9-3 0 4m8-6 1 4m8-7 1 4m8-10 1 4m8-11 2 3" fill="none" stroke="var(--dark)" stroke-width="1.3"/>
+<path d="M92 129l-32 13-3-6 33-11z" fill="var(--face-light)" stroke-width="1.4"/>
+<path d="M62 135l-5 2 2 5 5-3z" fill="var(--tool-shade)" stroke="none"/>
+<path d="M56 137q-23-1-16-16 11-14-5-20" fill="none" stroke="var(--print)" stroke-width="2"/>
+<path d="M46 75q3-30 17-46 28-20 66-14 43 0 57 44l9 7q-65-13-149 26-12-3 0-17z" fill="var(--tool)" />
+<path d="M57 65q7-31 21-37l-4 35z" fill="var(--tool-shade)" stroke="none"/>
+<path d="M142 21q27 9 37 38l-26-2z" fill="var(--tool-shade)" stroke="none"/>
+<path d="M102 17q-12 19-10 48l12-3q-1-29 9-46z" fill="var(--tool-light)" />
+<path d="M47 77q76-29 143-13l5 7q-77-8-149 21l-11-7z" fill="var(--tool-shade)" />
+<path d="M57 77q75-24 124-13" fill="none" stroke="var(--tool-light)" stroke-width="2.5"/>
+<rect x="145" y="37" width="21" height="23" rx="5" fill="var(--dark)" />
+<rect x="149" y="41" width="13" height="14" rx="3" fill="var(--tool-light)" />
+<path d="M80 36l-5 13m58-23 3 6" fill="none" stroke="var(--tool-light)" stroke-width="2"/>
+</g>
+<g class="prop" style="transform-origin:79px 178px">
+<path d="M61 178l18 0 7 66-18 14-12-12z" fill="var(--tool-shade)" />
+<path d="M52 174q-3-10 7-14h43q11 2 8 15l-8 9-44-1z" fill="var(--dark)" />
+<rect x="59" y="172" width="39" height="62" rx="8" fill="var(--tool)" />
+<path d="M85 176h9v51l-8 6z" fill="var(--tool-shade)" stroke="none"/>
+<rect x="65" y="188" width="10" height="28" rx="2" fill="var(--tool-light)" />
+<path d="M69 193v16" fill="none" stroke="var(--tool-shade)" stroke-width="2"/>
+<rect x="61" y="231" width="34" height="13" rx="3" fill="var(--dark)" />
+<path d="M70 244h16l-5 22-7 7-4-8z" fill="var(--tool-light)" />
+<path d="M76 250v15" fill="none" stroke="var(--tool-shade)" stroke-width="1.4"/>
+<path d="M59 163q-4-11-12-9-11 0-9 12l7 15 13-3z" fill="var(--tool-shade)" />
+<path d="M44 160l4 11m2-13 4 11" fill="none" stroke="var(--dark)" stroke-width="2"/>
+<path d="M90 158q7-8 16-1l7 6-3 17-12 0-8-9z" fill="var(--dark)" />
+<path d="M97 162l3 9m5-7 0 9" fill="none" stroke="var(--garment-light)" stroke-width="1.5"/>
+<ellipse cx="81" cy="180" rx="2" ry="2" fill="var(--dark)" stroke="none"/>
+</g>
+</g>
+<g class="chalk" >
+<path d="M44 77Q44 17 106 15q67-5 79 46l10 10-18 8 13 22-13 25-9 18 8 24-7 23 7 40-10 20 14 12-2 7-50 0-9-28-16 28H57l-2-16 7-13-5-11-2-44-17-13-1-17 23-19-10-16-12-7 10-8z M70 244v19l8 10 8-29 M74 103l29 5m28-3 29-9 M91 130l-32 10" fill="none" stroke="var(--accent)" stroke-width="3" stroke-dasharray="10 3 2 3"/>
+<path d="M196 71h15l-15 15h15m-7-30h10l-10 10h10" fill="none" stroke="var(--accent)" stroke-width="2"/>
+</g>
+</svg>

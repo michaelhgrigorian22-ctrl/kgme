@@ -1,0 +1,63 @@
+/* CDH-0001. Shared material and motion layer; SVG source remains editable. */
+.chibi{display:block;overflow:visible;isolation:isolate;width:72px;height:72px;flex:none;--accent:#39d0ff!important}
+.chibi[data-size="portrait"]{width:24px;height:24px;overflow:hidden}
+.chibi[data-palette="phosphor"]{--garment:#839da9!important;--garment-shade:#455d69!important;--garment-light:#cfe6ef!important;--face:#cfe6ef!important;--face-shade:#8ba8b4!important;--face-light:#e8f2f5!important;--tool:#8fb4c4!important;--tool-shade:#4c6876!important;--tool-light:#c8e0e9!important;--print:#263841!important;--dark:#17242e!important}
+.chibi[data-tone="blocking"]{--accent:#ff3d7f!important}
+.chibi[data-tone="pending"],.chibi[data-tone="transient"],.chibi[data-tone="advisory"]{--accent:#ffb02e!important}
+.chibi[data-tone="ok"]{--accent:#4de38a!important}
+.chibi[data-tone="muted"]{--accent:#6f8290!important}
+.chibi .figure{transform-origin:120px 245px}
+.chibi .head{transform-origin:120px 110px}
+.chibi .body{transform-origin:120px 190px}
+.chibi .prop{transform-origin:120px 190px}
+.chibi .effect-fire,.chibi .effect-halo,.chibi .effect-melt,.chibi .chalk,.chibi .eyes-closed{display:none!important}
+.chibi .eyes-open{display:inline!important}
+.chibi[data-mode="transient"] .figure{transform:translateY(7px) scaleY(.96)}
+.chibi[data-mode="transient"] .head{transform:rotate(4deg)}
+.chibi[data-mode="transient"] .effect-melt{display:inline!important}
+.chibi[data-mode="blocked"] .effect-fire{display:inline!important;transform-origin:120px 238px}
+.chibi[data-mode="done"] .effect-halo{display:inline!important;transform-origin:120px 28px}
+.chibi[data-mode="done"] .head{transform:rotate(-3deg)}
+.chibi[data-mode="waiting"] .head{transform:rotate(4deg)}
+.chibi[data-mode="asleep"] .figure{display:none!important}
+.chibi[data-mode="asleep"] .chalk{display:inline!important}
+.chibi[data-size="portrait"] .effect-fire,.chibi[data-size="portrait"] .effect-halo,.chibi[data-size="portrait"] .effect-melt{display:none!important}
+/* Dense run portraits stay recognizable in asleep mode: closed-eye head crop. */
+.chibi[data-size="portrait"][data-mode="asleep"] .figure{display:inline!important;opacity:.55}
+.chibi[data-size="portrait"][data-mode="asleep"] .chalk{display:none!important}
+.chibi[data-size="portrait"][data-mode="asleep"] .eyes-open{display:none!important}
+.chibi[data-size="portrait"][data-mode="asleep"] .eyes-closed{display:inline!important}
+/* Only the selected, visible detail receives this class. Removing it cancels work. */
+.chibi.is-animated[data-mode="idle"] .body{animation:chibi-breathe 4s ease-in-out infinite alternate}
+.chibi.is-animated[data-mode="idle"] .eyes-open{animation:chibi-blink-open 4s steps(1,end) infinite}
+.chibi.is-animated[data-mode="idle"] .eyes-closed{display:inline!important;animation:chibi-blink-closed 4s steps(1,end) infinite}
+.chibi.is-animated[data-mode="working"] .prop{animation:chibi-work .55s ease-in-out infinite alternate}
+.chibi.actor-builder.is-animated[data-mode="working"] .prop{animation-name:chibi-hammer;animation-duration:.22s}
+.chibi.actor-reviewer.is-animated[data-mode="working"] .prop{animation-name:chibi-inspect;animation-duration:1s}
+.chibi.actor-arbiter.is-animated[data-mode="working"] .prop{animation-name:chibi-staff;animation-duration:.9s}
+.chibi.actor-guard.is-animated[data-mode="working"] .prop{animation-name:chibi-shield;animation-duration:.8s}
+.chibi.actor-scribe.is-animated[data-mode="working"] .prop{animation-name:chibi-write;animation-duration:.5s}
+.chibi.actor-michou.is-animated[data-mode="working"] .prop{animation-name:chibi-phone;animation-duration:1.1s}
+.chibi.actor-stranger.is-animated[data-mode="working"] .prop{animation-name:chibi-think;animation-duration:1.2s}
+.chibi.is-animated[data-mode="waiting"] .head{animation:chibi-glance 1.6s ease-in-out infinite alternate}
+.chibi.is-animated[data-mode="transient"] .figure{animation:chibi-sag 1.8s ease-in-out infinite alternate}
+.chibi.is-animated[data-mode="blocked"] .effect-fire{animation:chibi-fire .8s ease-in-out infinite alternate}
+.chibi.is-animated[data-mode="done"] .effect-halo{animation:chibi-halo 2s ease-in-out infinite alternate}
+/* Chalk is an intentional static pose, including in the selected preview. */
+@keyframes chibi-breathe{from{transform:translateY(0)}to{transform:translateY(-1.5px)}}
+@keyframes chibi-blink-open{0%,94%,100%{opacity:1}95%,99%{opacity:0}}
+@keyframes chibi-blink-closed{0%,94%,100%{opacity:0}95%,99%{opacity:1}}
+@keyframes chibi-work{from{transform:rotate(-2deg)}to{transform:rotate(2deg)}}
+@keyframes chibi-hammer{from{transform:translateY(0)}to{transform:translateY(3px)}}
+@keyframes chibi-inspect{from{transform:rotate(-4deg)}to{transform:rotate(3deg)}}
+@keyframes chibi-staff{from{transform:rotate(-2deg)}to{transform:rotate(2deg)}}
+@keyframes chibi-shield{from{transform:translateY(0) rotate(0)}to{transform:translateY(-2px) rotate(-2deg)}}
+@keyframes chibi-write{from{transform:rotate(-3deg)}to{transform:rotate(3deg)}}
+@keyframes chibi-phone{from{transform:rotate(-3deg)}to{transform:rotate(2deg)}}
+@keyframes chibi-think{from{transform:translateY(0)}to{transform:translateY(-2px)}}
+@keyframes chibi-glance{from{transform:rotate(1deg)}to{transform:rotate(4deg)}}
+@keyframes chibi-sag{from{transform:translateY(3px) scaleY(.98)}to{transform:translateY(7px) scaleY(.96)}}
+@keyframes chibi-fire{from{transform:scaleY(.96);opacity:.85}to{transform:scaleY(1);opacity:1}}
+@keyframes chibi-halo{from{transform:translateY(0)}to{transform:translateY(-3px)}}
+[data-calm="true"] .chibi{visibility:hidden}
+@media (prefers-reduced-motion:reduce){.chibi,.chibi *{animation:none!important}.chibi.is-animated[data-mode="idle"] .eyes-closed{display:none!important}}
