@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KGME cockpit — blocking outcome, halt</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0a0c10;color:#cfe6ef;font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.45}
+a{color:#39d0ff}a:hover{color:#cfe6ef}
+.hud{position:relative;min-height:100vh;display:flex;flex-direction:column;background:#0a0c10;isolation:isolate;overflow:hidden}
+.frame{position:absolute;inset:0;pointer-events:none;border:1px solid var(--f);box-shadow:inset 0 0 0 1px rgba(0,0,0,.6),inset 0 0 140px var(--fg);z-index:3}
+.flood{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(255,61,127,.16),transparent 18%,transparent 82%,rgba(255,61,127,.16));z-index:2}
+.scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(207,230,239,.035) 0 1px,transparent 1px 3px);z-index:4}
+.vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 58%,rgba(0,0,0,.55) 100%);z-index:2}
+.tx{position:absolute;left:28px;right:28px;height:6px;background:repeating-linear-gradient(90deg,var(--f) 0 1px,transparent 1px 8px);opacity:.6;pointer-events:none;z-index:3}
+.ty{position:absolute;top:28px;bottom:28px;width:6px;background:repeating-linear-gradient(180deg,var(--f) 0 1px,transparent 1px 8px);opacity:.6;pointer-events:none;z-index:3}
+.micro{position:absolute;font-size:9px;letter-spacing:.14em;color:#6f8290;text-transform:uppercase;pointer-events:none;z-index:3;white-space:nowrap}
+.pnl{position:relative;background:#11151c;border:1px solid #1e2a33;clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
+.brk::before,.brk::after{content:"";position:absolute;width:10px;height:10px;border:1px solid var(--f);pointer-events:none;z-index:1}
+.brk::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
+.brk::after{bottom:-1px;right:-1px;border-left:0;border-top:0}
+.lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#6f8290}
+.chip{display:inline-block;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:0 6px;border:1px solid currentColor;line-height:15px;border-radius:1px;white-space:nowrap}
+.c-ok{color:#4de38a}.c-block{color:#ff3d7f}.c-trans{color:#ffb02e}.c-adv{color:#ffb02e}.c-none{color:#6f8290}.c-live{color:#39d0ff}
+.row{display:grid;grid-template-columns:70px 16px 112px minmax(0,1fr) 92px 56px;gap:10px;align-items:center;padding:3px 10px;border-bottom:1px solid #141b22;min-height:22px}
+.row:hover{background:#0f141b}
+.grp{display:flex;gap:12px;align-items:baseline;padding:8px 10px 4px;border-bottom:1px solid #1e2a33;color:#39d0ff;font-size:11px}
+.focus{outline:1px solid #ff3d7f;outline-offset:-1px;background:#1c0f16}
+.kbd{display:inline-block;min-width:16px;padding:0 5px;border:1px solid #39d0ff;color:#39d0ff;font-size:10px;line-height:16px;text-align:center;border-radius:2px}
+.seg{display:flex;gap:2px}.seg i{display:block;width:7px;height:12px;background:#1e2a33}.seg i.on{background:#39d0ff}.seg i.warn{background:#ffb02e}
+.cell{width:11px;height:11px;background:#141b22}
+.kv{display:grid;grid-template-columns:96px minmax(0,1fr);gap:3px 10px;font-size:11px}
+.kv b{font-weight:400;color:#6f8290}
+.kv span{overflow-wrap:anywhere}
+.blink{animation:blink 1.2s steps(2,end) infinite}
+@keyframes blink{50%{opacity:.2}}
+@media (prefers-reduced-motion:reduce){.blink{animation:none}.scan{display:none}}
+</style>
+</helmet>
+<div class="hud" style="--f:#ff3d7f;--fg:rgba(255,61,127,.22)">
+<sc-if value="{{noise}}" hint-placeholder-val="{{ true }}">
+  <div class="frame"></div>
+  <div class="flood"></div>
+  <div class="scan"></div>
+  <div class="vig"></div>
+  <div class="tx" style="top:16px"></div>
+  <div class="tx" style="bottom:16px"></div>
+  <div class="ty" style="left:16px"></div>
+  <div class="ty" style="right:16px"></div>
+  <div class="micro" style="top:7px;left:30px;color:#ff3d7f">KGME · cockpit v0 · HALT · review:HANDOFF-0032 · cycle 3</div>
+  <div class="micro" style="top:7px;right:30px">127.0.0.1:8642 · logs/ledger/2026-09.jsonl · trace collapsed</div>
+  <div class="micro" style="bottom:7px;left:30px">ADR-016 bound · 3 consecutive cycles on one root cause · packet AUDIT-0029</div>
+  <div class="micro" style="bottom:7px;right:30px">override is a terminal act · v0 writes nothing</div>
+</sc-if>
+
+<header style="position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:12px 22px;align-items:flex-end;padding:30px 36px 10px">
+  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">clock</span><span style="font-size:22px;font-weight:700;letter-spacing:.04em">09:49:58<span style="color:#6f8290;font-size:12px;font-weight:400"> −07:00</span></span></div>
+  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">ledger</span><span style="font-size:14px"><span class="c-block blink">●</span> <span class="c-block">halted</span> · <b style="font-weight:500">1 302</b> events · 61 runs</span></div>
+  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">session</span><span style="font-size:14px">01M38FTP…TYM <span style="color:#6f8290">kgme.review</span></span></div>
+  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">hook latency</span><span style="font-size:14px">44 ms <span style="color:#6f8290">p50</span> · 61 ms <span style="color:#6f8290">p95</span></span></div>
+  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">harnesses</span><span style="font-size:14px">claude 2.1.111 · codex 0.154.0 <span style="color:#6f8290">· arbiter claude-opus-5-5</span></span></div>
+  <div style="flex:1 1 40px"></div>
+  <div style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Claude Max · week · judgment cap 50%</span><div style="display:flex;gap:10px;align-items:center"><div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span style="font-size:11px">44%</span></div></div>
+  <div style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Codex Plus · 5 h window</span><div style="display:flex;gap:10px;align-items:center"><div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span style="font-size:11px">38%</span></div></div>
+</header>
+
+<div style="position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:14px;padding:4px 36px 8px;flex:1 1 auto;align-content:flex-start">
+  <aside style="flex:0 1 232px;min-width:200px;display:flex;flex-direction:column;gap:12px">
+    <section class="pnl brk" style="padding:12px 12px 10px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px"><span class="lbl">runs · events per minute</span><span class="lbl">60 min</span></div>
+      <div style="display:grid;grid-template-columns:repeat(12, minmax(0, 1fr));gap:3px">
+        <sc-for list="{{cells}}" as="c" hint-placeholder-count="96"><div class="cell" style="{{c.style}}"></div></sc-for>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px"><span class="lbl">08:50</span><span class="lbl">now</span></div>
+    </section>
+    <section class="pnl brk" style="padding:12px;border-color:#ff3d7f">
+      <div class="lbl" style="margin-bottom:8px;color:#ff3d7f">ADR-016 strikes · review:HANDOFF-0032</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div style="width:34px;height:22px;background:#ff3d7f"></div>
+        <div style="width:34px;height:22px;background:#ff3d7f"></div>
+        <div style="width:34px;height:22px;background:#ff3d7f;box-shadow:0 0 12px #ff3d7f"></div>
+        <span style="margin-left:6px;font-size:11px;color:#ff3d7f;font-weight:700;letter-spacing:.1em">HALT</span>
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:#6f8290">F1 blocking in cycles 1, 2, 3 · root cause: refusal evidence</div>
+    </section>
+    <section class="pnl brk" style="padding:12px">
+      <div class="lbl" style="margin-bottom:8px">filters</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <button type="button" style="font:inherit;font-size:10px;background:#0e1a22;color:#39d0ff;border:1px solid #39d0ff;padding:2px 8px;cursor:pointer">run <span class="kbd">r</span></button>
+        <button type="button" style="font:inherit;font-size:10px;background:transparent;color:#cfe6ef;border:1px solid #1e2a33;padding:2px 8px;cursor:pointer">kind <span class="kbd">/</span></button>
+        <button type="button" style="font:inherit;font-size:10px;background:#1c0f16;color:#ff3d7f;border:1px solid #ff3d7f;padding:2px 8px;cursor:pointer">blocking <span class="kbd" style="color:#ff3d7f;border-color:#ff3d7f">2</span></button>
+        <button type="button" style="font:inherit;font-size:10px;background:transparent;color:#cfe6ef;border:1px solid #1e2a33;padding:2px 8px;cursor:pointer">trace <span class="kbd">t</span></button>
+      </div>
+    </section>
+  </aside>
+
+  <main class="pnl brk" style="flex:999 1 480px;min-width:0;display:flex;flex-direction:column">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid #1e2a33">
+      <span class="lbl">timeline · newest at bottom · <span class="c-block">stopped</span></span>
+      <span class="lbl">time · kind · job · summary · class · Δt</span>
+    </div>
+    <div style="flex:1 1 auto;overflow:auto">
+      <sc-for list="{{rows}}" as="row" hint-placeholder-count="14">
+        <sc-if value="{{row.isGroup}}" hint-placeholder-val="{{ false }}"><div class="grp"><span>▣ run {{row.run}}</span><span style="color:#6f8290">{{row.meta}}</span></div></sc-if>
+        <sc-if value="{{row.isEvent}}" hint-placeholder-val="{{ true }}">
+          <div class="row {{row.cls}}">
+            <span style="color:#6f8290">{{row.t}}</span>
+            <span style="{{row.glyphStyle}}">{{row.glyph}}</span>
+            <span style="color:#6f8290;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{row.job}}</span>
+            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{row.summary}}</span>
+            <span><span class="chip {{row.chipCls}}">{{row.chip}}</span></span>
+            <span style="text-align:right;color:#6f8290">{{row.dt}}</span>
+          </div>
+        </sc-if>
+      </sc-for>
+    </div>
+  </main>
+
+  <aside class="pnl brk" style="flex:1 1 400px;min-width:320px;padding:12px;display:flex;flex-direction:column;gap:10px;border-color:#ff3d7f">
+    <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="lbl" style="color:#ff3d7f">detail · note · halt</span><span class="lbl"><span class="kbd">Esc</span> closes · <span class="kbd">p</span> payload</span></div>
+    <div style="font-size:13px;line-height:1.4">review:HANDOFF-0032 HALT after cycle 3: F1 has stood blocking for 3 consecutive cycles; packet in AUDIT-0029</div>
+    <div class="kv">
+      <b>id</b><span>01M3MER5YW9F20GVV8P2KXNTYX</span>
+      <b>ts</b><span>2026-09-28T09:49:41.852-07:00</span>
+      <b>run_id</b><span>01M3MER5YW9F20GVV8P2KXNTYY</span>
+      <b>source · actor</b><span>kgme · kgme.review</span>
+      <b>kind · class</b><span>note · <span class="chip c-block">blocking</span></span>
+      <b>status</b><span>null</span>
+      <b>job</b><span>review:HANDOFF-0032</span>
+      <b>key</b><span>halt:HANDOFF-0032:3</span>
+      <b>ref</b><span>null</span>
+      <b>parent</b><span><a href="#parent">01M38FTPMCYH0SGPH7CNPEZTYM</a> <span style="color:#6f8290">· cycle 1 intent · <span class="kbd">u</span> jumps up</span></span>
+      <b>payload_ref</b><span>logs/scratch/payloads/01M3MER5YW9F20GVV8P2KXNTYX.json</span>
+      <b>payload_sha256</b><span>9c41e7…b02d</span>
+    </div>
+    <div style="border-top:1px solid #1e2a33;padding-top:10px;display:flex;flex-direction:column;gap:6px">
+      <span class="lbl">escalation packet</span>
+      <span style="font-size:11px">AUDIT-0029 · F1 survivors: write aim counted on target alone; denial without tool-call id matched on tool and target</span>
+      <span class="lbl" style="margin-top:4px">to continue, from the terminal</span>
+      <code style="font-size:11px;color:#39d0ff;overflow-wrap:anywhere">kgme review override --handoff HANDOFF-0032 --reason "…"</code>
+      <span style="font-size:11px;color:#6f8290">or <code style="color:#cfe6ef">git restore --staged .</code> to reject. The cockpit records neither; it will show the approval event when it lands.</span>
+      <button type="button" disabled style="margin-top:4px;align-self:flex-start;font:inherit;font-size:10px;background:transparent;color:#3a4650;border:1px dashed #3a4650;padding:3px 10px">override here · phase 2</button>
+    </div>
+  </aside>
+</div>
+
+<footer style="position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;padding:8px 36px 26px;font-size:11px;color:#6f8290">
+  <span><span class="kbd">j</span> <span class="kbd">k</span> move</span>
+  <span><span class="kbd">/</span> filter</span>
+  <span><span class="kbd">Enter</span> detail</span>
+  <span><span class="kbd">Esc</span> back</span>
+  <span><span class="kbd">u</span> parent</span>
+  <span><span class="kbd">p</span> payload</span>
+  <span><span class="kbd">2</span> blocking only</span>
+  <span><span class="kbd">c</span> calm</span>
+  <span><span class="kbd">?</span> keys</span>
+  <span style="margin-left:auto;color:#ff3d7f">halt · nothing proceeds until the override lands</span>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"calm":{"editor":"boolean","default":false,"section":"HUD"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  cells() {
+    const v = [0,0,0,1,1,0,0,0,0,0,1,2, 2,1,0,0,0,0,1,2,3,3,2,1, 0,0,0,0,0,1,1,0,0,0,0,0, 0,1,2,3,4,3,2,1,0,0,0,0, 0,0,0,0,1,2,2,1,0,0,0,0, 1,2,3,4,4,4,3,2,1,1,0,0, 0,0,0,1,1,2,2,2,1,0,0,0, 0,0,1,2,3,3,2,1,0,0,0,9];
+    const col = ['#141b22','#163241','#1b4a60','#217a97','#2aa6cc','#39d0ff'];
+    return v.map((n) => ({ style: 'width:11px;height:11px;background:' + (n === 9 ? '#ff3d7f;box-shadow:0 0 8px #ff3d7f' : col[n]) }));
+  }
+  rows() {
+    const g = (run, meta) => ({ isGroup: true, isEvent: false, run, meta });
+    const e = (t, kind, job, summary, chip, dt, cls) => {
+      const glyph = kind === 'intent' ? '▶' : kind === 'outcome' ? '◀' : kind === 'note' ? '✎' : '✓';
+      const glyphStyle = kind === 'intent' ? 'color:#6f8290' : kind === 'outcome' ? 'color:#cfe6ef' : kind === 'note' ? 'color:#ffb02e' : 'color:#4de38a';
+      const chipCls = chip === 'ok' ? 'c-ok' : chip === 'blocking' || chip === 'refused' ? 'c-block' : chip === 'transient' || chip === 'advisory' ? 'c-trans' : 'c-none';
+      return { isGroup: false, isEvent: true, t, glyph, glyphStyle, job, summary, chip: chip || '—', chipCls, dt: dt || '', cls: cls || '' };
+    };
+    return [
+      g('01M38FTP…TYM', 'kgme.review · review:HANDOFF-0032 · opened 2026-09-23 18:17 · 25 events'),
+      e('09:23:50', 'intent',  'review:0032', 'cycle 2 sha=f81aade8cfb294d0 reviewer=gpt-6-astra', '', '', ''),
+      e('09:33:29', 'outcome', 'review:0032', 'cycle 2 BLOCK sha=f81aade8cfb294d0 blocking 3 advisory 1 · F1 F3 F9', 'blocking', '9.6 m', ''),
+      e('09:41:52', 'note',    'review:0032', 'arbiter claude-opus-5-5 ruled F9=advisory: Michou owns the closing condition', '', '', ''),
+      e('09:43:16', 'intent',  'review:0032', 'cycle 3 sha=74d37ca526cfeafb reviewer=gpt-6-astra', '', '', ''),
+      e('09:49:41', 'outcome', 'review:0032', 'cycle 3 BLOCK sha=74d37ca526cfeafb blocking 1 · F1', 'blocking', '6.4 m', ''),
+      e('09:49:41', 'note',    'review:0032', 'HALT after cycle 3: F1 has stood blocking for 3 consecutive cycles; packet in AUDIT-0029', 'blocking', '', 'focus'),
+      g('c70d687b…8447', 'claude-code · HANDOFF-0032 · 09:50:02 · 6 events since the halt'),
+      e('09:50:02', 'intent',  'tool:Write', 'Write logs/scratch/dispositions-0032-cycle-4.md', '', '', ''),
+      e('09:50:02', 'outcome', 'tool:Write', 'Write ok', 'ok', '0.2 s', ''),
+      e('09:52:53', 'intent',  'tool:Edit',  'Edit docs/audit/2026-09-20-canaries.md', '', '', ''),
+      e('09:52:54', 'outcome', 'tool:Edit',  'Edit ok', 'ok', '0.3 s', ''),
+      e('09:52:54', 'intent',  'tool:Edit',  'Edit logs/scratch/status-canary-gate.md', '', '', ''),
+      e('09:52:54', 'outcome', 'tool:Edit',  'Edit ok', 'ok', '0.2 s', ''),
+    ];
+  }
+  renderVals() {
+    const calm = this.props.calm ?? false;
+    return { noise: !calm, cells: this.cells(), rows: this.rows() };
+  }
+}
+</script>
+</body>
+</html>

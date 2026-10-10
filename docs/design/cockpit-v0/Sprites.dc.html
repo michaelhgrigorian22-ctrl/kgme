@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KGME cockpit — sprites, the cast and its modes</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0a0c10;color:#cfe6ef;font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.45}
+a{color:#39d0ff}a:hover{color:#cfe6ef}
+.pnl{position:relative;background:#11151c;border:1px solid #1e2a33;clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
+.brk::before,.brk::after{content:"";position:absolute;width:10px;height:10px;border:1px solid #39d0ff;pointer-events:none;z-index:1}
+.brk::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
+.brk::after{bottom:-1px;right:-1px;border-left:0;border-top:0}
+.lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#6f8290}
+.h{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#39d0ff;margin:0 0 10px}
+.chip{display:inline-block;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:0 6px;border:1px solid currentColor;line-height:15px;border-radius:1px;white-space:nowrap}
+.c-ok{color:#4de38a}.c-block{color:#ff3d7f}.c-trans{color:#ffb02e}.c-none{color:#6f8290}.c-live{color:#39d0ff}
+.kbd{display:inline-block;min-width:16px;padding:0 5px;border:1px solid #39d0ff;color:#39d0ff;font-size:10px;line-height:16px;text-align:center;border-radius:2px}
+.grp{display:flex;gap:10px;align-items:center;padding:4px 10px;border-bottom:1px solid #1e2a33;color:#39d0ff;font-size:11px}
+.row{display:grid;grid-template-columns:70px 16px 112px minmax(0,1fr) 92px 56px;gap:10px;align-items:center;padding:3px 10px;border-bottom:1px solid #141b22;min-height:22px}
+svg{display:block}
+.fb{opacity:0}
+.m-idle .fb{animation:blink 4s steps(1,end) infinite}.m-idle .fa{animation:blinka 4s steps(1,end) infinite}
+@keyframes blink{0%,90%{opacity:0}91%,99%{opacity:1}100%{opacity:0}}
+@keyframes blinka{0%,90%{opacity:1}91%,99%{opacity:0}100%{opacity:1}}
+.m-working .fb{animation:tick .5s steps(1,end) infinite}.m-working .fa{animation:ticka .5s steps(1,end) infinite}
+@keyframes tick{0%,49%{opacity:0}50%,100%{opacity:1}}
+@keyframes ticka{0%,49%{opacity:1}50%,100%{opacity:0}}
+.m-waiting .fb{animation:tick 1.4s steps(1,end) infinite}.m-waiting .fa{animation:ticka 1.4s steps(1,end) infinite}
+.m-transient .fb{animation:tick 1s steps(1,end) infinite}.m-transient .fa{animation:ticka 1s steps(1,end) infinite}
+.m-blocked .fb{animation:tick .35s steps(1,end) infinite}.m-blocked .fa{animation:ticka .35s steps(1,end) infinite}
+.m-done .fb{animation:tick 1.2s steps(1,end) infinite}.m-done .fa{animation:ticka 1.2s steps(1,end) infinite}
+.m-asleep .fb{animation:tick 2.4s steps(1,end) infinite}.m-asleep .fa{animation:ticka 2.4s steps(1,end) infinite}
+@media (prefers-reduced-motion:reduce){.fa,.fb{animation:none}.fb{opacity:0}.fa{opacity:1}}
+.tile{display:flex;flex-direction:column;align-items:center;gap:6px}
+.stk{background:#efe7ff;border-radius:10px;padding:6px}
+.voice{display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:6px 18px;font-size:11px}
+.voice span{color:#6f8290;letter-spacing:.08em;text-transform:uppercase;font-size:10px}
+</style>
+</helmet>
+<div style="min-height:100vh;padding:36px;display:flex;flex-direction:column;gap:22px;background:#0a0c10">
+  <div style="display:flex;flex-wrap:wrap;gap:18px;align-items:baseline;justify-content:space-between">
+    <div>
+      <div class="lbl">KGME cockpit · whimsy that obeys the rule · v2, louder</div>
+      <h1 style="margin:2px 0 0;font-size:22px;font-weight:700;letter-spacing:.04em">Sprites — the cast and its modes</h1>
+    </div>
+    <div style="max-width:760px;font-size:11px;color:#6f8290">One sprite per <code style="color:#cfe6ef">actor</code>, 24 × 24 pixels, original line work, two palettes from one drawing. A sprite's mode repeats the class chip on its row and nothing else, so it is noise by the rule: <span class="kbd">c</span> hides the whole cast, reduced motion freezes it to one pose. Each is one SVG under <code style="color:#cfe6ef">cockpit/sprites/</code>; a new harness is a file and a line in <code style="color:#cfe6ef">kgme.toml [sprites]</code>, and until then it is the stranger.</div>
+  </div>
+
+  <section class="pnl brk" style="padding:16px">
+    <h2 class="h">The cast × the modes · phosphor palette</h2>
+    <div style="display:grid;grid-template-columns:170px repeat(7, minmax(0, 1fr));gap:12px 8px;align-items:center">
+      <span class="lbl">actor → sprite</span>
+      <span class="lbl" style="text-align:center">idle</span>
+      <span class="lbl" style="text-align:center">working</span>
+      <span class="lbl" style="text-align:center;color:#ffb02e">waiting on you</span>
+      <span class="lbl" style="text-align:center;color:#ffb02e">transient · melting</span>
+      <span class="lbl" style="text-align:center;color:#ff3d7f">blocked · on fire</span>
+      <span class="lbl" style="text-align:center;color:#4de38a">done · halo</span>
+      <span class="lbl" style="text-align:center">asleep · chalk</span>
+      <sc-for list="{{cast}}" as="c" hint-placeholder-count="7">
+        <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:12px">{{c.name}}</span><span class="lbl">{{c.actor}}</span><span style="font-size:10px;color:#6f8290">{{c.bio}}</span></div>
+        <sc-for list="{{c.modes}}" as="sp" hint-placeholder-count="7">
+          <div class="tile">
+            <svg class="{{sp.cls}}" viewBox="0 0 24 24" width="72" height="72" shape-rendering="crispEdges" aria-label="{{sp.label}}">
+              <g class="fa"><path fill="{{sp.cb}}" d="{{sp.a_b}}"></path><path fill="{{sp.cs}}" d="{{sp.a_s}}"></path><path fill="{{sp.ch}}" d="{{sp.a_h}}"></path><path fill="{{sp.cp}}" d="{{sp.a_p}}"></path><path fill="{{sp.cd}}" d="{{sp.a_d}}"></path><path fill="{{sp.ca}}" d="{{sp.a_a}}"></path></g>
+              <g class="fb"><path fill="{{sp.cb}}" d="{{sp.b_b}}"></path><path fill="{{sp.cs}}" d="{{sp.b_s}}"></path><path fill="{{sp.ch}}" d="{{sp.b_h}}"></path><path fill="{{sp.cp}}" d="{{sp.b_p}}"></path><path fill="{{sp.cd}}" d="{{sp.b_d}}"></path><path fill="{{sp.ca}}" d="{{sp.b_a}}"></path></g>
+            </svg>
+          </div>
+        </sc-for>
+      </sc-for>
+    </div>
+    <div class="lbl" style="margin-top:12px">Two frames per mode. Working shakes at 0.5 s (the jackhammer, the quill, the beam). Blocked flickers at 0.35 s because fire does. Asleep is the chalk outline of the same drawing, rotated, breathing a z every 2.4 s. The accent colour is the row's class colour; it is also the colour of the fire.</div>
+  </section>
+
+  <div style="display:grid;grid-template-columns:minmax(0, 1.2fr) minmax(0, 1fr);gap:18px">
+    <section class="pnl brk" style="padding:16px">
+      <h2 class="h">Same drawings · sticker palette · cheetah print is a colour, not a pattern file</h2>
+      <div style="display:grid;grid-template-columns:repeat(7, minmax(0, 1fr));gap:10px">
+        <sc-for list="{{stickers}}" as="sp" hint-placeholder-count="7">
+          <div class="tile">
+            <div class="stk">
+              <svg class="{{sp.cls}}" viewBox="0 0 24 24" width="64" height="64" shape-rendering="crispEdges" aria-label="{{sp.label}}">
+                <g class="fa"><path fill="{{sp.cb}}" d="{{sp.a_b}}"></path><path fill="{{sp.cs}}" d="{{sp.a_s}}"></path><path fill="{{sp.ch}}" d="{{sp.a_h}}"></path><path fill="{{sp.cp}}" d="{{sp.a_p}}"></path><path fill="{{sp.cd}}" d="{{sp.a_d}}"></path><path fill="{{sp.ca}}" d="{{sp.a_a}}"></path></g>
+                <g class="fb"><path fill="{{sp.cb}}" d="{{sp.b_b}}"></path><path fill="{{sp.cs}}" d="{{sp.b_s}}"></path><path fill="{{sp.ch}}" d="{{sp.b_h}}"></path><path fill="{{sp.cp}}" d="{{sp.b_p}}"></path><path fill="{{sp.cd}}" d="{{sp.b_d}}"></path><path fill="{{sp.ca}}" d="{{sp.b_a}}"></path></g>
+              </svg>
+            </div>
+            <span class="lbl">{{sp.label}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size:11px;color:#6f8290;margin-top:12px">Stickers are allowed in two places: the detail pane header (one sprite, 72 px) and the Phase 2 model selector. In the timeline, phosphor. A <code style="color:#cfe6ef">sticker</code> tweak flips that for an evening when the situation calls for cheetah print.</div>
+    </section>
+
+    <section class="pnl brk" style="padding:16px;display:flex;flex-direction:column;gap:12px">
+      <h2 class="h">Where they stand</h2>
+      <div style="border:1px solid #1e2a33">
+        <div class="grp"><svg class="m-working" viewBox="0 0 24 24" width="24" height="24" shape-rendering="crispEdges" aria-label="builder, working"><g class="fa"><path fill="#cfe6ef" d="{{ctx.builder.a_b}}"></path><path fill="#6f8290" d="{{ctx.builder.a_s}}"></path><path fill="#8fb4c4" d="{{ctx.builder.a_h}}"></path><path fill="#0a0c10" d="{{ctx.builder.a_p}}"></path><path fill="#0a0c10" d="{{ctx.builder.a_d}}"></path><path fill="#39d0ff" d="{{ctx.builder.a_a}}"></path></g><g class="fb"><path fill="#cfe6ef" d="{{ctx.builder.b_b}}"></path><path fill="#6f8290" d="{{ctx.builder.b_s}}"></path><path fill="#8fb4c4" d="{{ctx.builder.b_h}}"></path><path fill="#0a0c10" d="{{ctx.builder.b_p}}"></path><path fill="#0a0c10" d="{{ctx.builder.b_d}}"></path><path fill="#39d0ff" d="{{ctx.builder.b_a}}"></path></g></svg><span>▣ run c70d687b…8447</span><span style="color:#6f8290">claude-code · HANDOFF-0040 · 212 events</span></div>
+        <div class="row"><span style="color:#6f8290">19:41:48</span><span>◀</span><span style="color:#6f8290">tool:Bash</span><span>Bash ok · 9 passed</span><span><span class="chip c-ok">ok</span></span><span style="text-align:right;color:#6f8290">15 s</span></div>
+        <div class="grp"><svg class="m-transient" viewBox="0 0 24 24" width="24" height="24" shape-rendering="crispEdges" aria-label="reviewer, transient"><g class="fa"><path fill="#cfe6ef" d="{{ctx.reviewer.a_b}}"></path><path fill="#6f8290" d="{{ctx.reviewer.a_s}}"></path><path fill="#8fb4c4" d="{{ctx.reviewer.a_h}}"></path><path fill="#0a0c10" d="{{ctx.reviewer.a_p}}"></path><path fill="#0a0c10" d="{{ctx.reviewer.a_d}}"></path><path fill="#ffb02e" d="{{ctx.reviewer.a_a}}"></path></g><g class="fb"><path fill="#cfe6ef" d="{{ctx.reviewer.b_b}}"></path><path fill="#6f8290" d="{{ctx.reviewer.b_s}}"></path><path fill="#8fb4c4" d="{{ctx.reviewer.b_h}}"></path><path fill="#0a0c10" d="{{ctx.reviewer.b_p}}"></path><path fill="#0a0c10" d="{{ctx.reviewer.b_d}}"></path><path fill="#ffb02e" d="{{ctx.reviewer.b_a}}"></path></g></svg><span>▣ run 01M4F8NR…04F</span><span style="color:#6f8290">kgme.review · cycle 1 · usage limit · melting</span></div>
+        <div class="row" style="border-bottom:0"><span style="color:#6f8290">19:43:03</span><span>◀</span><span style="color:#6f8290">review:0040</span><span>cycle 1 attempt 1: reviewer exited 1 with no text</span><span><span class="chip c-trans">transient</span></span><span style="text-align:right;color:#6f8290">3 s</span></div>
+      </div>
+      <div class="lbl">run header · 24 px · mode = the run's latest class</div>
+
+      <div style="display:flex;gap:12px;align-items:center;border:1px solid #1e2a33;padding:10px">
+        <div class="stk"><svg class="m-blocked" viewBox="0 0 24 24" width="72" height="72" shape-rendering="crispEdges" aria-label="arbiter, blocked"><g class="fa"><path fill="#5b5bd6" d="{{ctx.arbiter.a_b}}"></path><path fill="#f2f2f2" d="{{ctx.arbiter.a_s}}"></path><path fill="#2b2d6b" d="{{ctx.arbiter.a_h}}"></path><path fill="#2a2340" d="{{ctx.arbiter.a_p}}"></path><path fill="#2a2340" d="{{ctx.arbiter.a_d}}"></path><path fill="#ff3d7f" d="{{ctx.arbiter.a_a}}"></path></g><g class="fb"><path fill="#5b5bd6" d="{{ctx.arbiter.b_b}}"></path><path fill="#f2f2f2" d="{{ctx.arbiter.b_s}}"></path><path fill="#2b2d6b" d="{{ctx.arbiter.b_h}}"></path><path fill="#2a2340" d="{{ctx.arbiter.b_p}}"></path><path fill="#2a2340" d="{{ctx.arbiter.b_d}}"></path><path fill="#ff3d7f" d="{{ctx.arbiter.b_a}}"></path></g></svg></div>
+        <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl" style="color:#ff3d7f">detail · note · halt</span><span style="font-size:12px">review:HANDOFF-0032 HALT after cycle 3</span><span style="font-size:11px;color:#6f8290">arbiter claude-opus-5-5 · the skull sits down and burns until the override lands</span></div>
+      </div>
+      <div class="lbl">detail pane header · 72 px · sticker palette allowed here</div>
+
+      <div style="display:flex;gap:12px;align-items:center;border:1px dashed #3a4650;padding:10px;color:#6f8290">
+        <svg class="m-waiting" viewBox="0 0 24 24" width="48" height="48" shape-rendering="crispEdges" aria-label="guard, waiting"><g class="fa"><path fill="#cfe6ef" d="{{ctx.guard.a_b}}"></path><path fill="#6f8290" d="{{ctx.guard.a_s}}"></path><path fill="#8fb4c4" d="{{ctx.guard.a_h}}"></path><path fill="#0a0c10" d="{{ctx.guard.a_p}}"></path><path fill="#0a0c10" d="{{ctx.guard.a_d}}"></path><path fill="#ffb02e" d="{{ctx.guard.a_a}}"></path></g><g class="fb"><path fill="#cfe6ef" d="{{ctx.guard.b_b}}"></path><path fill="#6f8290" d="{{ctx.guard.b_s}}"></path><path fill="#8fb4c4" d="{{ctx.guard.b_h}}"></path><path fill="#0a0c10" d="{{ctx.guard.b_p}}"></path><path fill="#0a0c10" d="{{ctx.guard.b_d}}"></path><path fill="#ffb02e" d="{{ctx.guard.b_a}}"></path></g></svg>
+        <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">phase 2 · approval pending</span><span style="font-size:12px;color:#cfe6ef">Bash git push origin main</span><span style="font-size:11px">the cherub with the riot shield holds the door until <span class="kbd">y</span> or <span class="kbd">n</span></span></div>
+      </div>
+      <div class="lbl">approval card · 48 px · the guard is the hook pair, not a model</div>
+    </section>
+  </div>
+
+  <div style="display:grid;grid-template-columns:minmax(0, 1fr) minmax(0, 1fr);gap:18px">
+    <section class="pnl brk" style="padding:16px">
+      <h2 class="h">Voice · the micro-labels, mood: based</h2>
+      <div style="font-size:11px;color:#6f8290;margin-bottom:10px">The corner labels carry no information, so they can say anything. A <code style="color:#cfe6ef">mood</code> tweak swaps the cold set for this one. Same facts, worse attitude.</div>
+      <div class="voice">
+        <span>live</span><div>the ledger remembers · you may not</div>
+        <span>blocking</span><div>it's not you · it's the regex</div>
+        <span>halt</span><div>nothing proceeds · nothing ever did</div>
+        <span>disconnected</span><div>server unreachable · as are we all</div>
+        <span>pending</span><div>an intent without an outcome · relatable</div>
+        <span>empty</span><div>no events · the quietest the room will ever be</div>
+        <span>done</span><div>PASS · the sun also rises · 7 cycles</div>
+        <span>transient</span><div>usage limit · the model is on a break · so is god</div>
+        <span>optimized</span><div>the cheapest model that still respects you</div>
+        <span>tier 1</span><div>stays home · swag stays home</div>
+        <span>clock</span><div>19:52:14 −07:00 · the world is ending on schedule</div>
+        <span>footer</span><div>based · ledgered · gone</div>
+      </div>
+    </section>
+    <section class="pnl brk" style="padding:16px">
+      <h2 class="h">Rules</h2>
+      <div style="display:flex;flex-direction:column;gap:10px;font-size:11px">
+        <div><span class="lbl">mapping, in kgme.toml</span><pre style="margin:6px 0 0;font:inherit;color:#cfe6ef;white-space:pre-wrap">[sprites]
+"claude-code.*" = "builder"
+"kgme.review"   = "reviewer"
+"arbiter.*"     = "arbiter"
+"kgme.guard"    = "guard"
+"kgme.*"        = "scribe"
+"michou"        = "michou"
+default         = "stranger"</pre><span style="color:#6f8290">Matched on <code>actor</code>, first rule wins. A Kimi harness is the stranger until you give it a face.</span></div>
+        <div><span class="lbl">what a sprite may do</span><p style="margin:6px 0 0;color:#cfe6ef">Blink, shake a tool, hold up a glyph, melt, burn, sit down, lie in chalk. Two frames, one accent colour: the row's class. It may never show a fact the row does not show in text, so the cast can vanish under <span class="kbd">c</span> and nothing is lost. Under <code>prefers-reduced-motion</code> every sprite is frame A, still: on fire, but still.</p></div>
+        <div><span class="lbl">what a sprite is</span><p style="margin:6px 0 0;color:#cfe6ef">One file, <code>cockpit/sprites/builder.svg</code>, under 3 KB, 24 × 24, six fills (<code>b</code> garment, <code>s</code> face, <code>h</code> hat and tool, <code>p</code> print, <code>d</code> dark, <code>a</code> accent), seven groups for the modes. Original line work; no stock, no game, no named character. Reviewed like code.</p></div>
+      </div>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  grid() { return Array.from({ length: 24 }, () => Array(24).fill('.')); }
+  put(g, rows, y0, x0) {
+    rows.forEach((r, j) => { for (let i = 0; i < r.length; i++) { const ch = r[i]; const y = y0 + j, x = x0 + i; if (ch !== '.' && y >= 0 && y < 24 && x >= 0 && x < 24) g[y][x] = ch; } });
+  }
+  paths(g) {
+    const out = { b: [], s: [], h: [], p: [], d: [], a: [] };
+    for (let y = 0; y < 24; y++) for (let x = 0; x < 24; x++) { const ch = g[y][x]; if (out[ch]) out[ch].push('M' + x + ' ' + y + 'h1v1h-1z'); }
+    const j = (k) => out[k].join('');
+    return { b: j('b'), s: j('s'), h: j('h'), p: j('p'), d: j('d'), a: j('a') };
+  }
+  body() {
+    return [
+      '........................','........................','........................','........................','........................',
+      '........bbbbbbbb........','.......bssssssssb.......','.......bssssssssb.......','.......bssssssssb.......','.......bssssssssb.......',
+      '.......bssssssssb.......','.......bssssssssb.......','........bbbbbbbb........','......bbbbbbbbbbbb......','.....bbbbbbbbbbbbbb.....',
+      '....bb.bbbbbbbbbb.bb....','....bb.bbbbbbbbbb.bb....','.......bbbbbbbbbb.......','.......bbbbbbbbbb.......','.......bbbbbbbbbb.......',
+      '.......bbb....bbb.......','.......bbb....bbb.......','.......bbb....bbb.......','......bbbb....bbbb......'
+    ];
+  }
+  characters() {
+    const cheetah = [[14,7],[14,11],[15,9],[15,14],[16,12],[17,8],[17,15],[18,11],[19,9],[19,14]];
+    return {
+      builder: { name: 'the builder', actor: 'claude-code.*', bio: 'jackhammer · cheetah overalls · hat on fire · cigarette',
+        layers: [
+          { y: 2, rows: ['........hhhhhhhh........','.......hhhhhhhhhh.......','......hhhhhhhhhhhh......','.....hhhhhhhhhhhhhh.....'] },
+          { y: 10, x: 16, rows: ['hhha'] }
+        ],
+        flames: [[0,10],[0,14],[1,9],[1,10],[1,13],[1,14],[1,15]],
+        print: cheetah,
+        tool: { y: 11, x: 18, rows: ['..dd..','..dd..','.hhhh.','..hh..','..hh..','..hh..','..hh..','..hh..','..hh..','..hh..','.hhhh.','.hhhh.'] },
+        smoke: [[7,20],[5,21],[3,22]] },
+      reviewer: { name: 'the reviewer', actor: 'kgme.review', bio: 'monocle · too many teeth · spiked collar · the loupe',
+        layers: [
+          { y: 2, rows: ['........hhhhhhhhh.......','.......hhhhhhhhhhh......','....hhhhhhhhhhhhhhhhh...'] },
+          { y: 6, x: 12, rows: ['hhhh','h..h','h..h','hhhh'] },
+          { y: 13, rows: ['.......d.d.d.d.d........'] }
+        ],
+        teeth: true,
+        tool: { y: 12, x: 17, rows: ['.hhhh.','h....h','h.aa.h','h.aa.h','.hhhh.','.h....','h.....'] } },
+      arbiter: { name: 'the arbiter', actor: 'arbiter.*', bio: 'skull · wizard hat · star staff · robe of stars',
+        layers: [
+          { y: 0, rows: ['............a...........','...........hh...........','..........hhhh..........','.........hhhhhh.........','........hhhhhhhh........','......hhhhhhhhhhhh......'] },
+          { y: 3, x: 19, rows: ['.a.','aaa','.a.'] },
+          { y: 6, x: 20, rows: ['h','h','h','h','h','h','h','h','h','h','h','h','h','h','h','h','h'] }
+        ],
+        skull: true,
+        stars: [[14,9],[16,13],[18,8],[19,15]] },
+      guard: { name: 'the guard', actor: 'kgme.guard', bio: 'riot helmet · halo · wings · shield says no',
+        layers: [
+          { y: 0, rows: ['.........aaaaaa.........','........a......a........'] },
+          { y: 2, rows: ['........hhhhhhhh........','.......hhhhhhhhhh.......','.......hhhhhhhhhh.......','.......hhhhhhhhhh.......'] },
+          { y: 8, rows: ['........dddddddd........'] },
+          { y: 13, x: 0, rows: ['.hhhhh','hhhhhh','hdhhdh','hhddhh','hdhhdh','hhhhhh','.hhhh.','..hh..'] },
+          { y: 14, x: 18, rows: ['hhhhhh'] }
+        ],
+        wings: true },
+      scribe: { name: 'the scribe', actor: 'kgme.*', bio: 'reaper · hood · the ledger is the book of the dead · quill',
+        layers: [
+          { y: 1, rows: ['.........hhhhhh.........','.......hhhhhhhhhh.......','......hhhhhhhhhhhh......','.....hhhhhhhhhhhhhh.....','.....hh..........hh.....','.....hh..........hh.....','.....hh..........hh.....','.....hh..........hh.....','.....hh..........hh.....'] },
+          { y: 0, x: 19, rows: ['...a','..hh','.hh.','hh..','.h..','.h..','.h..','.h..','.h..','.h..','.h..','.h..','.h..','.h..','.h..','.h..','.h..','.h..','.h..','.h..'] },
+          { y: 15, x: 1, rows: ['hhhhh','haaah','hhhhh','haaah','hhhhh'] }
+        ],
+        voidFace: true },
+      michou: { name: 'you', actor: 'michou', bio: 'bucket hat · shades · chain · flip phone · cheetah hoodie',
+        layers: [
+          { y: 1, rows: ['.........hhhhhhh........','........hhhhhhhhh.......','........hhhhhhhhh.......','........hhhhhhhhh.......','.....hhhhhhhhhhhhhhh....'] },
+          { y: 8, rows: ['........dddddddd........'] },
+          { y: 13, rows: ['........a.a.a.a.a.......'] },
+          { y: 6, x: 17, rows: ['hh','hh','hh','hh','.h'] }
+        ],
+        print: cheetah },
+      stranger: { name: 'the stranger', actor: 'default', bio: 'tv static for a face · antenna · no file yet',
+        layers: [
+          { y: 1, rows: ['.........h....h.........','..........h..h..........','...........hh...........','...........hh...........'] },
+          { y: 15, rows: ['..........dddd..........'] }
+        ],
+        staticFace: true }
+    };
+  }
+  modes() {
+    const Q = ['.aaa.','....a','..aa.','.....','..a..'];
+    const BANG = ['..a..','..a..','..a..','.....','..a..'];
+    const Z = ['.aaa.','...a.','..a..','.a...','.aaa.'];
+    const SPARK = ['..a..','.aaa.','aaaaa','.aaa.','..a..'];
+    const SWEAT = ['..a..','.aaa.','.aaa.','..a..'];
+    return [
+      { key: 'idle',      label: 'idle',             accent: '#39d0ff', cls: 'm-idle',      A: { eyes: 'open',  mouth: 'smile' }, B: { eyes: 'shut', mouth: 'smile', smokeB: true } },
+      { key: 'working',   label: 'working',          accent: '#39d0ff', cls: 'm-working',   A: { eyes: 'tall',  mouth: 'flat', toolDy: 0 }, B: { eyes: 'tall', mouth: 'flat', toolDy: -1, sparks: true, smokeB: true } },
+      { key: 'waiting',   label: 'waiting on you',   accent: '#ffb02e', cls: 'm-waiting',   A: { eyes: 'open',  mouth: 'oh', overlay: Q, ox: 18, oy: 0, tap: false }, B: { eyes: 'open', mouth: 'oh', overlay: Q, ox: 18, oy: 1, tap: true } },
+      { key: 'transient', label: 'transient',        accent: '#ffb02e', cls: 'm-transient', A: { eyes: 'open',  mouth: 'wavy', overlay: SWEAT, ox: 2, oy: 5, melt: 1 }, B: { eyes: 'open', mouth: 'wavy', overlay: SWEAT, ox: 2, oy: 6, melt: 2 } },
+      { key: 'blocked',   label: 'blocked · on fire', accent: '#ff3d7f', cls: 'm-blocked',   A: { eyes: 'cross', mouth: 'wavy', overlay: BANG, ox: 18, oy: 0, sit: true, fire: 0 }, B: { eyes: 'cross', mouth: 'wavy', overlay: BANG, ox: 18, oy: 0, sit: true, fire: 1 } },
+      { key: 'done',      label: 'done',             accent: '#4de38a', cls: 'm-done',      A: { eyes: 'shades', mouth: 'grin', halo: true, overlay: SPARK, ox: 18, oy: 0 }, B: { eyes: 'shades', mouth: 'grin', halo: true } },
+      { key: 'asleep',    label: 'asleep',           accent: '#6f8290', cls: 'm-asleep',    A: { eyes: 'shut',  mouth: 'oh', chalk: true, overlay: Z, ox: 18, oy: 0 }, B: { eyes: 'shut', mouth: 'oh', chalk: true, overlay: Z, ox: 18, oy: 1 } }
+    ];
+  }
+  face(g, ch, f) {
+    if (ch.staticFace) {
+      for (let y = 6; y <= 11; y++) for (let x = 8; x <= 15; x++) g[y][x] = ((x + y + (f.smokeB || f.sparks || f.tap ? 1 : 0)) % 2) ? 'd' : 's';
+      return;
+    }
+    if (ch.voidFace) {
+      for (let y = 6; y <= 11; y++) for (let x = 8; x <= 15; x++) g[y][x] = 'd';
+      if (f.eyes !== 'shut') { g[8][9] = 'a'; g[8][10] = 'a'; g[8][13] = 'a'; g[8][14] = 'a'; }
+      if (f.eyes === 'cross') { g[7][9] = 'a'; g[7][14] = 'a'; g[9][9] = 'a'; g[9][14] = 'a'; }
+      return;
+    }
+    if (ch.skull) {
+      g[7][9] = 'd'; g[7][10] = 'd'; g[8][9] = 'd'; g[8][10] = 'd'; g[7][13] = 'd'; g[7][14] = 'd'; g[8][13] = 'd'; g[8][14] = 'd';
+      g[9][11] = 'd'; g[9][12] = 'd';
+      for (let x = 8; x <= 15; x++) g[11][x] = (x % 2) ? 'd' : 's';
+      if (f.eyes === 'cross') { g[7][9] = 'a'; g[8][10] = 'a'; g[7][14] = 'a'; g[8][13] = 'a'; }
+      if (f.eyes === 'shades') for (let x = 8; x <= 15; x++) { g[7][x] = 'd'; g[8][x] = 'd'; }
+      return;
+    }
+    const E = f.eyes;
+    if (E === 'open' || E === 'tall') { g[8][9] = 'd'; g[8][10] = 'd'; g[8][13] = 'd'; g[8][14] = 'd'; }
+    if (E === 'tall') { g[9][9] = 'd'; g[9][10] = 'd'; g[9][13] = 'd'; g[9][14] = 'd'; g[7][9] = 'd'; g[7][14] = 'd'; }
+    if (E === 'shut') { g[9][9] = 'd'; g[9][10] = 'd'; g[9][13] = 'd'; g[9][14] = 'd'; }
+    if (E === 'cross') { g[7][9] = 'd'; g[7][10] = 'd'; g[9][9] = 'd'; g[9][10] = 'd'; g[8][9] = 'd'; g[7][13] = 'd'; g[7][14] = 'd'; g[9][13] = 'd'; g[9][14] = 'd'; g[8][14] = 'd'; }
+    if (E === 'shades') for (let x = 8; x <= 15; x++) { g[8][x] = 'd'; g[9][x] = 'd'; }
+    if (ch.teeth) { for (let x = 8; x <= 15; x++) g[10][x] = (x % 2) ? 'd' : 's'; g[11][9] = 'd'; g[11][14] = 'd'; return; }
+    const M = f.mouth;
+    if (M === 'smile') { g[10][10] = 'd'; g[10][13] = 'd'; g[11][11] = 'd'; g[11][12] = 'd'; }
+    if (M === 'flat') { g[10][10] = 'd'; g[10][11] = 'd'; g[10][12] = 'd'; g[10][13] = 'd'; }
+    if (M === 'oh') { g[10][11] = 'd'; g[10][12] = 'd'; g[11][11] = 'd'; g[11][12] = 'd'; }
+    if (M === 'wavy') { g[10][9] = 'd'; g[11][10] = 'd'; g[10][11] = 'd'; g[11][12] = 'd'; g[10][13] = 'd'; }
+    if (M === 'grin') { for (let x = 9; x <= 14; x++) g[10][x] = 'd'; g[11][10] = 'd'; g[11][13] = 'd'; }
+  }
+  frame(ch, f) {
+    const g = this.grid();
+    const body = this.body().slice();
+    if (f.sit) { body[20] = '....bbbbbbbbbbbbbbbb....'; body[21] = '....bbb..........bbb....'; body[22] = '....bbb..........bbb....'; body[23] = '...bbbb..........bbbb...'; }
+    if (f.tap) { body[22] = '.......bbb.....bbb......'; body[23] = '......bbbb....bbbbb.....'; }
+    this.put(g, body, 0, 0);
+    if (ch.print) ch.print.forEach(([y, x]) => { if (g[y][x] === 'b') g[y][x] = 'p'; g[y][x + 1] = g[y][x + 1] === 'b' ? 'p' : g[y][x + 1]; });
+    if (ch.stars) ch.stars.forEach(([y, x]) => { g[y][x] = 'a'; });
+    if (ch.wings) {
+      const w = f.sparks || f.tap || f.smokeB ? 1 : 0;
+      this.put(g, ['bb..','bbb.','bbbb','.bbb','..bb'], 12 + w, 0); this.put(g, ['..bb','.bbb','bbbb','bbb.','bb..'], 12 + w, 20);
+    }
+    this.face(g, ch, f);
+    (ch.layers || []).forEach((L) => this.put(g, L.rows, L.y, L.x || 0));
+    if (ch.tool) this.put(g, ch.tool.rows, ch.tool.y + (f.toolDy || 0), ch.tool.x);
+    if (ch.flames && !f.fire && f.fire !== 0) ch.flames.forEach(([y, x]) => { g[y + (f.smokeB ? 1 : 0)][x] = 'a'; });
+    if (ch.flames && f.fire === undefined) ch.flames.forEach(([y, x]) => { g[y][x] = 'a'; });
+    if (ch.smoke && f.smokeB) ch.smoke.forEach(([y, x]) => { g[y][x] = 'a'; });
+    if (f.sparks && ch.tool) { g[23][ch.tool.x] = 'a'; g[22][ch.tool.x + 5] = 'a'; g[21][ch.tool.x - 1] = 'a'; }
+    if (f.sparks && !ch.tool) { g[12][2] = 'a'; g[12][21] = 'a'; }
+    if (f.melt) { this.put(g, ['bb..bb','bbb.bb','.bb.b.'].slice(0, f.melt + 1), 21 + (3 - f.melt), 8); this.put(g, ['aa.a'], 23, 7); }
+    if (f.fire !== undefined) {
+      const F = f.fire ? ['......a....a....a.......','.....aa...aaa..aa.......','....aaa.aaaaa.aaa.......','....aaaaaaaaaaaaa.......','.....aaaaaaaaaaa........','......aaaaaaaaa.........']
+                       : ['........a.....a.........','.......aaa...aa.........','......aaaa..aaaa........','.....aaaaaaaaaaaa.......','......aaaaaaaaaa........','.......aaaaaaaa.........'];
+      this.put(g, F, 0, 0);
+    }
+    if (f.halo) this.put(g, ['.........aaaaaa.........','........a......a........'], 0, 0);
+    if (f.overlay) this.put(g, f.overlay, f.oy, f.ox);
+    if (f.chalk) return this.chalk(g);
+    return this.paths(g);
+  }
+  chalk(g) {
+    const r = this.grid();
+    for (let y = 0; y < 24; y++) for (let x = 0; x < 24; x++) { const ch = g[y][x]; if (ch === '.') continue; const ny = 23 - x, nx = y; r[ny][nx] = ch === 'a' && (y < 5 && x > 16) ? 'a' : 'b'; }
+    const o = this.grid();
+    for (let y = 0; y < 24; y++) for (let x = 0; x < 24; x++) {
+      if (r[y][x] === '.') continue;
+      const n = [[y - 1, x], [y + 1, x], [y, x - 1], [y, x + 1]].some(([yy, xx]) => yy < 0 || yy > 23 || xx < 0 || xx > 23 || r[yy][xx] === '.');
+      if (r[y][x] === 'a') o[y][x] = 'a'; else if (n) o[y][x] = 'a';
+    }
+    for (let x = 0; x < 24; x++) if (o[23][x] === '.') o[23][x] = 'd';
+    return this.paths(o);
+  }
+  sprite(ch, mode, pal) {
+    const A = this.frame(ch, mode.A), B = this.frame(ch, mode.B);
+    return { cls: mode.cls, label: ch.name + ', ' + mode.label, cb: pal.b, cs: pal.s, ch: pal.h, cp: pal.p, cd: pal.d, ca: mode.accent,
+      a_b: A.b, a_s: A.s, a_h: A.h, a_p: A.p, a_d: A.d, a_a: A.a, b_b: B.b, b_s: B.s, b_h: B.h, b_p: B.p, b_d: B.d, b_a: B.a };
+  }
+  renderVals() {
+    const chars = this.characters(), modes = this.modes();
+    const phosphor = { b: '#cfe6ef', s: '#6f8290', h: '#8fb4c4', p: '#0a0c10', d: '#0a0c10' };
+    const stickerPal = {
+      builder: { b: '#e8a33d', s: '#ffd9c2', h: '#ffd23f', p: '#3b2412', d: '#2a2340' },
+      reviewer: { b: '#2bb3a3', s: '#ffd9c2', h: '#8b5e3c', p: '#2a2340', d: '#2a2340' },
+      arbiter: { b: '#5b5bd6', s: '#f2f2f2', h: '#2b2d6b', p: '#2a2340', d: '#2a2340' },
+      guard: { b: '#ff7ab8', s: '#ffd9c2', h: '#c9d1d9', p: '#2a2340', d: '#2a2340' },
+      scribe: { b: '#1b1b24', s: '#0a0a0f', h: '#c9d1d9', p: '#2a2340', d: '#0a0a0f' },
+      michou: { b: '#e8a33d', s: '#ffd9c2', h: '#3b82f6', p: '#3b2412', d: '#2a2340' },
+      stranger: { b: '#9aa3ad', s: '#d9dee3', h: '#9aa3ad', p: '#2a2340', d: '#2a2340' }
+    };
+    const order = ['builder', 'reviewer', 'arbiter', 'guard', 'scribe', 'michou', 'stranger'];
+    const cast = order.map((k) => ({ name: chars[k].name, actor: chars[k].actor, bio: chars[k].bio, modes: modes.map((m) => this.sprite(chars[k], m, phosphor)) }));
+    const stickers = order.map((k, i) => { const sp = this.sprite(chars[k], modes[i % 2], stickerPal[k]); sp.label = chars[k].name; return sp; });
+    const ctx = {
+      builder: this.sprite(chars.builder, modes[1], phosphor),
+      reviewer: this.sprite(chars.reviewer, modes[3], phosphor),
+      arbiter: this.sprite(chars.arbiter, modes[4], stickerPal.arbiter),
+      guard: this.sprite(chars.guard, modes[2], phosphor)
+    };
+    return { cast, stickers, ctx };
+  }
+}
+</script>
+</body>
+</html>

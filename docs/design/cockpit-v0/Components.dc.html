@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KGME cockpit — component sheet</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0a0c10;color:#cfe6ef;font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.45}
+a{color:#39d0ff}a:hover{color:#cfe6ef}
+.pnl{position:relative;background:#11151c;border:1px solid #1e2a33;clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
+.brk::before,.brk::after{content:"";position:absolute;width:10px;height:10px;border:1px solid var(--f,#39d0ff);pointer-events:none;z-index:1}
+.brk::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
+.brk::after{bottom:-1px;right:-1px;border-left:0;border-top:0}
+.lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#6f8290}
+.h{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#39d0ff;margin:0 0 10px}
+.chip{display:inline-block;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:0 6px;border:1px solid currentColor;line-height:15px;border-radius:1px;white-space:nowrap}
+.c-ok{color:#4de38a}.c-block{color:#ff3d7f}.c-trans{color:#ffb02e}.c-adv{color:#ffb02e}.c-pend{color:#ffb02e}.c-none{color:#6f8290}.c-live{color:#39d0ff}
+.row{display:grid;grid-template-columns:70px 16px 112px minmax(0,1fr) 92px 56px;gap:10px;align-items:center;padding:3px 10px;border-bottom:1px solid #141b22;min-height:22px}
+.grp{display:flex;gap:12px;align-items:baseline;padding:8px 10px 4px;border-bottom:1px solid #1e2a33;color:#39d0ff;font-size:11px}
+.focus{outline:1px solid #39d0ff;outline-offset:-1px;background:#0e1a22}
+.hov{background:#0f141b}
+.kbd{display:inline-block;min-width:16px;padding:0 5px;border:1px solid #39d0ff;color:#39d0ff;font-size:10px;line-height:16px;text-align:center;border-radius:2px}
+.seg{display:flex;gap:2px}.seg i{display:block;width:7px;height:12px;background:#1e2a33}.seg i.on{background:#39d0ff}.seg i.warn{background:#ffb02e}.seg i.cap{background:#ff3d7f}
+.sw{display:flex;align-items:center;gap:10px;font-size:11px}.sw b{display:block;width:34px;height:22px;border:1px solid #1e2a33;font-weight:400}
+.tx{height:6px;background:repeating-linear-gradient(90deg,#39d0ff 0 1px,transparent 1px 8px);opacity:.55}
+.scan{background:repeating-linear-gradient(0deg,rgba(207,230,239,.035) 0 1px,transparent 1px 3px)}
+.mini{position:relative;height:96px;border:1px solid var(--f);box-shadow:inset 0 0 28px var(--fg);background:#0a0c10}
+.mini .m{position:absolute;top:4px;left:8px;font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:#6f8290}
+.mini .b{position:absolute;bottom:8px;left:8px;right:8px;height:34px;background:#11151c;border:1px solid #1e2a33}
+.callout{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#ffb02e}
+</style>
+</helmet>
+<div style="min-height:100vh;padding:36px;display:flex;flex-direction:column;gap:22px;background:#0a0c10">
+  <div style="display:flex;flex-wrap:wrap;gap:18px;align-items:baseline;justify-content:space-between">
+    <div>
+      <div class="lbl">KGME cockpit v0 · HANDOFF-0036</div>
+      <h1 style="margin:2px 0 0;font-size:22px;font-weight:700;letter-spacing:.04em">Component sheet</h1>
+    </div>
+    <div style="max-width:720px;font-size:11px;color:#6f8290">Signal in the centre, noise at the edges. Every element below is either <span style="color:#cfe6ef">signal</span> (carries a fact from the ledger) or <span style="color:#cfe6ef">noise</span> (frame, rails, micro-labels, scanlines). Noise never carries information, so <span class="kbd">c</span> and <code>prefers-reduced-motion</code> can remove it without loss.</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:18px">
+
+    <section class="pnl brk" style="padding:16px">
+      <h2 class="h">Palette · phosphor + neon</h2>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <div class="sw"><b style="background:#0a0c10"></b><span>#0a0c10 <span style="color:#6f8290">ground</span></span></div>
+        <div class="sw"><b style="background:#11151c"></b><span>#11151c <span style="color:#6f8290">surface · panels</span></span></div>
+        <div class="sw"><b style="background:#1e2a33"></b><span>#1e2a33 <span style="color:#6f8290">rule · empty segment</span></span></div>
+        <div class="sw"><b style="background:#cfe6ef"></b><span>#cfe6ef <span style="color:#6f8290">text · 14.6:1 on ground</span></span></div>
+        <div class="sw"><b style="background:#6f8290"></b><span>#6f8290 <span style="color:#6f8290">muted · 5.0:1 on ground</span></span></div>
+        <div class="sw"><b style="background:#39d0ff"></b><span>#39d0ff <span style="color:#6f8290">cyan · focus, live, frame</span></span></div>
+        <div class="sw"><b style="background:#ff3d7f"></b><span>#ff3d7f <span style="color:#6f8290">magenta · blocking and refused only</span></span></div>
+        <div class="sw"><b style="background:#ffb02e"></b><span>#ffb02e <span style="color:#6f8290">amber · pending, transient, advisory</span></span></div>
+        <div class="sw"><b style="background:#4de38a"></b><span>#4de38a <span style="color:#6f8290">green · ok, approval</span></span></div>
+      </div>
+      <div class="lbl" style="margin-top:12px">Rule: a colour that carries state also differs in glyph or text, never hue alone.</div>
+    </section>
+
+    <section class="pnl brk" style="padding:16px">
+      <h2 class="h">Type · JetBrains Mono everywhere</h2>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div><span style="font-size:22px;font-weight:700;letter-spacing:.04em">19:52:14</span> <span class="lbl">22 / 700 · clock, one per screen</span></div>
+        <div><span style="font-size:14px">1 479 events · 70 runs</span> <span class="lbl">14 / 400 · header values</span></div>
+        <div><span style="font-size:12px">Edit docs/audit/2026-10-08-push-on-commit.md</span> <span class="lbl">12 / 400 · rows, body</span></div>
+        <div><span style="font-size:11px;color:#39d0ff">▣ run c70d687b…8447</span> <span class="lbl">11 / 400 · group headers</span></div>
+        <div><span class="lbl" style="color:#cfe6ef">timeline · newest at bottom</span> <span class="lbl">9 / 400 · labels, tracking .14em, caps</span></div>
+      </div>
+      <div class="lbl" style="margin-top:12px">Row height 22 px · dense · no text under 9 px, and 9 px only for labels that repeat.</div>
+    </section>
+
+    <section class="pnl brk" style="padding:16px">
+      <h2 class="h">Frame carries state</h2>
+      <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:10px">
+        <div class="mini" style="--f:#39d0ff;--fg:rgba(57,208,255,.12)"><span class="m">live</span><div class="b"></div></div>
+        <div class="mini" style="--f:#ff3d7f;--fg:rgba(255,61,127,.28)"><span class="m" style="color:#ff3d7f">blocking · halt</span><div class="b"></div></div>
+        <div class="mini" style="--f:#39d0ff;--fg:rgba(57,208,255,.12);border-top:3px solid #ffb02e"><span class="m" style="color:#ffb02e">pending · amber strip</span><div class="b"></div></div>
+        <div class="mini scan" style="--f:#4a5560;--fg:rgba(120,130,140,.14)"><span class="m">disconnected · grey static</span><div class="b" style="opacity:.5"></div></div>
+      </div>
+      <div class="lbl" style="margin-top:12px">1 px border + inset glow + tick rails. Noise: collapses under c.</div>
+    </section>
+
+    <section class="pnl brk" style="padding:16px;grid-column:span 2">
+      <h2 class="h">Row anatomy · one event</h2>
+      <div style="border:1px solid #1e2a33">
+        <div class="grp"><span>▣ run c70d687b…8447</span><span style="color:#6f8290">claude-code · HANDOFF-0040 · started 19:40:02 · 212 events</span></div>
+        <div class="row"><span style="color:#6f8290">19:41:33</span><span style="color:#6f8290">▶</span><span style="color:#6f8290">tool:Bash</span><span>Bash uv run --frozen pytest tests/test_sync.py -q</span><span><span class="chip c-none">—</span></span><span style="text-align:right;color:#6f8290"></span></div>
+        <div class="row hov"><span style="color:#6f8290">19:41:48</span><span>◀</span><span style="color:#6f8290">tool:Bash</span><span>Bash ok · 9 passed</span><span><span class="chip c-ok">ok</span></span><span style="text-align:right;color:#6f8290">15 s</span></div>
+        <div class="row focus"><span style="color:#6f8290">19:42:02</span><span>◀</span><span style="color:#6f8290">tool:Read</span><span>refused: Read names a blocklisted path memory/private/</span><span><span class="chip c-block">refused</span></span><span style="text-align:right;color:#6f8290">12 ms</span></div>
+        <div class="row" style="border-bottom:0"><span class="callout">time</span><span class="callout">kind</span><span class="callout">job</span><span class="callout">summary ≤ 200 chars, redacted upstream</span><span class="callout">class</span><span class="callout" style="text-align:right">Δt</span></div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:18px;margin-top:10px;font-size:11px">
+        <span><span style="color:#6f8290">▶</span> intent</span>
+        <span>◀ outcome</span>
+        <span><span style="color:#ffb02e">✎</span> note</span>
+        <span><span style="color:#4de38a">✓</span> approval</span>
+        <span><span style="color:#39d0ff">▮</span> cursor / waiting</span>
+        <span><span style="color:#6f8290">▸ 3 trace events collapsed</span> · <span class="kbd">t</span> expands</span>
+        <span class="lbl">hover: surface +1 · focus: 1 px cyan outline, never colour alone</span>
+      </div>
+    </section>
+
+    <section class="pnl brk" style="padding:16px">
+      <h2 class="h">Chips · ADR-016 classes + status</h2>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <span class="chip c-ok">ok</span>
+        <span class="chip c-block">blocking</span>
+        <span class="chip c-trans">transient</span>
+        <span class="chip c-adv">advisory</span>
+        <span class="chip c-pend">pending</span>
+        <span class="chip c-block">refused</span>
+        <span class="chip c-none">—</span>
+        <span class="chip c-live">live</span>
+        <span class="chip c-none" style="border-style:dashed">phase 2</span>
+      </div>
+      <div class="lbl" style="margin-top:12px">Outline only, coloured text, 9 px caps. No filled chips: filled magenta under white text fails contrast.</div>
+      <h2 class="h" style="margin-top:18px">Panel</h2>
+      <div class="pnl brk" style="padding:12px;height:70px;display:flex;align-items:flex-end"><span class="lbl">10 px chamfer top-left and bottom-right · 1 px rule · brackets in the frame colour</span></div>
+    </section>
+
+    <section class="pnl brk" style="padding:16px">
+      <h2 class="h">Resource bar · 20 segments</h2>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div><div class="lbl" style="margin-bottom:4px">Claude Max · week · 31%</div><div style="display:flex;gap:10px;align-items:center"><div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div></div>
+        <div><div class="lbl" style="margin-bottom:4px">≥ 80% · amber · Codex Plus 91%</div><div class="seg"><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i></i><i></i></div></div>
+        <div><div class="lbl" style="margin-bottom:4px">cap reached · magenta · routing refuses</div><div class="seg"><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i></div></div>
+      </div>
+      <h2 class="h" style="margin-top:18px">Run grid · events per minute</h2>
+      <div style="display:flex;gap:4px;align-items:center"><i style="display:block;width:11px;height:11px;background:#141b22"></i><i style="display:block;width:11px;height:11px;background:#163241"></i><i style="display:block;width:11px;height:11px;background:#1b4a60"></i><i style="display:block;width:11px;height:11px;background:#217a97"></i><i style="display:block;width:11px;height:11px;background:#2aa6cc"></i><i style="display:block;width:11px;height:11px;background:#39d0ff"></i><i style="display:block;width:11px;height:11px;background:#ff3d7f;margin-left:8px"></i><span class="lbl" style="margin-left:8px">0 → 5+ per minute · magenta: a blocking event in that minute</span></div>
+    </section>
+
+    <section class="pnl brk" style="padding:16px">
+      <h2 class="h">Strike boxes · ADR-016 bound</h2>
+      <div style="display:flex;flex-direction:column;gap:10px;font-size:11px">
+        <div style="display:flex;gap:8px;align-items:center"><div style="width:34px;height:22px;border:1px dashed #39d0ff"></div><div style="width:34px;height:22px;border:1px dashed #39d0ff"></div><div style="width:34px;height:22px;border:1px dashed #39d0ff"></div><span style="color:#6f8290">no cycle yet</span></div>
+        <div style="display:flex;gap:8px;align-items:center"><div style="width:34px;height:22px;background:#39d0ff"></div><div style="width:34px;height:22px;border:1px dashed #39d0ff"></div><div style="width:34px;height:22px;border:1px dashed #39d0ff"></div><span style="color:#6f8290">one cycle, root cause still blocking</span></div>
+        <div style="display:flex;gap:8px;align-items:center"><div style="width:34px;height:22px;background:#39d0ff"></div><div style="width:34px;height:22px;background:#ffb02e"></div><div style="width:34px;height:22px;border:1px dashed #ffb02e"></div><span style="color:#6f8290">two consecutive · amber warns</span></div>
+        <div style="display:flex;gap:8px;align-items:center"><div style="width:34px;height:22px;background:#ff3d7f"></div><div style="width:34px;height:22px;background:#ff3d7f"></div><div style="width:34px;height:22px;background:#ff3d7f;box-shadow:0 0 10px #ff3d7f"></div><span class="c-block">HALT · packet in AUDIT-0029 · override from the terminal</span></div>
+      </div>
+      <h2 class="h" style="margin-top:18px">Keys and buttons</h2>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:11px">
+        <span><span class="kbd">j</span> <span class="kbd">k</span> move</span>
+        <span class="kbd">Enter</span><span class="kbd">Esc</span>
+        <button type="button" style="font:inherit;font-size:10px;background:#0e1a22;color:#39d0ff;border:1px solid #39d0ff;padding:2px 8px;cursor:pointer">filter · active</button>
+        <button type="button" style="font:inherit;font-size:10px;background:transparent;color:#cfe6ef;border:1px solid #1e2a33;padding:2px 8px;cursor:pointer">filter · idle</button>
+        <button type="button" disabled style="font:inherit;font-size:10px;background:transparent;color:#3a4650;border:1px dashed #3a4650;padding:2px 8px">phase 2 · disabled</button>
+      </div>
+    </section>
+
+    <section class="pnl brk" style="padding:16px;grid-column:span 3">
+      <h2 class="h">Noise · frame furniture, all of it optional</h2>
+      <div style="display:grid;grid-template-columns:repeat(4, minmax(0, 1fr));gap:18px;font-size:11px">
+        <div><div class="tx" style="margin-bottom:8px"></div><div class="lbl">tick rail · 1 px every 8 px, frame colour at 45%</div></div>
+        <div><div class="lbl" style="color:#6f8290;margin-bottom:8px">KGME · KUANG GRADE MARK ELEVEN · COCKPIT V0 · READ-ONLY</div><div class="lbl">micro-label · 9 px, .14em, corners only, repeats facts shown elsewhere</div></div>
+        <div><div class="scan" style="height:28px;background-color:#11151c;border:1px solid #1e2a33;margin-bottom:8px"></div><div class="lbl">scanlines · 3.5% every 3 px · off under reduced motion</div></div>
+        <div><div style="height:28px;background:radial-gradient(ellipse at center,#11151c 40%,#05070a 100%);border:1px solid #1e2a33;margin-bottom:8px"></div><div class="lbl">vignette · 55% at the edge · sweep line 6 s, off under reduced motion</div></div>
+      </div>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1300}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

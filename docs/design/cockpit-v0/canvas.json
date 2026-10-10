@@ -1,0 +1,39 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-10-09T03:05:00Z"},
+  "title": "KGME Cockpit v0",
+  "launch": {"view": "canvas"},
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {"x": 1520, "y": 0, "w": 1440, "h": 900, "title": "3 · Live — events arriving", "expand": "fill"},
+    "Components.dc.html": {"x": 0, "y": 0, "w": 1440, "h": 1300, "title": "1 · Component sheet", "expand": "fill"},
+    "Empty.dc.html": {"x": 3040, "y": 0, "w": 1440, "h": 900, "title": "2 · Empty", "expand": "fill"},
+    "Blocking.dc.html": {"x": 4560, "y": 0, "w": 1440, "h": 900, "title": "4 · Blocking — halt, detail open", "expand": "fill"},
+    "Pending.dc.html": {"x": 6080, "y": 0, "w": 1440, "h": 900, "title": "5 · Unmatched intent — reconciliation pending", "expand": "fill"},
+    "Disconnected.dc.html": {"x": 7600, "y": 0, "w": 1440, "h": 900, "title": "6 · Server disconnected", "expand": "fill"},
+    "Keys.dc.html": {"x": 0, "y": 1760, "w": 1440, "h": 900, "title": "7 · Keyboard map", "expand": "fill"},
+    "Phase2.dc.html": {"x": 1520, "y": 1760, "w": 1440, "h": 900, "title": "8 · Phase 2 controls (greyed)", "expand": "fill"},
+    "Wall.dc.html": {"x": 3040, "y": 1760, "w": 2560, "h": 1080, "title": "9 · Wall — external monitor"},
+    "Sprites.dc.html": {"x": 5680, "y": 1760, "w": 1440, "h": 1500, "title": "10 · Sprites — the cast and its modes", "expand": "fill"}
+  },
+  "order": [
+    "Main.dc.html",
+    "Components.dc.html",
+    "Empty.dc.html",
+    "Blocking.dc.html",
+    "Pending.dc.html",
+    "Disconnected.dc.html",
+    "Keys.dc.html",
+    "Phase2.dc.html",
+    "Wall.dc.html",
+    "Sprites.dc.html"
+  ],
+  "notes": {
+    "t1": {"x": 0, "y": -300, "text": "KGME cockpit v0 — the ledger timeline in five states (HANDOFF-0036)", "kind": "title1", "maxW": 9040},
+    "t2": {"x": 0, "y": 1460, "text": "Keyboard map · Phase 2 controls, greyed · wall layout · sprites", "kind": "title1", "maxW": 7120},
+    "s1": {"x": 1520, "y": 960, "w": 520, "text": "Rule of the whole design: signal in the centre, noise at the edges. Everything outside the three columns (frame, tick rails, micro-labels, scanlines, vignette) carries no information and collapses under the c key or prefers-reduced-motion. Every row shown here is a real event shape from logs/ledger; paths are repo-relative.", "fill": "teal"},
+    "s2": {"x": 4560, "y": 960, "w": 520, "text": "The frame carries system state: cyan while the ledger is live, magenta flood on a blocking outcome or halt, grey static when the server is unreachable. The three strike boxes are ADR-016's bound: they fill as one root cause survives cycles and go magenta on halt.", "fill": "pink"},
+    "s3": {"x": 5680, "y": 3320, "w": 520, "text": "Sprites are noise that mirrors one bit of signal: the mode repeats the row's class chip and nothing else, so c hides the whole cast and reduced motion freezes it. Phosphor palette in the timeline; the sticker palette only in the detail header and the Phase 2 model selector. Original line work, no stock or game assets.", "fill": "purple"}
+  },
+  "designSystems": []
+}
