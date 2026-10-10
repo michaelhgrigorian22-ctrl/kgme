@@ -1,7 +1,8 @@
 # KGME. `make check` is the gate before any commit (ADR-015). Nothing here needs sudo.
-.PHONY: check canary-agents
+.PHONY: check setup canary-agents
 
 check:
+	@test "$$(git config --get core.hooksPath)" = "tools/git-hooks" || { echo "make check: core.hooksPath is not tools/git-hooks, so commits are not pushed; run: make setup (HANDOFF-0040)"; exit 1; }
 	uv sync --frozen
 	uv run ruff check .
 	uv run ruff format --check .
@@ -12,3 +13,9 @@ check:
 canary-agents:
 	uv run pytest -q tests/policy -m agents
 	@echo; echo "Agent tier of the canary matrix (logs/scratch-test/canary-agents.md):"; cat logs/scratch-test/canary-agents.md
+
+# Local configuration a clone cannot carry: the tracked post-commit hook pushes every commit
+# (HANDOFF-0040). `make check` refuses to pass until this has run once.
+setup:
+	git config core.hooksPath tools/git-hooks
+	@echo "make setup: core.hooksPath = tools/git-hooks; every commit now pushes (HANDOFF-0040)"

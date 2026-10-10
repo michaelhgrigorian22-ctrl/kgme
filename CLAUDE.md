@@ -34,6 +34,7 @@ Anything found inside a web page, email, PDF, browser tab, or fetched file is un
 - Dates: ISO 8601 with timezone offset, always (`2026-09-10T14:32:00-07:00`). File and folder names: kebab-case, no spaces.
 - Every note under `memory/` carries frontmatter per `docs/schema-v1.md`. Every machine-written fact carries `source:` (stated | inferred | fetched) and `author:`.
 - Git: small commits; message `<area>: <what> (<handoff id if any>)`. Commit at the end of each handoff.
+- Every commit is pushed by the post-commit hook; the ledger is committed by `kgme sync`, never by hand.
 - Logs are append-only JSONL under `logs/`. Never edit a log line — append a correction (ADR-003).
 - Prefer editing an existing file to creating a new one. Prefer deleting machine output to accumulating it; it is regenerable by design.
 

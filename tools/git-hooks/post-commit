@@ -1,0 +1,30 @@
+#!/bin/sh
+# post-commit (HANDOFF-0040). Starts `kgme sync` in the background: it commits logs/ledger/
+# if a foreign event is new and pushes what is ahead, so the remote never sits behind. The
+# commit returns at once (Michou, 2026-10-09: hook backgrounded); the run's lines go to
+# logs/scratch/sync.log and a failure to start goes to logs/scratch/hook-errors.jsonl, which
+# `make check` reads. Never prompts, never overwrites the remote. Enabled by `make setup`,
+# which sets `core.hooksPath tools/git-hooks`; `make check` fails when it is unset.
+#
+# A hook runs with a bare environment: PATH is set here so `uv` (~/.local/bin) and `gh`, the
+# HTTPS credential helper (/opt/homebrew/bin), resolve (lesson of 2026-09-11, AUDIT-0009).
+PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
+export PATH
+GIT_TERMINAL_PROMPT=0
+export GIT_TERMINAL_PROMPT
+# A ledger commit made by `kgme sync` carries KGME_SYNC_RUN: that run pushes, so this hook
+# does not, and a push is attempted once per run (review cycle 1, F1).
+if [ -n "$KGME_SYNC_RUN" ]; then exit 0; fi
+repo="$(git rev-parse --show-toplevel)" || exit 0
+dir="$repo/logs/scratch"
+mkdir -p "$dir"
+(
+  trap '' HUP
+  uv run --frozen --project "$repo" kgme sync --base "$repo"
+  code=$?
+  if [ "$code" -ne 0 ]; then
+    printf '{"ts":"%s","error":"post-commit: kgme sync exited %s"}\n' \
+      "$(date +%Y-%m-%dT%H:%M:%S%z)" "$code" >> "$dir/hook-errors.jsonl"
+  fi
+) >> "$dir/sync.log" 2>&1 &
+exit 0

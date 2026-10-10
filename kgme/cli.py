@@ -4,12 +4,14 @@ Purpose: one entry point, one subcommand per capability, each built by its own h
 Until a handoff lands, its subcommand says so and exits 2. `lint` (HANDOFF-0031) validates
 every note under the configured roots against the schema and exits 1 on a blocking finding.
 `ledger` (HANDOFF-0026) reads both streams or appends one human-authored event. `review`
-(HANDOFF-0029) runs one cycle of the review loop, or records a ruling or an override.
+(HANDOFF-0029) runs one cycle of the review loop, or records a ruling or an override. `sync`
+(HANDOFF-0040) commits `logs/ledger/` by pathspec if it changed and pushes if ahead.
 Inputs: argv.
 Outputs: exit code; one line per finding or event, a summary, or a review's escalation packet.
 Side effects: `ledger note`, `review`, `review rule`, and `review override` append to the real
 ledger; `review` also runs `make check` and `codex exec`, writes the scratch patch, a payload,
-and an audit file under `docs/audit/`. `lint`, `ledger read`, and `review --dry-run` only read.
+and an audit file under `docs/audit/`; `sync` runs `git commit` on the ledger and `git push`,
+and appends its push events. `lint`, `ledger read`, and `review --dry-run` only read.
 """
 
 import argparse
@@ -76,6 +78,10 @@ def build_parser() -> argparse.ArgumentParser:
     note_parser.add_argument("summary")
     note_parser.add_argument("--kind", choices=("note", "approval", "correction"), default="note")
     note_parser.add_argument("--ref", help="id this approval or correction points at")
+    sync_parser = subcommands.add_parser(
+        "sync", help="commit logs/ledger/ if it changed, then push if ahead; never force"
+    )
+    sync_parser.add_argument("--base", help="the checkout to sync (default: this one)")
     return parser
 
 
@@ -88,6 +94,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_ledger(args)
     if args.command == "review":
         return run_review(args)
+    if args.command == "sync":
+        return run_sync(args)
     print(f"kgme {args.command}: not built ({NOT_BUILT[args.command]})", file=sys.stderr)
     return 2
 
@@ -169,6 +177,19 @@ def run_review(args: argparse.Namespace) -> int:
     return review_run.run_cycle(
         args.handoff, model, dispositions, patch, places, args.dry_run, arbiter=arbiter
     )
+
+
+def run_sync(args: argparse.Namespace) -> int:
+    """`kgme sync [--base DIR]` (HANDOFF-0040): the run in `kgme.sync_io.run_sync`."""
+    from pathlib import Path
+
+    from kgme import config, paths, sync_io
+
+    base = Path(args.base).resolve() if args.base else paths.root()
+    if not (base / ".git").exists():
+        print(f"kgme sync: {base} is not a git checkout", file=sys.stderr)
+        return 2
+    return sync_io.run_sync(base, config.read_config())
 
 
 def run_ledger(args: argparse.Namespace) -> int:
