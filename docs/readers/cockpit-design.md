@@ -3,7 +3,7 @@ id: READER-COCKPIT-DESIGN
 type: note
 status: active
 created: 2026-10-09T21:50:00-07:00
-modified: 2026-10-09T21:50:00-07:00
+modified: 2026-10-11T15:45:22-07:00
 author: cowork
 source: stated
 tier: 2
@@ -14,7 +14,7 @@ tier: 2
 *Written 2026-10-09 by Cowork for Michou, Claude Code, and the Codex reviewer (GPT-6 Astra). This is the context a cold reader needs before touching `docs/design/cockpit-v0/`. The design itself is HANDOFF-0036; the code that will be built from it is HANDOFF-0037.*
 
 ## What is in `docs/design/cockpit-v0/`
-Eleven plain files, all hand-written by Cowork from Michou's brief and the wishlist (`memory/notes/cockpit-wishlist.md`): `canvas.json`, the index, and ten `.dc.html` artboards. They are the **source** of the design. The page at claude.ai (the "KGME Cockpit v0" canvas) is only a viewer and editor over the same files; when the two differ, the repository wins, and Cowork republishes the viewer from here. These are not generated bundles (ADR-017 forbids committing those); they are the drawing.
+The original 12 core files were hand-written by Cowork from Michou's brief and the wishlist (`memory/notes/cockpit-wishlist.md`): `canvas.json`, the index, and 10 `.dc.html` artboards. CDH-0001 adds the reusable `chibi/` SVG sources, shared motion layer, standalone fixture and README. They are the **source** of the design. The page at claude.ai (the "KGME Cockpit v0" canvas) is only a viewer and editor over the same files; when the two differ, the repository wins, and Cowork republishes the viewer from here. These are not generated bundles (ADR-017 forbids committing those); they are the drawing.
 
 | File | Board | What it shows |
 |---|---|---|
@@ -29,6 +29,8 @@ Eleven plain files, all hand-written by Cowork from Michou's brief and the wishl
 | `Wall.dc.html` | 9 | the four-column layout for an external monitor, with the raw vendor stream |
 | `Sprites.dc.html` | 10 | the cast: one sprite per `actor`, seven modes, two palettes, the rules |
 
+CDH-0001 implemented the reusable cast; CDH-0002 found the native iframe failure. Michou separately adopted CDH-0003 for Codex to rebuild board 10 as self-contained native markup; Cowork verifies it under CDH-0004. The scoped implementation exception does not change the independent read-only reviewer role or grant final design approval.
+
 ## The one rule
 **Signal in the centre, noise at the edges, and noise never carries information.** Everything outside the three columns (frame, tick rails, micro-labels, scanlines, vignette, sweep) and every sprite is decoration that mirrors a fact already shown in text. Therefore the `c` key and `prefers-reduced-motion` can remove or freeze all of it without loss. A finding that a decorative element carries a fact nowhere else on screen is `blocking`; a finding that a fact is shown only by colour is `blocking` (ADR-016 vocabulary, see below).
 
@@ -38,7 +40,9 @@ Eleven plain files, all hand-written by Cowork from Michou's brief and the wishl
 - The frame carries system state: cyan live, magenta flood on blocking or halt, amber strip while an intent awaits its outcome, grey static when disconnected.
 - Keys: `j`/`k` move, `g`/`G` ends, `Enter` detail, `Esc` back, `u` parent, `Tab` pane, `f` follow, `/` filter line with `run:` `kind:` `job:`, `1`–`4` class toggles, `0` all, `r` run filter, `t` trace, `o` open intents, `x` clear, `c` calm, `p` payload, `w` wall, `?` keys. Reserved for Phase 2, dashed and unbound: `b` `/btw`, `m` model, `y`/`n` approve, `;` command, `Space` queue.
 - ADR-016 strikes as three boxes filling per cycle, magenta on halt.
-- Sprites: one per `actor` (not per model), 24 × 24, original line work, two frames per mode at most, the accent colour is the row's class colour, phosphor in the timeline, sticker palette only in the detail pane header and the Phase 2 model selector. Mapping in `kgme.toml [sprites]`, first rule wins, `default = "stranger"`. "Outrageous, but it retains all the darkness" is the brief for them.
+- Sprites under adopted CDH-0001: 1 original smooth, layered SVG per `actor` (not per model), with 6 semantic material roles and restrained cel shading. Use deliberate 24 px portraits in run headers and full 72 px characters in detail headers; the event rows remain 22 px. Each of the 7 modes uses at most 2 authored key poses with interpolated transforms and discrete expression swaps. Accent follows a class or state already written in adjacent text. Phosphor stays in the timeline; sticker stays in the detail header and illustrated Phase 2 model selector. Mapping in `kgme.toml [sprites]`, first rule wins, `default = "stranger"`. "Outrageous, but it retains all the darkness" remains the brief.
+- Sprite motion: all dense run portraits and the 49-cell matrix stay static; only 1 selected visible detail may animate. Hidden, offscreen, calm and actual reduced-motion states remove animation work. Calm removes decoration without losing actor, lifecycle, class or event facts or changing row geometry. Modes are not failure classes; fixture controls cannot override reduced motion or bind application keys.
+- Sprite evidence: the 24 × 24 source grid, 6 flat fills, 2 hard-swapped frames and 3 KB cap are retired for CDH-0001. The provisional target is 512 KiB raw for all 7 SVG assets plus shared animation code. Report bytes per actor and total, SVG element counts, simultaneous active animations, and 30-second target-Mac captures with 50 static portraits and 1 selected detail, with motion and calm baselines. Record environment, frame intervals, long tasks and interaction observations; label missing measurements unverified. A small file is not proof of runtime performance.
 - Wishlist's empty sections stay empty for v0.
 
 ## Open (Michou has not ruled)
@@ -49,7 +53,7 @@ Eleven plain files, all hand-written by Cowork from Michou's brief and the wishl
 - Every value in the top bar is a sample; the real cockpit reads them. The versions shown are placeholders.
 
 ## How to review it (Codex, GPT-6 Astra)
-The `.dc.html` format renders only inside the canvas editor; nobody outside it sees pixels. Review the **source**. If PNG exports exist under `memory/attachments/cockpit/` (Michou exports them from the canvas page), take them as image input alongside the source; they are the only way to see the result.
+The `.dc.html` format requires the native canvas editor; preserve its support mechanism and templating. The standalone `chibi/preview.html` fixture and SVG assets can be rendered in a browser when tool access permits. Read PNG evidence from `logs/scratch/design-review/`. Review the **source** and distinguish supplied PNG evidence, independently observed browser behavior, measured target-Mac performance and native observations. A fixture screenshot does not establish native canvas behavior. Cowork must import and observe the delivered native board under CDH-0004; any unavailable native capability remains explicitly unverified.
 
 What a design review is for, and the class each finding carries:
 - a fact shown only by colour, or a decorative element that carries a fact shown nowhere else → `blocking`
@@ -58,11 +62,12 @@ What a design review is for, and the class each finding carries:
 - a `<div>` doing a button's job, an icon-only control without a label, focus shown by colour alone → `blocking`
 - a label or chip outside ADR-016's vocabulary (`ok`, `blocking`, `transient`, `advisory`, plus status `refused`, `pending`) → `advisory`
 - inconsistency between boards (a token, a key hint, a row layout that differs without reason) → `advisory`
-- anything in the sprite generator that would not survive as a standalone SVG under 3 KB → `advisory`
+- whether each actor's `<symbol>` in `Sprites.dc.html` matches its file under `chibi/` and whether every mode has adjacent text; use `tests/test_design_sprites.py` to check drift, and classify a lost fact as `blocking`
+- an unexplained exceedance of the provisional 512 KiB total sprite-source target, or omitted source-size, SVG-complexity or runtime evidence → `advisory`; never enforce the retired 3 KB cap or treat a byte count as a performance result
 - taste → `advisory`, stated as such; Michou's taste is the spec, the reviewer's is a suggestion
 - whitespace, typos → `cosmetic`
 
-What is not a finding: that the files exceed ADR-015's 300-line guide (artboards are drawings, exempt by HANDOFF-0036); that the `.dc.html` syntax (`<x-dc>`, `<sc-for>`, `{{holes}}`, `DCLogic`) is unfamiliar, it is the editor's format; that sample data is sample data.
+What is not a finding: that the files exceed ADR-015's 300-line guide (artboards are drawings, exempt by HANDOFF-0036); that the `.dc.html` syntax (`<x-dc>`, `<sc-for>`, `{holes}`, `DCLogic`) is unfamiliar, it is the editor's format; that sample data is sample data.
 
 The prompt that says all this to the reviewer is `tools/review/design-prompt.md`. First pass, from the repository root, Michou's terminal:
 
@@ -73,10 +78,12 @@ codex exec -s read-only -m gpt-6-astra "$(cat tools/review/design-prompt.md)" > 
 Then Claude Code, on Michou's word, turns the scratch file into `docs/audit/AUDIT-NNNN-design-review-cockpit-v0-cycle-N.md` with report frontmatter, and records the cycle as a ledger note on `design:HANDOFF-0036`.
 
 ## How to iterate (the loop, for a drawing)
+Work in `~/Projects/Automate-design` on branch `design`, never on `main`. Codex reviews only until HANDOFF-0042, except for the explicitly adopted CDH-0001 and CDH-0003 implementation scopes. There are no binaries committed; captures live under `logs/scratch/design-review/` and identify their source hashes. CDH-0003 delivers local files and its report without committing or publishing; Cowork commits by pathspec at the next authorized checkpoint.
+
 1. Astra's findings land in the audit file. Michou reads them and rules: take, reject, or defer each, in one message to Cowork.
 2. Cowork edits the files under `docs/design/cockpit-v0/` (or Claude Code does, on a handoff), commits with `design: cockpit v0, cycle N (HANDOFF-0036)`, and republishes the canvas viewer from the committed files, so the page and the repository stay the same thing.
 3. Michou can also edit on the canvas page by hand; when he does, Cowork reads the page back, commits those changes, and republishes nothing. The repository is still the truth; the edit just arrived through the viewer.
 4. Acceptance closes the handoff: Michou records an `approval` event naming the committed tree (`kgme ledger note --kind approval …`, flags per `kgme ledger note --help`, summary `design: cockpit v0 approved at <short sha>`), and 0036 goes to `done`. 0037 builds from that sha and nothing else.
 
 ## For Michou's further requests to Astra
-Point it at this reader first, then the folder, then ask the question. Good questions for it: "which of these boards would not survive reduced motion," "where does the keyboard map contradict the boards," "what would a screen reader say on board 4," "rewrite the voice panel in the same register but shorter," "propose a sprite for a Kimi harness within the rules." Bad questions: "make it look better" (taste is Michou's), "render it" (it cannot), "approve it" (only Michou does).
+Point it at this reader first, then the folder, then ask the question. Good questions for it: "which of these boards would not survive reduced motion," "where does the keyboard map contradict the boards," "what would a screen reader say on board 4," "rewrite the voice panel in the same register but shorter," "propose a sprite for a Kimi harness within the rules," "inspect the standalone chibi fixture at 24/72 px." Bad questions: "make it look better" (taste is Michou's), "certify the native canvas without observing it," "approve it" (only Michou does).

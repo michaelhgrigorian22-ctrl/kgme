@@ -11,13 +11,13 @@
     {key:'stranger', name:'the stranger', actor:'default', bio:'CRT head, crooked antennae, static face and grey coat.'}
   ];
   const modes = [
-    {key:'idle', lifecycle:'ready', className:'no outcome', event:'sample ready', tone:'live'},
-    {key:'working', lifecycle:'active', className:'no outcome', event:'sample tool intent', tone:'live'},
+    {key:'idle', lifecycle:'ready', className:'—', event:'sample ready', tone:'live'},
+    {key:'working', lifecycle:'active', className:'—', event:'sample tool intent', tone:'live'},
     {key:'waiting', lifecycle:'pending', className:'advisory', event:'sample permission request', tone:'pending'},
     {key:'transient', lifecycle:'retrying', className:'transient', event:'sample retry', tone:'transient'},
     {key:'blocked', lifecycle:'halted', className:'blocking', event:'sample halt', tone:'blocking'},
     {key:'done', lifecycle:'completed', className:'ok', event:'sample completion', tone:'ok'},
-    {key:'asleep', lifecycle:'inactive', className:'no outcome', event:'sample asleep', tone:'muted'}
+    {key:'asleep', lifecycle:'inactive', className:'—', event:'sample asleep', tone:'muted'}
   ];
   const byId = id => document.getElementById(id);
   const templates = new Map();

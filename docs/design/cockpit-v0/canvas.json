@@ -14,7 +14,7 @@
     "Keys.dc.html": {"x": 0, "y": 1760, "w": 1440, "h": 900, "title": "7 · Keyboard map", "expand": "fill"},
     "Phase2.dc.html": {"x": 1520, "y": 1760, "w": 1440, "h": 900, "title": "8 · Phase 2 controls (greyed)", "expand": "fill"},
     "Wall.dc.html": {"x": 3040, "y": 1760, "w": 2560, "h": 1080, "title": "9 · Wall — external monitor"},
-    "Sprites.dc.html": {"x": 5680, "y": 1760, "w": 1440, "h": 1500, "title": "10 · Sprites — the cast and its modes", "expand": "fill"}
+    "Sprites.dc.html": {"x": 5680, "y": 1760, "w": 1440, "h": 1500, "title": "10 · Sprites — the cast and its modes", "expand": "fill", "is_interactive": true}
   },
   "order": [
     "Main.dc.html",
@@ -33,7 +33,7 @@
     "t2": {"x": 0, "y": 1460, "text": "Keyboard map · Phase 2 controls, greyed · wall layout · sprites", "kind": "title1", "maxW": 7120},
     "s1": {"x": 1520, "y": 960, "w": 520, "text": "Rule of the whole design: signal in the centre, noise at the edges. Everything outside the three columns (frame, tick rails, micro-labels, scanlines, vignette) carries no information and collapses under the c key or prefers-reduced-motion. Every row shown here is a real event shape from logs/ledger; paths are repo-relative.", "fill": "teal"},
     "s2": {"x": 4560, "y": 960, "w": 520, "text": "The frame carries system state: cyan while the ledger is live, magenta flood on a blocking outcome or halt, grey static when the server is unreachable. The three strike boxes are ADR-016's bound: they fill as one root cause survives cycles and go magenta on halt.", "fill": "pink"},
-    "s3": {"x": 5680, "y": 3320, "w": 520, "text": "CDH-0001: 7 illustrated actors, 7 modes and 6 shaded material roles. Modes mirror adjacent actor, lifecycle, class and event text; they are not failure classes. Static 24 px phosphor portraits sit in run headers, outside 22 px ledger rows. Sticker remains confined to 72 px detail headers and the illustrated Phase 2 model selector. Only 1 selected visible detail animates; calm, hidden, offscreen and reduced-motion states remove animation work. Board 10 embeds the shared local fixture; native import and playback await CDH-0002.", "fill": "purple"}
+    "s3": {"x": 5680, "y": 3320, "w": 520, "text": "CDH-0001: 7 illustrated actors, 7 modes and 6 shaded material roles. Modes mirror adjacent actor, lifecycle, class and event text; they are not failure classes. Static 24 px phosphor portraits sit in run headers, outside 22 px ledger rows. Sticker remains confined to 72 px detail headers and the illustrated Phase 2 model selector. Only 1 selected visible detail animates; calm, hidden, offscreen and reduced-motion states remove animation work. CDH-0003 inlines the canonical cast as 7 symbols on board 10, with native detail controls and a calm tweak. Native rendering and Play await Cowork verification under CDH-0004.", "fill": "purple"}
   },
   "designSystems": []
 }
