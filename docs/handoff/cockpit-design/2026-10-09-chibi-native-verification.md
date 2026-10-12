@@ -2,28 +2,31 @@
 id: CDH-0004
 type: handoff
 created: 2026-10-09T23:06:00-07:00
-from: cowork
-to: codex
-model: gpt-6-astra
+from: michou
+to: cowork
 tier: 2
-status: proposed
+status: done
+completed: 2026-10-12T15:32:00-07:00
+adopted_by: michou
+adopted: 2026-10-11T16:51:00-07:00
 depends_on: [CDH-0003]
 design_track: HANDOFF-0036
+verification: CDH-0005
 ---
 
-# CDH-0004: Read-only design review of the native board (after CDH-0003)
+# CDH-0004: Native verification of the rebuilt board 10 (after CDH-0003)
 
 ## Outcome and authority
 
-An independent, read-only review of CDH-0003's commit on branch `design`, in Codex's reviewer role (Michou, 2026-10-09 23:13: Codex reviews only until HANDOFF-0042). Executable when Michou adopts it and pastes the start prompt into Codex after CDH-0003 is `done`. The reviewer reads source and the captures; it does not edit, commit, or approve. Revised 2026-10-09T23:18:00-07:00.
+Repeat CDH-0002 against CDH-0003's delivery, in the native Design canvas. Reshaped 2026-10-11T16:55:00-07:00 by Cowork to match what happened: Codex implemented CDH-0003 (done 2026-10-11T15:51:09-07:00, committed on `design` as `0bb87d5`), so the native verification is Cowork's and Codex's read-only review follows as CDH-0005. Adopted by Michou's word of 2026-10-11 16:51 ("Cowork can now perform CDH-0004's native verification"). Same authority and limits as CDH-0002: verify, do not repair, do not approve, do not start HANDOFF-0037.
 
 ## Do
 
-1. From `~/Projects/Automate-design` on branch `design`, run the design review prompt as updated by CDH-0003 step 8, in read-only mode, with the captures under `logs/scratch/design-review/cdh-0003/` as image input:
-   `codex exec -s read-only -m gpt-6-astra "$(cat tools/review/design-prompt.md)" > logs/scratch/design-review/cdh-0004-review.md`
-2. The prompt's three sections apply: Findings (`F` ids, one ADR-016 class each, file:line), Verdict (`PASS` or `BLOCK: N`), Notes. Judge board 10 against AUDIT-CDH-0002 (CW1–CW3 must be resolved; CW4 and CW5 are closed as drawn and are not findings), the one rule, the keyboard map, Phase 2 dashing, contrast, and whether each actor's `<symbol>` matches its file under `chibi/`.
-3. Cowork turns the scratch file into `docs/audit/cockpit-design/cdh-0004-design-review.md` with report frontmatter (`id: AUDIT-CDH-0004`, `author: codex`, `source: inferred`, the reviewed sha), commits it on `design` by pathspec, and returns the findings to Michou for rulings.
+1. Confirm CDH-0003 is `done`, its report exists, and every recorded hash and both digests match the files on disk; run `tests/test_design_sprites.py` and `kgme lint`. Confirm boards 1–9 are byte-identical to `7bf773f`.
+2. Mount the delivery into the existing private review copy (the Design artifact "KGME Cockpit v0 — CDH-0002 review copy"), publishing only the changed files. Never the accepted viewer.
+3. Run every check in CDH-0002's "Visual and behavioral checks", natively: all 49 specimens and both palette pairs on board 10 with no missing-frame error; the 24 px and 72 px contexts at actual size on both surfaces; each actor's seven modes through the board's 16 buttons in Play; calm via the Tweaks tab; the environment's reduced-motion setting; the Phase 2 card still dashed and unbound; no new keybinding; boards 7 and 8 unchanged.
+4. Write `docs/audit/cockpit-design/cdh-0004-cowork-verification.md` in CDH-0002's exact format (`id: AUDIT-CDH-0004`, `CW` ids continuing from CW7, the three sections, hashes, canvas identity, proposed rulings). Captures under `logs/scratch/design-review/cdh-0004/`, never under `docs/` or `memory/`. Commit the report and this handoff's closeout on `design` by pathspec. Then set this file `done` with `completed:`, and hand Michou the CDH-0005 paste box for Codex.
 
 ## Closeout
 
-Findings return to Michou. Accepted fixes go to Cowork as a further CDH; a `PASS` here plus Michou's own look at the review copy is what HANDOFF-0036's acceptance test is run against. The design-track files are merged to `main` on Michou's word, never by this handoff.
+Findings return to Michou. A `PASS` here is the native verification of the cast; HANDOFF-0036 closes on Michou's `approval` ledger event naming a committed sha, and `design` is merged to `main` on his word, never by this handoff.
