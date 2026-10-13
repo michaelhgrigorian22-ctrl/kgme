@@ -27,9 +27,9 @@ This section uses its own `CDH-0001`, `CDH-0002` sequence, at Michou's request o
 
 Both handoffs were explicitly adopted by Michou on 2026-10-09: "theyre good to go i just want to plug and play codex to start working and then just say the word to cowork to read the folder and move forward given the brief". Their files now carry `from: michou` and `status: open`. Codex mechanically recorded Michou's adoption; it did not adopt its own proposal. This approval covers the written local implementation and verification plans, including the scoped board 10 edits. It does not grant final canvas approval.
 
-## Status 2026-10-12 18:02
+## Status 2026-10-12 18:12
 
-CDH-0001 done (2026-10-09). CDH-0002 done, `BLOCK: 1` (iframe). Artwork approved as drawn. CDH-0003 (Codex) done 2026-10-11, `0bb87d5`. CDH-0004 (Cowork) done 2026-10-12, `BLOCK: 1` (CW7 hole syntax). CDH-0006 (Cowork) done 2026-10-12 18:02, `a27d2f2`: holes fixed, scroll boxes, harness text; native re-check PASS, motion observed in the editor. **Next: CDH-0005 is `ready` in the Codex queue below** (Michou pastes the queue prompt). CDH-0007 (the active-runs tray, Cowork) proposed; CDH-0008 (its review, Codex) queued behind it.
+CDH-0001 done. CDH-0002 done, `BLOCK: 1` (iframe). Artwork approved as drawn. CDH-0003 (Codex) done, `0bb87d5`. CDH-0004 (Cowork) done, `BLOCK: 1` (hole syntax). CDH-0006 (Cowork) done, `a27d2f2`, native PASS with motion observed. **CDH-0005 (Codex) done 2026-10-12 18:01, verdict `PASS`** (AUDIT-CDH-0005): F1 advisory, capture hashes differ from the reports — explained in `logs/scratch/design-review/PROVENANCE-2026-10-12.md` (lossless re-encoding on delivery; pixels identical; hashes now recorded on the Mac); F2 cosmetic, six stale words in `chibi/README.md`, folded into CDH-0007. Next: Michou adopts CDH-0007 (the tray); CDH-0008 then goes `ready` in the queue.
 
 Working rules (Michou, 2026-10-09 23:13): the design track works in the worktree `~/Projects/Automate-design` on branch `design`, commits freely by pathspec, never touches `main`; Codex reviews only until a builder profile exists (HANDOFF-0042, after 0034) — CDH-0003 was already running under its earlier assignment when the rule landed and was allowed to finish; no binaries are committed; captures live under `logs/scratch/design-review/` (paths under `memory/attachments/cockpit/` cited in AUDIT-CDH-0001, AUDIT-CDH-0002, CDH-0001 and CDH-0002 predate the move of 2026-10-09 23:11).
 
@@ -39,7 +39,7 @@ Michou starts Codex with one fixed prompt, every time: `tools/review/codex-queue
 
 | # | ID | Reviews | Status | Document |
 | --- | --- | --- | --- | --- |
-| 1 | CDH-0005 | Board 10 native cast, commit `a27d2f2` (CDH-0003 + CDH-0006) | ready | [Design review](2026-10-11-chibi-design-review.md) |
+| 1 | CDH-0005 | Board 10 native cast, commit `a27d2f2` (CDH-0003 + CDH-0006) | done 2026-10-12 | [Design review](2026-10-11-chibi-design-review.md) |
 | 2 | CDH-0008 | The active-runs tray (CDH-0007), sha to be named by its report | waiting on CDH-0007 | [Tray review](2026-10-12-tray-design-review.md) |
 
 ## Start here
