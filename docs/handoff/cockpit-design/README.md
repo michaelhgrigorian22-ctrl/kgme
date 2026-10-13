@@ -30,7 +30,7 @@ Both handoffs were explicitly adopted by Michou on 2026-10-09: "theyre good to g
 
 ## Status 2026-10-13 15:45
 
-CDH-0007 (Cowork) done, commit `5182d6a`, native PASS (AUDIT-CDH-0007): the tray is one child component, board 11, mounted with `<dc-import>` into boards 1, 3, 4, 5, 6 and 9; two cosmetic findings fixed before commit (CW10 sheet wrap, CW11 frame height), two advisories left to Michou (CW12 a third header line on boards 3 and 5 at 1440; CW13 the Wall's already-full header). **CDH-0008 is `ready`** in the Codex queue below. Proposed today, on Michou's word: CDH-0009 (the station) here; HANDOFF-0043 (`kgme review --loop`) and HANDOFF-0044 (the toolbox and the scout) under `docs/handoff/proposed/` on `main`, untracked.
+CDH-0007 (Cowork) done, commit `5182d6a`, native PASS (AUDIT-CDH-0007): the tray is one child component, board 11, mounted with `<dc-import>` into boards 1, 3, 4, 5, 6 and 9; two cosmetic findings fixed before commit (CW10 sheet wrap, CW11 frame height), two advisories left to Michou (CW12 a third header line on boards 3 and 5 at 1440; CW13 the Wall's already-full header). **CDH-0008 is `ready`** in the Codex queue below. Proposed today: CDH-0009 (the station) here, on Michou's word. HANDOFF-0043 (`kgme review --loop`) and HANDOFF-0044 (the toolbox and the scout) sit under `docs/handoff/proposed/` on `main`, untracked; **Michou's ruling 2026-10-13 15:52: anything substantive for Claude Code (`kgme/`, `tools/`, policy, the loop) is reviewed in the substantive Cowork session first, which records the ruling; nobody asks Claude Code about them before that. CDH handoffs stay on `design`.**
 
 ## Status 2026-10-12 18:12
 
