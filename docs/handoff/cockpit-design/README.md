@@ -22,10 +22,15 @@ This section uses its own `CDH-0001`, `CDH-0002` sequence, at Michou's request o
 | CDH-0004 | Cowork | Native verification of CDH-0003 in the private review copy. Done 2026-10-12 15:32, verdict `BLOCK: 1 blocking finding` (CW7: template holes written `{x}` instead of `{{x}}`; the board renders fully once rewritten, verified natively as an experiment). | [Native verification](2026-10-09-chibi-native-verification.md) |
 | CDH-0005 | Codex, GPT-6 Astra (read-only review) | Independent design review of the native board on `design`, after CDH-0004. Proposed; adopted by pasting the start prompt. | [Design review](2026-10-11-chibi-design-review.md) |
 | CDH-0006 | Cowork | CW7 (hole syntax), CW8 (scroll boxes), CW9 (harness text) applied; native re-check PASS incl. motion. Done 2026-10-12 18:02; commit `a27d2f2`. | [Hole syntax fix](2026-10-12-chibi-hole-syntax.md) |
-| CDH-0007 | Cowork | The active-runs tray: the cast at work in the top bar of the main boards, expandable with `a` (Michou's idea, 2026-10-12 17:35). Proposed; queued behind CDH-0006 and CDH-0005. | [Active-runs tray](2026-10-12-active-runs-tray.md) |
-| CDH-0008 | Codex, GPT-6 Astra (read-only review) | Independent design review of the active-runs tray, after CDH-0007. Proposed. | [Tray review](2026-10-12-tray-design-review.md) |
+| CDH-0007 | Cowork | The active-runs tray: the cast at work in the top bar of the main boards, expandable with `a` (Michou's idea, 2026-10-12 17:35). Done 2026-10-13 15:45, native PASS; commit `5182d6a` (board 11 + boards 1, 3, 4, 5, 6, 7, 9). | [Active-runs tray](2026-10-12-active-runs-tray.md) |
+| CDH-0008 | Codex, GPT-6 Astra (read-only review) | Independent design review of the active-runs tray at `5182d6a`, after CDH-0007. Proposed; `ready` in the Codex queue. | [Tray review](2026-10-12-tray-design-review.md) |
+| CDH-0009 | Cowork | The station: the ship, its rooms and the crew at work as a second wall layout, a hand-built three.js page under `docs/design/cockpit-v0/station/` (Michou's wish, 2026-10-13 13:17). Proposed. | [The station](2026-10-13-the-station.md) |
 
 Both handoffs were explicitly adopted by Michou on 2026-10-09: "theyre good to go i just want to plug and play codex to start working and then just say the word to cowork to read the folder and move forward given the brief". Their files now carry `from: michou` and `status: open`. Codex mechanically recorded Michou's adoption; it did not adopt its own proposal. This approval covers the written local implementation and verification plans, including the scoped board 10 edits. It does not grant final canvas approval.
+
+## Status 2026-10-13 15:45
+
+CDH-0007 (Cowork) done, commit `5182d6a`, native PASS (AUDIT-CDH-0007): the tray is one child component, board 11, mounted with `<dc-import>` into boards 1, 3, 4, 5, 6 and 9; two cosmetic findings fixed before commit (CW10 sheet wrap, CW11 frame height), two advisories left to Michou (CW12 a third header line on boards 3 and 5 at 1440; CW13 the Wall's already-full header). **CDH-0008 is `ready`** in the Codex queue below. Proposed today, on Michou's word: CDH-0009 (the station) here; HANDOFF-0043 (`kgme review --loop`) and HANDOFF-0044 (the toolbox and the scout) under `docs/handoff/proposed/` on `main`, untracked.
 
 ## Status 2026-10-12 18:12
 
@@ -40,7 +45,7 @@ Michou starts Codex with one fixed prompt, every time: `tools/review/codex-queue
 | # | ID | Reviews | Status | Document |
 | --- | --- | --- | --- | --- |
 | 1 | CDH-0005 | Board 10 native cast, commit `a27d2f2` (CDH-0003 + CDH-0006) | done 2026-10-12 | [Design review](2026-10-11-chibi-design-review.md) |
-| 2 | CDH-0008 | The active-runs tray (CDH-0007), sha to be named by its report | waiting on CDH-0007 | [Tray review](2026-10-12-tray-design-review.md) |
+| 2 | CDH-0008 | The active-runs tray (CDH-0007), commit `5182d6a`, boards 1, 3, 4, 5, 6, 7, 9 and 11; captures under `logs/scratch/design-review/cdh-0007/` | ready | [Tray review](2026-10-12-tray-design-review.md) |
 
 ## Start here
 
