@@ -45,7 +45,7 @@ Michou starts Codex with one fixed prompt, every time: `tools/review/codex-queue
 | # | ID | Reviews | Status | Document |
 | --- | --- | --- | --- | --- |
 | 1 | CDH-0005 | Board 10 native cast, commit `a27d2f2` (CDH-0003 + CDH-0006) | done 2026-10-12 | [Design review](2026-10-11-chibi-design-review.md) |
-| 2 | CDH-0008 | The active-runs tray (CDH-0007), commit `5182d6a`, boards 1, 3, 4, 5, 6, 7, 9 and 11; captures under `logs/scratch/design-review/cdh-0007/` | ready | [Tray review](2026-10-12-tray-design-review.md) |
+| 2 | CDH-0008 | The active-runs tray (CDH-0007), commit `5182d6a`, boards 1, 3, 4, 5, 6, 7, 9 and 11; captures under `logs/scratch/design-review/cdh-0007/` | done 2026-10-13 | [Tray review](2026-10-12-tray-design-review.md) |
 
 ## Start here
 
