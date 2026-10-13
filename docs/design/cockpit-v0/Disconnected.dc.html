@@ -63,6 +63,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">session</span><span style="font-size:14px">c70d687b…8447 <span style="color:#6f8290">claude-code · stale</span></span></div>
   <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">hook latency</span><span style="font-size:14px;color:#6f8290">— ms</span></div>
   <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">harnesses</span><span style="font-size:14px">claude 2.1.111 · codex 0.154.0</span></div>
+  <dc-import name="Tray" view="bar" state="stale" last-seen="19:52:14" runs="{{trayRuns}}" calm="{{calm}}" hint-size="300px,38px"></dc-import>
   <div style="flex:1 1 40px"></div>
   <div style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Claude Max · week · stale</span><div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
   <div style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Codex Plus · stale</span><div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div></div>
@@ -126,9 +127,15 @@ class Component extends DCLogic {
     const col = ['#141b22','#163241','#1b4a60','#217a97','#2aa6cc','#39d0ff'];
     return v.map((n) => ({ style: 'width:11px;height:11px;background:' + col[n] }));
   }
+  trayRuns() {
+    return [
+      { actor: 'builder', mapping: 'claude-code.*', run: 'c70d687b…8447', lifecycle: 'waiting', elapsed: '12m 12s', event: 'Bash make canary-agents · no outcome yet', chip: 'pending' },
+      { actor: 'reviewer', mapping: 'kgme.review', run: '01M4F8NR…04F', lifecycle: 'transient', elapsed: '9m 14s', event: 'cycle 1 tooling exhausted · not a strike · retry after 23:06', chip: 'blocking' }
+    ];
+  }
   renderVals() {
     const calm = this.props.calm ?? false;
-    return { noise: !calm, cells: this.cells() };
+    return { noise: !calm, calm, cells: this.cells(), trayRuns: this.trayRuns() };
   }
 }
 </script>

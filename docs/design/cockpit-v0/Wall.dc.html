@@ -68,6 +68,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">session</span><span style="font-size:14px">c70d687b…8447 <span style="color:#6f8290">claude-code · HANDOFF-0040 · 19:40:02 →</span></span></div>
   <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">hook latency</span><span style="font-size:14px">44 ms <span style="color:#6f8290">p50</span> · 61 ms <span style="color:#6f8290">p95</span> · 0 hook errors</span></div>
   <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">harnesses</span><span style="font-size:14px">claude 2.1.111 · codex 0.154.0 · arbiter claude-opus-5-5 · ollama idle</span></div>
+  <dc-import name="Tray" view="bar" runs="{{trayRuns}}" calm="{{calm}}" hint-size="300px,38px"></dc-import>
   <div style="flex:1 1 40px"></div>
   <div style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Claude Max · week · judgment cap 50%</span><div style="display:flex;gap:10px;align-items:center"><div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span style="font-size:11px">31%</span></div></div>
   <div style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Codex Plus · 5 h window</span><div style="display:flex;gap:10px;align-items:center"><div class="seg"><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i></i><i></i></div><span class="c-trans" style="font-size:11px">91% · resets 23:06</span></div></div>
@@ -82,6 +83,9 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
         <sc-for list="{{cells}}" as="c" hint-placeholder-count="240"><div class="cell" style="{{c.style}}"></div></sc-for>
       </div>
       <div style="display:flex;justify-content:space-between;margin-top:6px"><span class="lbl">15:52</span><span class="lbl">now</span></div>
+    </section>
+    <section class="pnl brk" style="padding:12px;display:flex;flex-direction:column;min-height:0">
+      <dc-import name="Tray" view="pane" runs="{{trayRuns}}" calm="{{calm}}" hint-size="100%,200px"></dc-import>
     </section>
     <section class="pnl brk" style="padding:12px;display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:6px 14px;font-size:11px">
       <span class="lbl" style="grid-column:span 2">today · by kind and class</span>
@@ -236,8 +240,16 @@ class Component extends DCLogic {
       e('19:51:59', 'outcome', 'tool:Edit',  'Edit ok', 'ok', '0.4 s', ''),
     ];
   }
+  trayRuns() {
+    return [
+      { actor: 'builder', mapping: 'claude-code.*', run: 'c70d687b…8447', lifecycle: 'working', elapsed: '12m 12s', event: 'Edit docs/audit/2026-10-08-push-on-commit.md · ok', chip: 'ok', focus: true },
+      { actor: 'builder', mapping: 'claude-code.*', run: '3f9e21aa…c0d1', lifecycle: 'working', quiet: '4m', elapsed: '41m 03s', event: 'Read docs/design/cockpit-v0/canvas.json · ok', chip: 'ok' },
+      { actor: 'reviewer', mapping: 'kgme.review', run: '01M4F8NR…04F', lifecycle: 'transient', elapsed: '9m 14s', event: 'cycle 1 tooling exhausted · not a strike · retry after 23:06', chip: 'blocking' }
+    ];
+  }
   renderVals() {
-    return { noise: !(this.props.calm ?? false), cells: this.cells(), rows: this.rows() };
+    const calm = this.props.calm ?? false;
+    return { noise: !calm, calm, cells: this.cells(), rows: this.rows(), trayRuns: this.trayRuns() };
   }
 }
 </script>

@@ -81,6 +81,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
     <span class="lbl">harnesses</span>
     <span style="font-size:14px">claude 2.1.111 · codex 0.154.0 <span style="color:#6f8290">· arbiter claude-opus-5-5</span></span>
   </div>
+  <dc-import name="Tray" view="bar" runs="{{trayRuns}}" calm="{{calm}}" hint-size="300px,38px"></dc-import>
   <div style="flex:1 1 40px"></div>
   <div style="display:flex;flex-direction:column;gap:4px">
     <span class="lbl">Claude Max · week · judgment cap 50%</span>
@@ -158,8 +159,8 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   </main>
 
   <aside class="pnl brk" style="flex:0 1 352px;min-width:300px;padding:12px;display:flex;flex-direction:column;gap:10px">
-    <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="lbl">detail · <span class="kbd">Enter</span> on a row</span><span class="lbl">Esc closes</span></div>
-    <div style="font-size:11px;color:#6f8290">Nothing selected. The focused row is <span style="color:#cfe6ef">01M4F8NV…QKT</span>, a transient outcome of review:HANDOFF-0040. Press <span class="kbd">Enter</span> to open it here; <span class="kbd">p</span> shows its raw payload path.</div>
+    <dc-import name="Tray" view="pane" runs="{{trayRuns}}" calm="{{calm}}" hint-size="100%,220px"></dc-import>
+    <div style="font-size:11px;color:#6f8290">Opened with <span class="kbd">a</span>. The focused row is <span style="color:#cfe6ef">c70d687b…8447</span>; <span class="kbd">Enter</span> sets the run filter to it and returns to the timeline. Nothing selected in the timeline: <span class="kbd">Enter</span> on a row opens the event here instead.</div>
     <div style="margin-top:auto;border-top:1px solid #1e2a33;padding-top:8px;display:flex;flex-direction:column;gap:4px">
       <span class="lbl">open handoff</span>
       <span>HANDOFF-0040 · <span style="color:#6f8290">kgme sync · adopted 19:40</span></span>
@@ -177,6 +178,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   <span><span class="kbd">t</span> trace</span>
   <span><span class="kbd">g</span> <span class="kbd">G</span> oldest / newest</span>
   <span><span class="kbd">f</span> follow</span>
+  <span><span class="kbd">a</span> runs</span>
   <span><span class="kbd">c</span> calm</span>
   <span><span class="kbd">?</span> keys</span>
   <span style="margin-left:auto">vim keys transfer · nothing here launches a process</span>
@@ -221,9 +223,16 @@ class Component extends DCLogic {
       e('19:51:59', 'outcome', 'tool:Edit',  'Edit ok', 'ok', '0.4 s', ''),
     ];
   }
+  trayRuns() {
+    return [
+      { actor: 'builder', mapping: 'claude-code.*', run: 'c70d687b…8447', lifecycle: 'working', elapsed: '12m 12s', event: 'Edit docs/audit/2026-10-08-push-on-commit.md · ok', chip: 'ok', focus: true },
+      { actor: 'builder', mapping: 'claude-code.*', run: '3f9e21aa…c0d1', lifecycle: 'working', quiet: '4m', elapsed: '41m 03s', event: 'Read docs/design/cockpit-v0/canvas.json · ok', chip: 'ok' },
+      { actor: 'reviewer', mapping: 'kgme.review', run: '01M4F8NR…04F', lifecycle: 'transient', elapsed: '9m 14s', event: 'cycle 1 tooling exhausted · not a strike · retry after 23:06', chip: 'blocking' }
+    ];
+  }
   renderVals() {
     const calm = this.props.calm ?? false;
-    return { noise: !calm, cells: this.cells(), rows: this.rows() };
+    return { noise: !calm, calm, cells: this.cells(), rows: this.rows(), trayRuns: this.trayRuns() };
   }
 }
 </script>

@@ -66,6 +66,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">session</span><span style="font-size:14px">c70d687b…8447 <span style="color:#6f8290">claude-code</span></span></div>
   <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">hook latency</span><span style="font-size:14px">44 ms <span style="color:#6f8290">p50</span> · 61 ms <span style="color:#6f8290">p95</span></span></div>
   <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">harnesses</span><span style="font-size:14px">claude 2.1.111 · codex 0.154.0 <span style="color:#6f8290">· arbiter claude-opus-5-5</span></span></div>
+  <dc-import name="Tray" view="bar" runs="{{trayRuns}}" calm="{{calm}}" hint-size="300px,38px"></dc-import>
   <div style="flex:1 1 40px"></div>
   <div style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Claude Max · week · judgment cap 50%</span><div style="display:flex;gap:10px;align-items:center"><div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span style="font-size:11px">31%</span></div></div>
   <div style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Codex Plus · 5 h window</span><div style="display:flex;gap:10px;align-items:center"><div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div><span style="font-size:11px">91%</span></div></div>
@@ -179,9 +180,15 @@ class Component extends DCLogic {
       e('19:52:14', 'intent',  'tool:Bash',  'Bash make canary-agents', 'pending', '', 'focus'),
     ];
   }
+  trayRuns() {
+    return [
+      { actor: 'builder', mapping: 'claude-code.*', run: 'c70d687b…8447', lifecycle: 'waiting', elapsed: '12m 12s', event: 'Bash make canary-agents · no outcome yet', chip: 'pending', focus: true },
+      { actor: 'reviewer', mapping: 'kgme.review', run: '01M4F8NR…04F', lifecycle: 'transient', elapsed: '9m 14s', event: 'cycle 1 tooling exhausted · not a strike · retry after 23:06', chip: 'blocking' }
+    ];
+  }
   renderVals() {
     const calm = this.props.calm ?? false;
-    return { noise: !calm, cells: this.cells(), rows: this.rows() };
+    return { noise: !calm, calm, cells: this.cells(), rows: this.rows(), trayRuns: this.trayRuns() };
   }
 }
 </script>
