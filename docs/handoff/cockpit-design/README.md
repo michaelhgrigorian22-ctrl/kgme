@@ -21,16 +21,26 @@ This section uses its own `CDH-0001`, `CDH-0002` sequence, at Michou's request o
 | CDH-0003 | Codex, GPT-6 Astra | Rebuild board 10 as native artboard markup from the approved cast (AUDIT-CDH-0002 CW1 blocking, CW2, CW3); retire the stale sprite constraints in the readers and review prompt. Done 2026-10-11 15:51; committed on `design` as `0bb87d5`. | [Native board](2026-10-09-chibi-native-board.md) |
 | CDH-0004 | Cowork | Native verification of CDH-0003 in the private review copy. Done 2026-10-12 15:32, verdict `BLOCK: 1 blocking finding` (CW7: template holes written `{x}` instead of `{{x}}`; the board renders fully once rewritten, verified natively as an experiment). | [Native verification](2026-10-09-chibi-native-verification.md) |
 | CDH-0005 | Codex, GPT-6 Astra (read-only review) | Independent design review of the native board on `design`, after CDH-0004. Proposed; adopted by pasting the start prompt. | [Design review](2026-10-11-chibi-design-review.md) |
-| CDH-0006 | Cowork | Apply CW7 (and CW8, CW9 if taken), re-verify natively, then hand over CDH-0005. Proposed 2026-10-12; awaiting Michou's adoption. | [Hole syntax fix](2026-10-12-chibi-hole-syntax.md) |
+| CDH-0006 | Cowork | CW7 (hole syntax), CW8 (scroll boxes), CW9 (harness text) applied; native re-check PASS incl. motion. Done 2026-10-12 18:02; commit `a27d2f2`. | [Hole syntax fix](2026-10-12-chibi-hole-syntax.md) |
 | CDH-0007 | Cowork | The active-runs tray: the cast at work in the top bar of the main boards, expandable with `a` (Michou's idea, 2026-10-12 17:35). Proposed; queued behind CDH-0006 and CDH-0005. | [Active-runs tray](2026-10-12-active-runs-tray.md) |
+| CDH-0008 | Codex, GPT-6 Astra (read-only review) | Independent design review of the active-runs tray, after CDH-0007. Proposed. | [Tray review](2026-10-12-tray-design-review.md) |
 
 Both handoffs were explicitly adopted by Michou on 2026-10-09: "theyre good to go i just want to plug and play codex to start working and then just say the word to cowork to read the folder and move forward given the brief". Their files now carry `from: michou` and `status: open`. Codex mechanically recorded Michou's adoption; it did not adopt its own proposal. This approval covers the written local implementation and verification plans, including the scoped board 10 edits. It does not grant final canvas approval.
 
-## Status 2026-10-12 15:32
+## Status 2026-10-12 18:02
 
-CDH-0001 done (2026-10-09 22:44). CDH-0002 done 22:58, `BLOCK: 1` (iframe). Artwork approved by Michou as drawn (23:04); CW4/CW5 closed. CDH-0003 (Codex) done 2026-10-11 15:51, committed on `design` as `0bb87d5`. CDH-0004 (Cowork) done 2026-10-12 15:32, `BLOCK: 1 blocking finding`: CW7, every template hole in board 10 is `{x}` instead of `{{x}}`, so nothing resolves natively; with the 51 holes rewritten (experiment in the review copy) the matrix, pairs, contexts, 16 buttons and the calm tweak all work in the editor. Next: Michou adopts CDH-0006 (Cowork applies the fix, re-verifies, commits); then CDH-0005 (Codex read-only review).
+CDH-0001 done (2026-10-09). CDH-0002 done, `BLOCK: 1` (iframe). Artwork approved as drawn. CDH-0003 (Codex) done 2026-10-11, `0bb87d5`. CDH-0004 (Cowork) done 2026-10-12, `BLOCK: 1` (CW7 hole syntax). CDH-0006 (Cowork) done 2026-10-12 18:02, `a27d2f2`: holes fixed, scroll boxes, harness text; native re-check PASS, motion observed in the editor. **Next: CDH-0005 is `ready` in the Codex queue below** (Michou pastes the queue prompt). CDH-0007 (the active-runs tray, Cowork) proposed; CDH-0008 (its review, Codex) queued behind it.
 
 Working rules (Michou, 2026-10-09 23:13): the design track works in the worktree `~/Projects/Automate-design` on branch `design`, commits freely by pathspec, never touches `main`; Codex reviews only until a builder profile exists (HANDOFF-0042, after 0034) — CDH-0003 was already running under its earlier assignment when the rule landed and was allowed to finish; no binaries are committed; captures live under `logs/scratch/design-review/` (paths under `memory/attachments/cockpit/` cited in AUDIT-CDH-0001, AUDIT-CDH-0002, CDH-0001 and CDH-0002 predate the move of 2026-10-09 23:11).
+
+## Codex queue
+
+Michou starts Codex with one fixed prompt, every time: `tools/review/codex-queue-prompt.md`. Codex takes the first row below whose status is `ready`, records Michou's adoption in that handoff, executes it, writes its report, and sets the row to `done`. Cowork keeps this table: a row becomes `ready` when its dependency is `done` and the sha it reviews is committed on `design`. Nothing here commits or pushes; Cowork commits Codex's report afterwards.
+
+| # | ID | Reviews | Status | Document |
+| --- | --- | --- | --- | --- |
+| 1 | CDH-0005 | Board 10 native cast, commit `a27d2f2` (CDH-0003 + CDH-0006) | ready | [Design review](2026-10-11-chibi-design-review.md) |
+| 2 | CDH-0008 | The active-runs tray (CDH-0007), sha to be named by its report | waiting on CDH-0007 | [Tray review](2026-10-12-tray-design-review.md) |
 
 ## Start here
 

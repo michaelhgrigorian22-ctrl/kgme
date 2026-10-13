@@ -5,7 +5,8 @@ created: 2026-10-12T15:32:00-07:00
 from: michou
 to: cowork
 tier: 2
-status: open
+status: done
+completed: 2026-10-12T18:02:00-07:00
 adopted_by: michou
 adopted: 2026-10-12T17:38:00-07:00
 depends_on: [CDH-0003, CDH-0004]
