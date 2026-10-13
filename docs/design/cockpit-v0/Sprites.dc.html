@@ -41,6 +41,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .matrix-label{font-size:11px;align-self:stretch;display:flex;flex-direction:column;justify-content:center;gap:3px;padding-right:10px}.matrix-label .muted{font-size:10px}.matrix-label .c-live{font-size:10px}
 .matrix-cell{height:94px;display:grid;place-items:center}
 .palette-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;margin-top:12px}.palette-grid sc-for{display:contents}
+.sprite-xscroll{overflow-x:auto}.sprite-xscroll>.sprite-matrix{min-width:980px}.sprite-xscroll>.palette-grid{min-width:1100px}
 .palette-pair{min-width:0;font-size:11px}.palette-pair p{font-size:10px}.pair-art{display:flex;justify-content:space-around;background:#0a0c10;border:1px solid #1e2a33;padding:8px 0;margin:8px 0}.pair-art>svg:last-child{background:#11151c}.pair-caption{display:flex;justify-content:space-around;font-size:9px;color:#6f8290}
 .sample-run{border:1px solid #1e2a33}.run-header{display:flex;align-items:center;gap:10px;height:36px;box-sizing:border-box;padding:4px 10px;border-bottom:1px solid #1e2a33;font-size:11px;white-space:nowrap}
 .ledger-row{display:grid;grid-template-columns:65px 12px 110px minmax(0,1fr) 70px 40px;gap:8px;align-items:center;height:22px;box-sizing:border-box;padding:0 10px;border-bottom:1px solid #1e2a33;font-size:10px;white-space:nowrap}.ledger-row>span{overflow:hidden;text-overflow:ellipsis}.ledger-row>span:last-child{text-align:right}
@@ -781,7 +782,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 </symbol>
 </defs>
 </svg>
-<div data-calm="{calm}" style="min-height:100vh;box-sizing:border-box;padding:36px;display:flex;flex-direction:column;gap:22px;background:#0a0c10">
+<div data-calm="{{calm}}" style="min-height:100vh;box-sizing:border-box;padding:36px;display:flex;flex-direction:column;gap:22px;background:#0a0c10">
   <div style="display:flex;flex-wrap:wrap;gap:18px;align-items:baseline;justify-content:space-between">
     <div>
       <div class="lbl">KGME cockpit · whimsy that obeys the rule · v2, louder</div>
@@ -797,43 +798,47 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
         <h3 id="selected-heading" class="h">Selected detail · 72 px · fixture controls</h3>
         <div class="sprite-controls" role="group" aria-label="Selected actor">
           <span class="lbl">Actor</span>
-          <sc-for list="{actorChoices}" as="choice" hint-placeholder-count="7"><button type="button" onClick="{choice.pick}" aria-pressed="{choice.selected}">{choice.key}</button></sc-for>
+          <sc-for list="{{actorChoices}}" as="choice" hint-placeholder-count="7"><button type="button" onClick="{{choice.pick}}" aria-pressed="{{choice.selected}}">{{choice.key}}</button></sc-for>
         </div>
         <div class="sprite-controls" role="group" aria-label="Selected mode">
           <span class="lbl">Mode</span>
-          <sc-for list="{modeChoices}" as="choice" hint-placeholder-count="7"><button type="button" onClick="{choice.pick}" aria-pressed="{choice.selected}">{choice.key}</button></sc-for>
+          <sc-for list="{{modeChoices}}" as="choice" hint-placeholder-count="7"><button type="button" onClick="{{choice.pick}}" aria-pressed="{{choice.selected}}">{{choice.key}}</button></sc-for>
         </div>
         <div class="sprite-controls" role="group" aria-label="Detail palette">
           <span class="lbl">Palette</span>
-          <sc-for list="{paletteChoices}" as="choice" hint-placeholder-count="2"><button type="button" onClick="{choice.pick}" aria-pressed="{choice.selected}">{choice.key}</button></sc-for>
+          <sc-for list="{{paletteChoices}}" as="choice" hint-placeholder-count="2"><button type="button" onClick="{{choice.pick}}" aria-pressed="{{choice.selected}}">{{choice.key}}</button></sc-for>
         </div>
         <div class="selected-layout">
-          <div id="chibi-selected-detail" class="detail-mount"><svg class="chibi actor-{selected.actor} mode-{selected.mode} pal-{selected.palette} tone-{selected.tone} {motionClass}" viewBox="0 0 240 280" aria-hidden="true" focusable="false"><use href="#{selected.symbol}"></use></svg></div>
-          <div><strong>{selected.name}</strong><p>Actor: {selected.mapping}. Mode: {selected.mode}.</p><p>Lifecycle: {selected.lifecycle}. Class: {selected.className}.</p><p>Event: {selected.event}. Palette: {selected.palette}. Size: 72 CSS px.</p><p class="muted">{selected.bio}</p></div>
-          <div><p class="c-live" role="status">{motionStatus}</p><p class="muted">Only this visible detail can animate. Reduced motion freezes it. These controls select samples; they do not dispatch commands.</p></div>
+          <div id="chibi-selected-detail" class="detail-mount"><svg class="chibi actor-{{selected.actor}} mode-{{selected.mode}} pal-{{selected.palette}} tone-{{selected.tone}} {{motionClass}}" viewBox="0 0 240 280" aria-hidden="true" focusable="false"><use href="#{{selected.symbol}}"></use></svg></div>
+          <div><strong>{{selected.name}}</strong><p>Actor: {{selected.mapping}}. Mode: {{selected.mode}}.</p><p>Lifecycle: {{selected.lifecycle}}. Class: {{selected.className}}.</p><p>Event: {{selected.event}}. Palette: {{selected.palette}}. Size: 72 CSS px.</p><p class="muted">{{selected.bio}}</p></div>
+          <div><p class="c-live" role="status">{{motionStatus}}</p><p class="muted">Only this visible detail can animate. Reduced motion freezes it. These controls select samples; they do not dispatch commands.</p></div>
         </div>
       </section>
       <section class="sprite-panel" aria-labelledby="matrix-heading">
         <h3 id="matrix-heading" class="h">49 static specimens · phosphor · 72 CSS px</h3>
         <p class="sprite-copy">Column headers repeat the mode, lifecycle, class and sample event. Row headers identify the actor. These samples do not read the ledger.</p>
+        <div class="sprite-xscroll">
         <div class="sprite-matrix" role="group" aria-label="Seven actors by seven modes">
           <div class="matrix-label">Actor / mapping</div>
-          <sc-for list="{modes}" as="mode" hint-placeholder-count="7">
-            <div class="matrix-heading"><strong>Mode: {mode.key}</strong><span>Lifecycle: {mode.lifecycle}</span><span>Class: {mode.className}</span><span>Event: {mode.event}</span></div>
+          <sc-for list="{{modes}}" as="mode" hint-placeholder-count="7">
+            <div class="matrix-heading"><strong>Mode: {{mode.key}}</strong><span>Lifecycle: {{mode.lifecycle}}</span><span>Class: {{mode.className}}</span><span>Event: {{mode.event}}</span></div>
           </sc-for>
-          <sc-for list="{cells}" as="cell" hint-placeholder-count="49">
-            <sc-if value="{cell.first}" hint-placeholder-val="{true}"><div class="matrix-label"><strong>{cell.name}</strong><span class="c-live">{cell.mapping}</span><span class="muted">{cell.bio}</span></div></sc-if>
-            <div class="matrix-cell" ><svg class="chibi actor-{cell.actor} mode-{cell.mode} pal-phosphor tone-{cell.tone}" viewBox="0 0 240 280" aria-hidden="true" focusable="false"><use href="#{cell.symbol}"></use></svg><span class="sr-only">{cell.label}</span></div>
+          <sc-for list="{{cells}}" as="cell" hint-placeholder-count="49">
+            <sc-if value="{{cell.first}}" hint-placeholder-val="{{true}}"><div class="matrix-label"><strong>{{cell.name}}</strong><span class="c-live">{{cell.mapping}}</span><span class="muted">{{cell.bio}}</span></div></sc-if>
+            <div class="matrix-cell" ><svg class="chibi actor-{{cell.actor}} mode-{{cell.mode}} pal-phosphor tone-{{cell.tone}}" viewBox="0 0 240 280" aria-hidden="true" focusable="false"><use href="#{{cell.symbol}}"></use></svg><span class="sr-only">{{cell.label}}</span></div>
           </sc-for>
+        </div>
         </div>
       </section>
       <section class="sprite-panel" aria-labelledby="palettes-heading">
         <h3 id="palettes-heading" class="h">Same geometry · two material palettes</h3>
         <p class="sprite-copy">Detail specimens. Mode: idle. Lifecycle: ready. Class: —. Event: sample ready. Fixed ochre cloth is a material, not a warning.</p>
+        <div class="sprite-xscroll">
         <div class="palette-grid">
-          <sc-for list="{actors}" as="actor" hint-placeholder-count="7">
-            <article class="palette-pair"><strong>{actor.name}</strong><p class="c-live">{actor.mapping}</p><div class="pair-art"><svg class="chibi actor-{actor.key} mode-idle pal-phosphor tone-live" viewBox="0 0 240 280" aria-hidden="true" focusable="false"><use href="#{actor.symbol}"></use></svg><svg class="chibi actor-{actor.key} mode-idle pal-sticker tone-live" viewBox="0 0 240 280" aria-hidden="true" focusable="false"><use href="#{actor.symbol}"></use></svg></div><div class="pair-caption"><span>Phosphor</span><span>Sticker</span></div></article>
+          <sc-for list="{{actors}}" as="actor" hint-placeholder-count="7">
+            <article class="palette-pair"><strong>{{actor.name}}</strong><p class="c-live">{{actor.mapping}}</p><div class="pair-art"><svg class="chibi actor-{{actor.key}} mode-idle pal-phosphor tone-live" viewBox="0 0 240 280" aria-hidden="true" focusable="false"><use href="#{{actor.symbol}}"></use></svg><svg class="chibi actor-{{actor.key}} mode-idle pal-sticker tone-live" viewBox="0 0 240 280" aria-hidden="true" focusable="false"><use href="#{{actor.symbol}}"></use></svg></div><div class="pair-caption"><span>Phosphor</span><span>Sticker</span></div></article>
           </sc-for>
+        </div>
         </div>
       </section>
       <section class="sprite-panel" aria-labelledby="context-heading">

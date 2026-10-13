@@ -2,10 +2,12 @@
 id: CDH-0006
 type: handoff
 created: 2026-10-12T15:32:00-07:00
-from: cowork
+from: michou
 to: cowork
 tier: 2
-status: proposed
+status: open
+adopted_by: michou
+adopted: 2026-10-12T17:38:00-07:00
 depends_on: [CDH-0003, CDH-0004]
 design_track: HANDOFF-0036
 verification: CDH-0005
