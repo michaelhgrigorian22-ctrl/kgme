@@ -24,9 +24,15 @@ This section uses its own `CDH-0001`, `CDH-0002` sequence, at Michou's request o
 | CDH-0006 | Cowork | CW7 (hole syntax), CW8 (scroll boxes), CW9 (harness text) applied; native re-check PASS incl. motion. Done 2026-10-12 18:02; commit `a27d2f2`. | [Hole syntax fix](2026-10-12-chibi-hole-syntax.md) |
 | CDH-0007 | Cowork | The active-runs tray: the cast at work in the top bar of the main boards, expandable with `a` (Michou's idea, 2026-10-12 17:35). Done 2026-10-13 15:45, native PASS; commit `5182d6a` (board 11 + boards 1, 3, 4, 5, 6, 7, 9). | [Active-runs tray](2026-10-12-active-runs-tray.md) |
 | CDH-0008 | Codex, GPT-6 Astra (read-only review) | Independent design review of the active-runs tray at `5182d6a`, after CDH-0007. Proposed; `ready` in the Codex queue. | [Tray review](2026-10-12-tray-design-review.md) |
-| CDH-0009 | Cowork | The station: the ship, its rooms and the crew at work as a second wall layout, a hand-built three.js page under `docs/design/cockpit-v0/station/` (Michou's wish, 2026-10-13 13:17). Proposed. | [The station](2026-10-13-the-station.md) |
+| CDH-0009 | Cowork | The station: the ship, its rooms and the crew at work as a second wall layout, a hand-built three.js page under `docs/design/cockpit-v0/station/` (Michou's wish, 2026-10-13 13:17). Done 2026-10-13 16:45, first pass, commit `373de74`; review artifact "KGME Station". | [The station](2026-10-13-the-station.md) |
+| CDH-0010 | Cowork | The tray's second cycle: AUDIT-CDH-0008's F1–F6 applied on Michou's rulings. Proposed. | [Tray cycle 2](2026-10-13-tray-fix-cycle.md) |
+| CDH-0011 | Codex, GPT-6 Astra (read-only review) | Review of the station (CDH-0009) and the tray's second cycle (CDH-0010) in one pass. Proposed; `ready` when CDH-0010 is done. | [Station and tray review](2026-10-13-station-and-tray-review.md) |
 
 Both handoffs were explicitly adopted by Michou on 2026-10-09: "theyre good to go i just want to plug and play codex to start working and then just say the word to cowork to read the folder and move forward given the brief". Their files now carry `from: michou` and `status: open`. Codex mechanically recorded Michou's adoption; it did not adopt its own proposal. This approval covers the written local implementation and verification plans, including the scoped board 10 edits. It does not grant final canvas approval.
+
+## Status 2026-10-13 16:45
+
+CDH-0008 (Codex) done 15:54, **`BLOCK: 3`** on the tray (AUDIT-CDH-0008: F1 focus contrast, F2 stale under board 6's filter, F3 no semantic controls; F4–F6 advisory), committed `708e634`; Michou rules take/reject/defer, then CDH-0010 applies them. **CDH-0009 (Cowork) done 16:45, first pass, PASS** (AUDIT-CDH-0009): the station as a hand-built three.js page under `docs/design/cockpit-v0/station/`, commit `373de74`, the private artifact "KGME Station"; CW14–CW16 advisory/cosmetic. Proposed: CDH-0010 (tray cycle 2) and CDH-0011 (Codex reviews the station and the cycle together, `ready` when 0010 is done). `origin/design` is behind: the VM has no GitHub credentials, `git push origin design` is Michou's.
 
 ## Status 2026-10-13 15:45
 
@@ -46,6 +52,7 @@ Michou starts Codex with one fixed prompt, every time: `tools/review/codex-queue
 | --- | --- | --- | --- | --- |
 | 1 | CDH-0005 | Board 10 native cast, commit `a27d2f2` (CDH-0003 + CDH-0006) | done 2026-10-12 | [Design review](2026-10-11-chibi-design-review.md) |
 | 2 | CDH-0008 | The active-runs tray (CDH-0007), commit `5182d6a`, boards 1, 3, 4, 5, 6, 7, 9 and 11; captures under `logs/scratch/design-review/cdh-0007/` | done 2026-10-13 | [Tray review](2026-10-12-tray-design-review.md) |
+| 3 | CDH-0011 | The station (CDH-0009, `373de74`) and the tray's second cycle (CDH-0010, sha from its report); captures under `logs/scratch/design-review/cdh-0009/` and `cdh-0010/` | waiting on CDH-0010 | [Station and tray review](2026-10-13-station-and-tray-review.md) |
 
 ## Start here
 
