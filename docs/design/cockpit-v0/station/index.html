@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!-- CDH-0009 · the station: a hand-built page, not a canvas artboard. Serve docs/design/cockpit-v0/ over HTTP and open station/.
+     The same body is published as the private review artifact; the only remote script is three@0.182.0 from jsDelivr (HANDOFF-0044 vendors it for the cockpit). -->
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>KGME Station</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* CDH-0009 · the station. Layout: one full-window isometric deck (WebGL) under an HTML HUD that carries every
+   fact in words; light in the hull mirrors the words and never replaces them. One dark world on purpose
+   (the cockpit's phosphor palette), so there is no light theme. */
+:root{--ground:#0a0c10;--surface:#11151c;--rule:#1e2a33;--text:#cfe6ef;--muted:#7a8d9b;--dim:#6f8290;--cyan:#39d0ff;--magenta:#ff3d7f;--amber:#ffb02e;--green:#4de38a;--mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color-scheme:dark}
+html,body{height:100%}
+body{margin:0;background:var(--ground);color:var(--text);font-family:var(--mono);font-size:12px;line-height:1.45;overflow:hidden}
+a{color:var(--cyan)}a:hover{color:var(--text)}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+#stage{position:fixed;inset:0;background:var(--ground)}
+#gl{position:absolute;inset:0;width:100%;height:100%;display:block}
+#labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+#labels>div{pointer-events:none}
+.scan{position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(207,230,239,.035) 0 1px,transparent 1px 3px);z-index:4}
+.vig{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.6) 100%);z-index:2}
+.frame{position:fixed;inset:10px;pointer-events:none;border:1px solid var(--hull,#39d0ff);box-shadow:inset 0 0 90px var(--hullglow,rgba(57,208,255,.10));z-index:3;transition:border-color .6s,box-shadow .6s}
+.micro{position:fixed;font-size:9px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase;pointer-events:none;z-index:5;white-space:nowrap}
+.lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.kbd{display:inline-block;min-width:16px;padding:0 5px;border:1px solid var(--cyan);color:var(--cyan);font-size:10px;line-height:16px;text-align:center;border-radius:2px}
+.chip{display:inline-block;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:0 6px;border:1px solid currentColor;line-height:15px;border-radius:1px;white-space:nowrap}
+.c-ok{color:var(--green)}.c-block{color:var(--magenta)}.c-amber{color:var(--amber)}.c-none{color:var(--dim)}.c-live{color:var(--cyan)}
+/* HUD */
+.hud{position:fixed;z-index:6;display:flex;flex-wrap:wrap;gap:10px 22px;align-items:flex-end;padding-inline:36px;min-width:0}
+.hud.top{top:0;left:0;right:0;padding-block:calc(26px + env(safe-area-inset-top,0px)) 8px}
+.hud.bottom{bottom:0;left:0;right:0;padding-block:8px calc(22px + env(safe-area-inset-bottom,0px));align-items:center;font-size:11px;color:var(--dim)}
+.col{display:flex;flex-direction:column;gap:2px;min-width:0}
+.val{font-size:14px;white-space:nowrap}
+.clock{font-size:22px;font-weight:700;letter-spacing:.04em;font-variant-numeric:tabular-nums}
+.clock small{color:var(--dim);font-size:12px;font-weight:400}
+.tr-bar{display:flex;align-items:center;gap:10px;min-height:24px}
+.tr-stack{display:flex;align-items:center}
+.tr-stack .chibi{background:var(--surface);border-radius:2px;box-shadow:0 0 0 1px var(--ground);margin-left:-7px}
+.tr-stack .chibi:first-child{margin-left:0}
+.tr-open{display:flex;align-items:center;gap:10px;border-radius:2px}
+.tr-sum{font-size:14px;white-space:nowrap}
+.blink{animation:blink 1.2s steps(2,end) infinite}
+@keyframes blink{50%{opacity:.2}}
+/* room chips, anchored in the scene */
+.chip-room{pointer-events:auto!important;display:flex;flex-direction:column;align-items:flex-start;gap:3px;background:rgba(10,12,16,.82);border:1px solid var(--rule);padding:5px 8px 5px 7px;border-radius:2px;white-space:nowrap;transform:translate(-50%,-100%);backdrop-filter:blur(2px)}
+.chip-room:hover,.chip-room.on{border-color:var(--cyan)}
+.chip-room .name{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text)}
+.chip-room .name b{color:var(--cyan);font-weight:500;margin-right:6px}
+.chip-room .state{font-size:11px;color:var(--dim)}
+.chip-room.s-block .state,.chip-room.s-block .name{color:var(--magenta)}
+.chip-room.s-amber .state{color:var(--amber)}
+.chip-room.s-live .state{color:var(--text)}
+.chip-room.phase2{border-style:dashed;color:var(--dim)}.chip-room.phase2 .name,.chip-room.phase2 .name b{color:var(--dim)}
+/* crew */
+#labels{--z:1}
+.crew{position:relative;width:72px;height:72px;transform:translate(-50%,-92%) scale(var(--z));transform-origin:50% 92%;display:grid;place-items:end center}
+.crew .chibi{width:72px;height:72px;filter:drop-shadow(0 6px 4px rgba(0,0,0,.55))}
+.crew .tag{position:absolute;left:50%;top:100%;transform:translate(-50%,2px);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);white-space:nowrap}
+.bubble{position:absolute;left:50%;bottom:calc(100% + 6px);transform:translateX(-50%);max-width:280px;min-width:120px;background:var(--surface);border:1px solid var(--rule);padding:5px 8px;font-size:10px;line-height:1.35;color:var(--text);white-space:normal;text-align:left;opacity:0;transition:opacity .25s}
+.bubble::after{content:"";position:absolute;left:50%;top:100%;width:6px;height:6px;background:var(--surface);border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);transform:translate(-50%,-3px) rotate(45deg)}
+.bubble.show{opacity:1}
+.bubble .t{color:var(--dim);margin-right:6px}
+.bubble .chip{margin-left:6px;vertical-align:1px}
+/* the followed room's runs, on the right */
+.pane{position:fixed;right:36px;top:118px;width:360px;max-width:calc(100vw - 72px);max-height:calc(100vh - 220px);overflow:auto;z-index:6;background:rgba(17,21,28,.92);border:1px solid var(--rule);padding:10px 12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.pane[hidden]{display:none}
+.pane .head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.row{display:grid;grid-template-columns:24px minmax(0,1fr) auto;grid-template-rows:auto auto;gap:1px 8px;align-items:center;padding:5px 6px;border-top:1px solid #141b22;text-align:left;width:100%}
+.row .chibi{grid-row:1/3}
+.row .l1{display:flex;gap:8px;min-width:0;font-size:11px;white-space:nowrap;overflow:hidden}
+.row .l1 .map{flex:none}.row .l1 .run{color:var(--dim);overflow:hidden;text-overflow:ellipsis;min-width:0}
+.row .life{font-size:10px;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;text-align:right}
+.row .life .q{color:var(--dim);letter-spacing:0;text-transform:none}
+.row .l2{display:flex;gap:8px;min-width:0;font-size:10px;color:var(--dim);white-space:nowrap;overflow:hidden}
+.row .l2 .ev{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.row.focus{outline:1px solid var(--cyan);outline-offset:-1px;background:#0e1a22}
+.row.focus .run,.row.focus .l2{color:var(--muted)}
+.empty{font-size:11px;color:var(--dim)}
+/* the wall: what c drops to */
+#wall{position:fixed;inset:0;z-index:8;background:var(--ground);padding:calc(36px + env(safe-area-inset-top,0px)) 36px 36px;overflow:auto;display:flex;flex-direction:column;gap:14px}
+#wall[hidden]{display:none}
+#wall .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+#wall .room{background:var(--surface);border:1px solid var(--rule);padding:12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+#wall .room h2{margin:0;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);font-weight:500;display:flex;justify-content:space-between;gap:10px}
+#wall .room h2 span{color:var(--dim);letter-spacing:.08em}
+body.calm .scan,body.calm .vig,body.calm .frame,body.calm .micro,body.calm #stage,body.calm .pane{display:none}
+body.calm .chibi{visibility:hidden}
+@media (prefers-reduced-motion:reduce){.blink{animation:none}.scan{display:none}.bubble{transition:none}.frame{transition:none}}
+@media (max-width:720px){.hud{padding-inline:16px}.hud.top .val{font-size:12px;white-space:normal}.clock{font-size:18px}.micro{display:none}.pane{right:16px;left:16px;width:auto;top:auto;bottom:70px;max-height:40vh}#wall{padding-inline:16px}}
+/* --- board 10's chibi stylesheet, verbatim (Sprites.dc.html), so the cast renders here exactly as there --- */
+/* Only the SVG body is copied into each symbol. Root paint and material roles
+   are preserved here, so every use inherits its own palette and mode. */
+.chibi{display:block;overflow:visible;isolation:isolate;width:72px;height:72px;flex:none;fill:var(--dark);stroke:var(--dark);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;--accent:#39d0ff!important}
+.chibi-symbol{overflow:visible}
+.chibi.portrait{width:24px;height:24px;overflow:hidden}.phase2 .chibi{width:48px;height:48px}
+.pal-phosphor{--garment:#839da9!important;--garment-shade:#455d69!important;--garment-light:#cfe6ef!important;--face:#cfe6ef!important;--face-shade:#8ba8b4!important;--face-light:#e8f2f5!important;--tool:#8fb4c4!important;--tool-shade:#4c6876!important;--tool-light:#c8e0e9!important;--print:#263841!important;--dark:#17242e!important}
+.tone-blocking{--accent:#ff3d7f!important}.tone-pending,.tone-transient,.tone-advisory{--accent:#ffb02e!important}.tone-ok{--accent:#4de38a!important}.tone-muted{--accent:#6f8290!important}
+/* Inherited variables cross the use shadow tree. Ancestor mode selectors do not.
+   Symbol bodies remain byte-equivalent to the canonical SVG children. */
+.chibi-symbol .figure{display:var(--figure-display,inline)!important;transform:var(--figure-pose,none);transform-origin:120px 245px;animation:var(--figure-motion,none);opacity:var(--figure-opacity,1)}
+.chibi-symbol .head{transform:var(--head-pose,none);transform-origin:120px 110px;animation:var(--head-motion,none)}
+.chibi-symbol .body{transform-origin:120px 190px;animation:var(--body-motion,none)}
+.chibi-symbol .prop{transform-origin:120px 190px;animation:var(--prop-motion,none)}
+.chibi-symbol .effect-fire{display:var(--fire-display,none)!important;transform-origin:120px 238px;animation:var(--fire-motion,none)}
+.chibi-symbol .effect-halo{display:var(--halo-display,none)!important;transform-origin:120px 28px;animation:var(--halo-motion,none)}
+.chibi-symbol .effect-melt{display:var(--melt-display,none)!important}.chibi-symbol .chalk{display:var(--chalk-display,none)!important}
+.chibi-symbol .eyes-open{display:var(--eyes-open-display,inline)!important;animation:var(--eyes-open-motion,none)}
+.chibi-symbol .eyes-closed{display:var(--eyes-closed-display,none)!important;animation:var(--eyes-closed-motion,none)}
+.mode-transient{--figure-pose:translateY(7px) scaleY(.96);--head-pose:rotate(4deg);--melt-display:inline}
+.mode-blocked{--fire-display:inline}.mode-done{--halo-display:inline;--head-pose:rotate(-3deg)}.mode-waiting{--head-pose:rotate(4deg)}
+.mode-asleep{--figure-display:none;--chalk-display:inline}
+.portrait{--fire-display:none;--halo-display:none;--melt-display:none}.portrait.mode-asleep{--figure-display:inline;--figure-opacity:.55;--chalk-display:none;--eyes-open-display:none;--eyes-closed-display:inline}
+.is-animated.mode-idle{--body-motion:chibi-breathe 4s ease-in-out infinite alternate;--eyes-open-motion:chibi-blink-open 4s steps(1,end) infinite;--eyes-closed-display:inline;--eyes-closed-motion:chibi-blink-closed 4s steps(1,end) infinite}
+.is-animated.mode-working{--prop-motion:chibi-work .55s ease-in-out infinite alternate}
+.actor-builder.is-animated.mode-working{--prop-motion:chibi-hammer .22s ease-in-out infinite alternate}
+.actor-reviewer.is-animated.mode-working{--prop-motion:chibi-inspect 1s ease-in-out infinite alternate}
+.actor-arbiter.is-animated.mode-working{--prop-motion:chibi-staff .9s ease-in-out infinite alternate}
+.actor-guard.is-animated.mode-working{--prop-motion:chibi-shield .8s ease-in-out infinite alternate}
+.actor-scribe.is-animated.mode-working{--prop-motion:chibi-write .5s ease-in-out infinite alternate}
+.actor-michou.is-animated.mode-working{--prop-motion:chibi-phone 1.1s ease-in-out infinite alternate}
+.actor-stranger.is-animated.mode-working{--prop-motion:chibi-think 1.2s ease-in-out infinite alternate}
+.is-animated.mode-waiting{--head-motion:chibi-glance 1.6s ease-in-out infinite alternate}.is-animated.mode-transient{--figure-motion:chibi-sag 1.8s ease-in-out infinite alternate}
+.is-animated.mode-blocked{--fire-motion:chibi-fire .8s ease-in-out infinite alternate}.is-animated.mode-done{--halo-motion:chibi-halo 2s ease-in-out infinite alternate}
+[data-calm="true"] .chibi{visibility:hidden}
+@media(prefers-reduced-motion:reduce){.chibi-symbol *{animation:none!important}.chibi.is-animated.mode-idle{--eyes-closed-display:none!important}}
+
+.actor-builder{--garment:#c39745;--garment-shade:#806039;--garment-light:#e7b958;--face:#f1c6a4;--face-shade:#cb937b;--face-light:#ffe3c6;--tool:#e1ad42;--tool-shade:#94703a;--tool-light:#f4d489;--print:#493326;--dark:#211f2a;--accent:#6f8290}
+.actor-reviewer{--garment:#286068;--garment-shade:#16383f;--garment-light:#42838a;--face:#f1c6a4;--face-shade:#cb937b;--face-light:#ffe3c6;--tool:#765644;--tool-shade:#483938;--tool-light:#c9a471;--print:#20343a;--dark:#211f2a;--accent:#6f8290}
+.actor-arbiter{--garment:#444575;--garment-shade:#282a4b;--garment-light:#656996;--face:#e2d8c5;--face-shade:#ada79d;--face-light:#fff0d4;--tool:#ab8864;--tool-shade:#695440;--tool-light:#e3c49a;--print:#292944;--dark:#211f2a;--accent:#6f8290}
+.actor-guard{--garment:#7b8d9b;--garment-shade:#465462;--garment-light:#bdc8d1;--face:#f4d4c1;--face-shade:#d8aa99;--face-light:#f3ebe0;--tool:#89929e;--tool-shade:#505461;--tool-light:#d5dce1;--print:#474958;--dark:#211f2a;--accent:#6f8290}
+.actor-scribe{--garment:#34313d;--garment-shade:#1d202b;--garment-light:#57535e;--face:#e1d8c5;--face-shade:#a29b91;--face-light:#e9eddd;--tool:#8a6545;--tool-shade:#625046;--tool-light:#d4c1a1;--print:#22212a;--dark:#121722;--accent:#6f8290}
+.actor-michou{--garment:#c6923b;--garment-shade:#825d34;--garment-light:#ebbd69;--face:#f2c5a5;--face-shade:#ce9581;--face-light:#ffe4cb;--tool:#3f527d;--tool-shade:#403333;--tool-light:#cad6e1;--print:#3a3028;--dark:#211f2a;--accent:#6f8290}
+.actor-stranger{--garment:#919398;--garment-shade:#565964;--garment-light:#c1c2c4;--face:#becbd0;--face-shade:#7b8992;--face-light:#e2e9e8;--tool:#858990;--tool-shade:#484e59;--tool-light:#c6c9cb;--print:#333741;--dark:#222630;--accent:#6f8290}
+@keyframes chibi-breathe{from{transform:translateY(0)}to{transform:translateY(-1.5px)}}
+@keyframes chibi-blink-open{0%,94%,100%{opacity:1}95%,99%{opacity:0}}
+@keyframes chibi-blink-closed{0%,94%,100%{opacity:0}95%,99%{opacity:1}}
+@keyframes chibi-work{from{transform:rotate(-2deg)}to{transform:rotate(2deg)}}
+@keyframes chibi-hammer{from{transform:translateY(0)}to{transform:translateY(3px)}}
+@keyframes chibi-inspect{from{transform:rotate(-4deg)}to{transform:rotate(3deg)}}
+@keyframes chibi-staff{from{transform:rotate(-2deg)}to{transform:rotate(2deg)}}
+@keyframes chibi-shield{from{transform:translateY(0) rotate(0)}to{transform:translateY(-2px) rotate(-2deg)}}
+@keyframes chibi-write{from{transform:rotate(-3deg)}to{transform:rotate(3deg)}}
+@keyframes chibi-phone{from{transform:rotate(-3deg)}to{transform:rotate(2deg)}}
+@keyframes chibi-think{from{transform:translateY(0)}to{transform:translateY(-2px)}}
+@keyframes chibi-glance{from{transform:rotate(1deg)}to{transform:rotate(4deg)}}
+@keyframes chibi-sag{from{transform:translateY(3px) scaleY(.98)}to{transform:translateY(7px) scaleY(.96)}}
+@keyframes chibi-fire{from{transform:scaleY(.96);opacity:.85}to{transform:scaleY(1);opacity:1}}
+@keyframes chibi-halo{from{transform:translateY(0)}to{transform:translateY(-3px)}}
+
+.chibi.portrait{overflow:hidden}
+</style>
+
+<div id="stage" aria-hidden="true"><canvas id="gl"></canvas><div id="labels"></div></div>
+<div class="frame" id="frame"></div>
+<div class="scan"></div>
+<div class="vig"></div>
+<div class="micro" style="top:7px;left:30px">KGME · Kuang Grade Mark Eleven · cockpit v0 · the station · read-only</div>
+<div class="micro" style="top:7px;right:30px" id="microright">replay of logs/ledger samples · 2026-10-08 · ×20</div>
+<div class="micro" style="bottom:7px;left:30px">ADR-017 view over the ledger · ADR-019 event v1 · hooks 0028 · guard rule 4</div>
+<div class="micro" style="bottom:7px;right:30px">drag to pan · wheel to zoom · click a room to follow it · c drops to the wall</div>
+
+<header class="hud top">
+  <div class="col"><span class="lbl">clock</span><span class="clock" id="clock">19:40:02<small> −07:00</small></span></div>
+  <div class="col"><span class="lbl">ledger</span><span class="val"><span class="c-live blink">●</span> live · <b style="font-weight:500" id="nev">0</b> events · <span id="nrun">0</span> runs <span style="color:var(--dim)">· replay <span id="nloop">1</span></span></span></div>
+  <div class="col"><span class="lbl">session</span><span class="val">c70d687b…8447 <span style="color:var(--dim)">claude-code</span></span></div>
+  <div class="col"><span class="lbl">harnesses</span><span class="val">claude 2.1.111 · codex 0.154.0 <span style="color:var(--dim)">· arbiter claude-opus-5-5 · ollama idle</span></span></div>
+  <div class="col">
+    <span class="lbl">active runs · <span class="kbd">a</span></span>
+    <button type="button" class="tr-open" id="trayopen" aria-label="open the active runs pane"><span class="tr-stack" id="traystack"></span><span class="tr-sum" id="traysum">idle</span></button>
+  </div>
+  <div style="flex:1 1 40px"></div>
+  <div class="col"><span class="lbl">following</span><span class="val" id="following">the whole deck <span style="color:var(--dim)">· 1–7 pick a room · Esc back</span></span></div>
+</header>
+
+<aside class="pane" id="pane" hidden aria-label="runs in the followed room">
+  <div class="head"><span class="lbl" id="panetitle">active runs</span><button type="button" class="lbl" id="paneclose" style="color:var(--cyan)"><span class="kbd">Esc</span> closes</button></div>
+  <div id="panerows"></div>
+  <div class="lbl" style="padding-top:6px;border-top:1px solid var(--rule)"><span class="kbd">1</span>–<span class="kbd">7</span> rooms · <span class="kbd">Enter</span> on a row filters the timeline to its run (board 3)</div>
+</aside>
+
+<section id="wall" hidden aria-label="the wall: the same facts as text">
+  <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:baseline">
+    <div><div class="lbl">KGME cockpit · calm · the wall</div><h1 style="margin:2px 0 0;font-size:22px;font-weight:700;letter-spacing:.04em">Who is working, in words</h1></div>
+    <div class="lbl">calm removes the deck, the frame and the portraits; every fact below was already in text · <span class="kbd">c</span> returns</div>
+  </div>
+  <div class="val">active runs · <span id="wallsum">idle</span>
+  </div>
+  <div class="grid" id="wallgrid"></div>
+</section>
+
+<footer class="hud bottom">
+  <span><span class="kbd">1</span>–<span class="kbd">7</span> follow a room</span>
+  <span><span class="kbd">Esc</span> whole deck</span>
+  <span><span class="kbd">a</span> runs</span>
+  <span><span class="kbd">c</span> calm → wall</span>
+  <span><span class="kbd">r</span> restart replay</span>
+  <span style="margin-left:auto">the station is decoration over the ledger · nothing here launches a process</span>
+</footer>
+
+<svg id="symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" style="position:absolute;width:0;height:0;overflow:hidden"><defs></defs></svg>
+<style id="actorstyles"></style>
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.182.0/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.182.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+// ---------------------------------------------------------------- the ship: rooms are KGME places
+const ROOMS = [
+  { id: 'bridge',   n: 1, name: 'Bridge',         x: 4,  z: -2.5, w: 5, d: 5,   seats: [[6.6, 0]],                        note: 'Michou' },
+  { id: 'workshop', n: 2, name: 'Workshop',       x: -5, z: -5,   w: 5, d: 4,   seats: [[-3.8, -3.9], [-1.4, -3.9], [-3.8, -1.9], [-1.4, -1.9]], note: 'claude-code.*' },
+  { id: 'review',   n: 3, name: 'Review chamber', x: -5, z: 1,    w: 5, d: 4,   seats: [[-3.6, 2.2], [-1.6, 2.2], [-2.6, 4.2]], note: 'kgme.review · arbiter.*' },
+  { id: 'airlock',  n: 4, name: 'Airlock',        x: 4,  z: 2.5,  w: 3, d: 2.5, seats: [[5.5, 3.9]],                      note: 'kgme.guard' },
+  { id: 'archive',  n: 5, name: 'Archive',        x: 0,  z: 1,    w: 4, d: 4,   seats: [[1.2, 2.4], [2.8, 2.4], [2, 4.2]],  note: 'kgme.*' },
+  { id: 'dock',     n: 6, name: 'Dock',           x: 0,  z: -5,   w: 4, d: 4,   seats: [[1, -3.9], [3, -3.9], [1, -1.9], [3, -1.9]], note: 'shells · default' },
+  { id: 'engine',   n: 7, name: 'Engine room',    x: -8, z: -2,   w: 3, d: 4,   seats: [[-6.5, 0]],                       note: 'router · ollama · phase 2', phase2: true }
+];
+const DOCK_GATE = [2, -6.2];           // where a new run walks in from
+const SPRITES = [                       // kgme.toml [sprites], in order; first match wins
+  ['claude-code.', 'builder', 'workshop'], ['kgme.review', 'reviewer', 'review'], ['arbiter.', 'arbiter', 'review'],
+  ['kgme.guard', 'guard', 'airlock'], ['kgme.', 'scribe', 'archive'], ['michou', 'michou', 'bridge']
+];
+const DEFAULT_SPRITE = ['stranger', 'dock'];
+const ACTORS = ['builder', 'reviewer', 'arbiter', 'guard', 'scribe', 'michou', 'stranger'];
+const TONE = { working: 'live', waiting: 'pending', transient: 'transient', blocked: 'blocking', idle: 'live', asleep: 'muted' };
+const WORD_CLS = { working: 'c-live', waiting: 'c-amber', transient: 'c-amber', blocked: 'c-block' };
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const base = location.pathname.includes('/station/') ? '..' : '.';   // repo: docs/design/cockpit-v0/station/ · artifact: root
+
+// ---------------------------------------------------------------- the cast, read from ../chibi/*.svg
+const crops = {};
+async function loadCast() {
+  const defs = document.querySelector('#symbols defs');
+  const rules = [];
+  for (const actor of ACTORS) {
+    const text = await (await fetch(`${base}/chibi/${actor}.svg`)).text();
+    const root = new DOMParser().parseFromString(text, 'image/svg+xml').documentElement;
+    const sym = document.createElementNS('http://www.w3.org/2000/svg', 'symbol');
+    sym.setAttribute('id', 'chibi-' + actor); sym.setAttribute('class', 'chibi-symbol');
+    while (root.firstChild) sym.appendChild(root.firstChild);
+    defs.appendChild(sym);
+    crops[actor] = root.getAttribute('data-portrait') || '0 0 240 280';
+    rules.push(`.actor-${actor}{${root.getAttribute('style')}}`);
+  }
+  document.getElementById('actorstyles').textContent = rules.join('\n');
+}
+function chibi(actor, mode, portrait) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', portrait ? crops[actor] : '0 0 240 280');
+  svg.setAttribute('aria-hidden', 'true'); svg.setAttribute('focusable', 'false');
+  svg.setAttribute('class', `chibi ${portrait ? 'portrait ' : ''}actor-${actor} mode-${mode} pal-phosphor tone-${TONE[mode] || 'live'}`);
+  const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+  use.setAttribute('href', '#chibi-' + actor); svg.appendChild(use);
+  return svg;
+}
+function setMode(svg, mode) {
+  svg.setAttribute('class', svg.getAttribute('class').replace(/mode-\S+/, 'mode-' + mode).replace(/tone-\S+/, 'tone-' + (TONE[mode] || 'live')));
+}
+
+// ---------------------------------------------------------------- the ledger: replay, then runs
+const T0 = Date.parse('2026-10-08T19:40:00-07:00');
+const SPEED = 20, LOOP_TAIL = 4 * 60 * 1000;
+let events = [], cursor = 0, clock = T0, lastReal = performance.now(), lastTs = T0, loopEnd = T0 + 20 * 60 * 1000, loops = 1;
+const runs = new Map(), bubbles = [];
+function fmtClock(ms) { const d = new Date(ms); return new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: 'America/Los_Angeles' }).format(d); }
+function elapsed(ms) { const s = Math.max(0, Math.floor(ms / 1000)); return s >= 3600 ? `${Math.floor(s / 3600)}h ${String(Math.floor(s % 3600 / 60)).padStart(2, '0')}m` : `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, '0')}s`; }
+function spriteFor(actor) { for (const [prefix, a, room] of SPRITES) if (actor.startsWith(prefix)) return [a, room]; return DEFAULT_SPRITE; }
+function mapping(actor) { for (const [prefix] of SPRITES) if (actor.startsWith(prefix)) return prefix.endsWith('.') ? prefix + '*' : prefix; return 'default · ' + actor; }
+function shortRun(id) { return id.length > 14 ? id.slice(0, 8) + '…' + id.slice(-4) : id; }
+
+function lifecycle(run, now) {
+  const ev = run.events, last = ev[ev.length - 1];
+  const ops = ev.filter(e => e.kind === 'intent' || e.kind === 'outcome'), newest = ops[ops.length - 1] || last;
+  const openIntent = ops.find(e => e.kind === 'intent' && e.parent !== null && !ops.some(o => o.ref === e.id));
+  const sinceNewest = now - Date.parse(last.ts);
+  if (ev.some(e => e.kind === 'note' && e.class === 'blocking')) return { word: 'blocked', quiet: '' };
+  if (newest.kind === 'outcome' && newest.class === 'blocking' && /retry after/.test(newest.summary)) return { word: 'transient', quiet: '' };
+  if (newest.kind === 'outcome' && newest.class === 'blocking') return { word: 'blocked', quiet: '' };
+  if (newest.kind === 'outcome' && newest.class === 'transient') return { word: 'transient', quiet: '' };
+  if (openIntent && newest.kind === 'intent') return { word: 'waiting', quiet: '' };
+  // quiet: no event for longer than three times the run's median gap between intents, and at least three minutes
+  const intents = ops.filter(e => e.kind === 'intent'), gaps = [];
+  for (let i = 1; i < intents.length; i++) gaps.push(Date.parse(intents[i].ts) - Date.parse(intents[i - 1].ts));
+  gaps.sort((a, b) => a - b);
+  const median = gaps.length ? gaps[Math.floor(gaps.length / 2)] : 180000;
+  const limit = Math.max(3 * median, 180000);
+  return { word: 'working', quiet: sinceNewest > limit ? `quiet ${Math.max(1, Math.floor(sinceNewest / 60000))}m` : '' };
+}
+function runClosed(run) {
+  // a job run closes with the outcome of its run intent; a hook session (tool:* pairs) stays open until a session:end note
+  const first = run.events[0], newest = run.events[run.events.length - 1];
+  if (newest.kind === 'note' && newest.key === 'session:end') return true;
+  return newest.kind === 'outcome' && newest.ref === first.id && newest.status === 'ok' && !(first.job || '').startsWith('tool:');
+}
+function chipFor(e) { if (e.status === 'refused') return ['refused', 'c-block']; if (e.class === 'blocking') return ['blocking', 'c-block']; if (e.class === 'transient' || e.class === 'advisory') return [e.class, 'c-amber']; if (e.kind === 'outcome' && e.status === 'ok') return ['ok', 'c-ok']; if (e.kind === 'intent') return ['—', 'c-none']; if (e.kind === 'approval') return ['approval', 'c-ok']; return ['—', 'c-none']; }
+
+// ---------------------------------------------------------------- the deck
+const stage = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gl'), antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const labels = new CSS2DRenderer({ element: document.getElementById('labels') });
+const scene = new THREE.Scene(); scene.background = new THREE.Color('#0a0c10');
+const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 200);
+const CAM = new THREE.Vector3(14, 11.5, 14);
+let target = new THREE.Vector3(0.5, 0, 0), zoom = 1, wantZoom = 1, wantTarget = target.clone();
+camera.position.copy(target).add(CAM); camera.lookAt(target);
+
+const matFloor = new THREE.MeshStandardMaterial({ color: '#161d26', roughness: .9, metalness: .05 });
+const matHull = new THREE.MeshStandardMaterial({ color: '#0d1117', roughness: .95 });
+const matWall = new THREE.MeshStandardMaterial({ color: '#141b22', roughness: .9 });
+const lineCyan = new THREE.LineBasicMaterial({ color: '#39d0ff', transparent: true, opacity: .85 });
+const lineDim = new THREE.LineBasicMaterial({ color: '#1e2a33' });
+const lineDash = new THREE.LineDashedMaterial({ color: '#3a4650', dashSize: .25, gapSize: .18 });
+const hullLines = [];
+
+function box(w, h, d, x, y, z, mat, lines) {
+  const g = new THREE.BoxGeometry(w, h, d); const m = new THREE.Mesh(g, mat); m.position.set(x, y, z); scene.add(m);
+  if (lines) { const l = new THREE.LineSegments(new THREE.EdgesGeometry(g), lines); l.position.copy(m.position); if (lines === lineDash) l.computeLineDistances(); scene.add(l); if (lines === lineCyan) hullLines.push(l); }
+  return m;
+}
+// hull: a chamfered deck plate with a bow to +x
+const hullShape = new THREE.Shape();
+hullShape.moveTo(-9, -5.8); hullShape.lineTo(8, -5.8); hullShape.lineTo(10.6, -2.2); hullShape.lineTo(10.6, 2.2); hullShape.lineTo(8, 5.8); hullShape.lineTo(-9, 5.8); hullShape.lineTo(-9.8, 4.4); hullShape.lineTo(-9.8, -4.4); hullShape.closePath();
+const hullGeo = new THREE.ExtrudeGeometry(hullShape, { depth: .35, bevelEnabled: false });
+hullGeo.rotateX(Math.PI / 2); hullGeo.translate(0, 0, 0);
+const hull = new THREE.Mesh(hullGeo, matHull); hull.position.y = -.35; scene.add(hull);
+const hullEdge = new THREE.LineSegments(new THREE.EdgesGeometry(hullGeo, 20), lineCyan); hullEdge.position.y = -.35; scene.add(hullEdge); hullLines.push(hullEdge);
+const grid = new THREE.GridHelper(40, 40, 0x1e2a33, 0x151c24); grid.position.y = -.34; grid.material.transparent = true; grid.material.opacity = .55; scene.add(grid);
+
+function anchor(el) { const w = document.createElement('div'); w.appendChild(el); return w; }
+const roomObjs = {};
+for (const r of ROOMS) {
+  const cx = r.x + r.w / 2, cz = r.z + r.d / 2, lines = r.phase2 ? lineDash : lineCyan;
+  const floor = box(r.w - .12, .08, r.d - .12, cx, .04, cz, r.phase2 ? matHull : matFloor, lines);
+  // low walls, with a door gap on the corridor side
+  const H = .55, T = .08;
+  box(r.w, H, T, cx, H / 2, r.z, matWall, lines); box(r.w, H, T, cx, H / 2, r.z + r.d, matWall, lines);
+  box(T, H, r.d, r.x, H / 2, cz, matWall, lines); box(T, H, r.d, r.x + r.w, H / 2, cz, matWall, lines);
+  const light = new THREE.PointLight('#39d0ff', 0, 7, 2); light.position.set(cx, 1.6, cz); scene.add(light);
+  // furniture: desks per seat, a bench in review, a vault in the archive, a door in the airlock, a reactor in the engine room
+  for (const [sx, sz] of r.seats) if (r.id !== 'airlock' && r.id !== 'engine') box(.9, .42, .5, sx, .25, sz + .55, matWall, lineDim);
+  if (r.id === 'archive') { box(1.3, .9, .5, cx, .5, r.z + .35, matWall, lineCyan); }
+  if (r.id === 'airlock') { box(.12, 1.1, 1.6, r.x + r.w - .06, .55, cz, matWall, lineCyan); }
+  if (r.id === 'engine') { const core = box(1, 1.2, 1, cx, .6, cz, matHull, lineDash); core.rotation.y = Math.PI / 4; }
+  if (r.id === 'bridge') { box(2.2, .5, .25, r.x + r.w - .6, .3, cz, matWall, lineCyan); }
+  // chip
+  const el = document.createElement('button'); el.type = 'button'; el.className = 'chip-room' + (r.phase2 ? ' phase2' : '');
+  el.innerHTML = `<span class="name"><b>${r.n}</b>${r.name}</span><span class="state">${r.phase2 ? 'phase 2 · inactive' : 'empty'}</span>`;
+  el.addEventListener('click', () => follow(r.id));
+  const chip = new CSS2DObject(anchor(el)); chip.position.set(cx, 1.15, r.z + .2); scene.add(chip);
+  roomObjs[r.id] = { r, cx, cz, light, chipEl: el, occupied: new Set() };
+}
+scene.add(new THREE.AmbientLight('#39d0ff', .22));
+const key = new THREE.DirectionalLight('#cfe6ef', .9); key.position.set(-6, 12, 4); scene.add(key);
+const fill = new THREE.DirectionalLight('#39d0ff', .25); fill.position.set(8, 6, -8); scene.add(fill);
+// stars
+const starGeo = new THREE.BufferGeometry(); const pts = [];
+for (let i = 0; i < 900; i++) { const v = new THREE.Vector3().randomDirection().multiplyScalar(90); if (v.y < -10) v.y = -v.y; pts.push(v.x, v.y - 30, v.z); }
+starGeo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: '#cfe6ef', size: 2, sizeAttenuation: false, transparent: true, opacity: .7 })));
+
+// post: one bloom pass with a threshold that catches only the edge lines and the state lights
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 1.1, .5, .32);
+if (!reduced) composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
+function resize() {
+  const w = stage.clientWidth, h = stage.clientHeight, aspect = w / h, half = 8.2;
+  camera.left = -half * aspect; camera.right = half * aspect; camera.top = half; camera.bottom = -half; camera.updateProjectionMatrix();
+  renderer.setSize(w, h, false); composer.setSize(w, h); labels.setSize(w, h); bloom.setSize(w, h);
+}
+addEventListener('resize', resize); resize();
+
+// pan, zoom, follow
+let drag = null;
+const gl = renderer.domElement;
+gl.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY, t: wantTarget.clone() }; gl.setPointerCapture(e.pointerId); });
+gl.addEventListener('pointermove', e => { if (!drag) return; const k = (camera.right - camera.left) / stage.clientWidth / zoom; const dx = (e.clientX - drag.x) * k, dy = (e.clientY - drag.y) * k; const right = new THREE.Vector3(1, 0, -1).normalize(), fwd = new THREE.Vector3(-1, 0, -1).normalize(); wantTarget.copy(drag.t).addScaledVector(right, -dx).addScaledVector(fwd, -dy); following = null; setFollowing(); });
+gl.addEventListener('pointerup', () => { drag = null; });
+gl.addEventListener('wheel', e => { e.preventDefault(); wantZoom = Math.min(3, Math.max(.6, wantZoom * (e.deltaY > 0 ? .9 : 1.1))); }, { passive: false });
+let following = null;
+function follow(id) { const o = roomObjs[id]; if (!o) return; following = id; wantTarget.set(o.cx, 0, o.cz); wantZoom = 1.9; setFollowing(); }
+function unfollow() { following = null; wantTarget.set(0.5, 0, 0); wantZoom = 1; setFollowing(); }
+function setFollowing() {
+  for (const o of Object.values(roomObjs)) o.chipEl.classList.toggle('on', o.r.id === following);
+  const f = document.getElementById('following');
+  f.innerHTML = following ? `${roomObjs[following].r.name} <span style="color:var(--dim)">· Esc back</span>` : `the whole deck <span style="color:var(--dim)">· 1–7 pick a room · Esc back</span>`;
+  renderPane();
+}
+
+// ---------------------------------------------------------------- crew objects
+function placeRun(run) {
+  const o = roomObjs[run.room];
+  let seat = o.r.seats.findIndex((s, i) => !o.occupied.has(i)); if (seat < 0) seat = 0;
+  o.occupied.add(seat); run.seat = seat;
+  const [sx, sz] = o.r.seats[seat];
+  const el = document.createElement('div'); el.className = 'crew';
+  const svg = chibi(run.actor, 'working', false); el.appendChild(svg);
+  const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = run.mapping; el.appendChild(tag);
+  const bub = document.createElement('div'); bub.className = 'bubble'; el.appendChild(bub);
+  const obj = new CSS2DObject(anchor(el)); scene.add(obj);
+  run.el = el; run.svg = svg; run.bubble = bub; run.obj = obj;
+  run.from = new THREE.Vector3(DOCK_GATE[0], 0, DOCK_GATE[1]); run.to = new THREE.Vector3(sx, 0, sz); run.walk0 = performance.now();
+  obj.position.copy(reduced ? run.to : run.from);
+}
+function retireRun(run) {
+  const o = roomObjs[run.room]; o.occupied.delete(run.seat);
+  run.from = run.obj.position.clone(); run.to = new THREE.Vector3(DOCK_GATE[0], 0, DOCK_GATE[1]); run.walk0 = performance.now(); run.leaving = true;
+  setTimeout(() => { scene.remove(run.obj); run.obj.element.remove(); }, reduced ? 0 : 900);
+}
+function say(run, e) {
+  const [chip, cls] = chipFor(e);
+  run.bubble.innerHTML = `<span class="t">${fmtClock(Date.parse(e.ts))}</span>${esc(e.summary)}<span class="chip ${cls}">${chip}</span>`;
+  run.bubble.classList.add('show'); run.bubbleUntil = performance.now() + 7000;
+}
+function esc(s) { return s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
+
+// fixtures: the guard at the airlock, Michou on the bridge, always present
+const fixtures = {};
+function fixture(actor, room, mode) {
+  const o = roomObjs[room]; const [sx, sz] = o.r.seats[0];
+  const el = document.createElement('div'); el.className = 'crew';
+  const svg = chibi(actor, mode, false); el.appendChild(svg);
+  const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = actor === 'michou' ? 'you' : 'kgme.guard'; el.appendChild(tag);
+  const bub = document.createElement('div'); bub.className = 'bubble'; el.appendChild(bub);
+  const obj = new CSS2DObject(anchor(el)); obj.position.set(sx, 0, sz); scene.add(obj);
+  fixtures[actor] = { el, svg, bubble: bub, obj, mode, until: 0 };
+}
+
+// ---------------------------------------------------------------- apply events as the clock passes them
+function apply(e) {
+  let run = runs.get(e.run_id);
+  if (!run) {
+    const [actor, room] = spriteFor(e.actor);
+    run = { id: e.run_id, actor, room, mapping: mapping(e.actor), events: [], first: Date.parse(e.ts), closed: false };
+    runs.set(run.id, run);
+    if (actor === 'michou' || actor === 'guard') run.fixture = actor; else placeRun(run);
+  }
+  if (run.closed) { run.closed = false; placeRun(run); }
+  run.events.push(e);
+  if (e.actor.startsWith('arbiter.')) { arbiterSpeaks(e); }
+  else if (run.fixture) { const f = fixtures[run.fixture]; f.until = performance.now() + 9000; setMode(f.svg, 'working'); f.bubble.innerHTML = `<span class="t">${fmtClock(Date.parse(e.ts))}</span>${esc(e.summary)}`; f.bubble.classList.add('show'); f.bubbleUntil = performance.now() + 7000; }
+  else say(run, e);
+  if (e.status === 'refused') { const g = fixtures.guard; g.until = performance.now() + 9000; setMode(g.svg, 'working'); g.bubble.innerHTML = `<span class="t">${fmtClock(Date.parse(e.ts))}</span>${esc(e.summary)}<span class="chip c-block">refused</span>`; g.bubble.classList.add('show'); g.bubbleUntil = performance.now() + 7000; roomObjs.airlock.flash = performance.now() + 1800; }
+  if (!run.fixture && runClosed(run)) { run.closed = true; retireRun(run); }
+}
+let arbiter = null;
+function arbiterSpeaks(e) {
+  if (!arbiter) { const o = roomObjs.review; const [sx, sz] = o.r.seats[2]; const el = document.createElement('div'); el.className = 'crew'; const svg = chibi('arbiter', 'working', false); el.appendChild(svg); const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = 'arbiter.*'; el.appendChild(tag); const bub = document.createElement('div'); bub.className = 'bubble'; el.appendChild(bub); const obj = new CSS2DObject(anchor(el)); obj.position.set(sx, 0, sz); scene.add(obj); arbiter = { el, svg, bubble: bub, obj }; }
+  arbiter.bubble.innerHTML = `<span class="t">${fmtClock(Date.parse(e.ts))}</span>${esc(e.summary)}<span class="chip c-none">note</span>`; arbiter.bubble.classList.add('show'); arbiter.bubbleUntil = performance.now() + 9000; arbiter.until = performance.now() + 12000;
+}
+
+function resetReplay() {
+  for (const run of runs.values()) if (run.obj) { scene.remove(run.obj); run.obj.element.remove(); }
+  runs.clear(); for (const o of Object.values(roomObjs)) o.occupied.clear();
+  if (arbiter) { scene.remove(arbiter.obj); arbiter.obj.element.remove(); arbiter = null; }
+  cursor = 0; clock = T0;
+}
+
+// ---------------------------------------------------------------- words: the tray, the chips, the pane, the wall
+function summarize(list) {
+  const counts = {}; let quiet = 0;
+  for (const r of list) { counts[r.word] = (counts[r.word] || 0) + 1; if (r.quiet) quiet++; }
+  const parts = ['working', 'waiting', 'transient', 'blocked'].filter(k => counts[k]).map(k => k === 'working' && quiet ? `${counts[k]} working (${quiet} quiet)` : `${counts[k]} ${k}`);
+  return parts.length ? parts.join(' · ') : 'idle';
+}
+function worst(list) { if (list.some(r => r.word === 'blocked')) return 's-block'; if (list.some(r => r.word === 'waiting' || r.word === 'transient')) return 's-amber'; return list.length ? 's-live' : ''; }
+function liveRuns(now) {
+  const out = [];
+  for (const run of runs.values()) { if (run.closed || run.fixture) continue; const lc = lifecycle(run, now); out.push({ run, ...lc }); }
+  return out;
+}
+function renderWords(now) {
+  const live = liveRuns(now);
+  const stack = document.getElementById('traystack'); stack.replaceChildren();
+  for (const { run, word, quiet } of live) stack.appendChild(chibi(run.actor, quiet ? 'waiting' : word, true));
+  document.getElementById('traysum').textContent = summarize(live);
+  document.getElementById('wallsum').textContent = summarize(live);
+  document.getElementById('nev').textContent = String(cursor);
+  document.getElementById('nrun').textContent = String(runs.size);
+  document.getElementById('nloop').textContent = String(loops);
+  document.getElementById('clock').innerHTML = `${fmtClock(now)}<small> −07:00</small>`;
+  let halted = false;
+  for (const o of Object.values(roomObjs)) {
+    const here = live.filter(x => x.run.room === o.r.id);
+    const cls = worst(here);
+    o.chipEl.className = 'chip-room' + (o.r.phase2 ? ' phase2' : '') + (cls ? ' ' + cls : '') + (o.r.id === following ? ' on' : '');
+    const state = o.chipEl.querySelector('.state');
+    state.textContent = o.r.phase2 ? 'phase 2 · inactive' : (o.r.id === 'airlock' ? (o.flash && o.flash > now0 ? 'refused · guard rule 4' : 'guarded · nothing pending') : o.r.id === 'bridge' ? (fixtures.michou && fixtures.michou.until > now0 ? 'you · noted' : 'you · asleep') : (here.length ? summarize(here) : 'empty'));
+    // light carries the same state as the words
+    const want = cls === 's-block' ? ['#ff3d7f', 9] : cls === 's-amber' ? ['#ffb02e', 4.5] : cls === 's-live' ? ['#39d0ff', 2.6] : ['#39d0ff', 0];
+    if (o.r.id === 'airlock' && o.flash && o.flash > now0) { want[0] = '#ff3d7f'; want[1] = 9; }
+    o.light.color.set(want[0]); o.light.intensity += (want[1] - o.light.intensity) * (reduced ? 1 : .12);
+    if (here.some(x => x.run.events.some(e => e.kind === 'note' && (e.key || '').startsWith('halt:')))) halted = true;
+    for (const x of here) { const target = x.quiet ? 'waiting' : x.word; if (x.run.svg && x.run.mode !== target) { setMode(x.run.svg, target); x.run.mode = target; } }
+  }
+  const hullColor = halted ? '#ff3d7f' : '#39d0ff';
+  lineCyan.color.set(hullColor);
+  document.getElementById('frame').style.setProperty('--hull', hullColor);
+  document.getElementById('frame').style.setProperty('--hullglow', halted ? 'rgba(255,61,127,.14)' : 'rgba(57,208,255,.10)');
+  renderPane(live, now); renderWall(live, now);
+}
+function rowFor(x, now, focus) {
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'row' + (focus ? ' focus' : '');
+  const e = x.run.events[x.run.events.length - 1], [chip, cls] = chipFor(e);
+  b.appendChild(chibi(x.run.actor, x.quiet ? 'waiting' : x.word, true));
+  b.insertAdjacentHTML('beforeend', `<span class="l1"><span class="map">${x.run.mapping}</span><span class="run">${shortRun(x.run.id)}</span></span><span class="life ${WORD_CLS[x.word]}">${x.word}${x.quiet ? `<span class="q"> · ${x.quiet}</span>` : ''}</span><span class="l2"><span>${elapsed(now - x.run.first)}</span><span class="ev">${esc(e.summary)}</span></span><span><span class="chip ${cls}">${chip}</span></span>`);
+  b.setAttribute('aria-label', `${x.run.mapping} ${shortRun(x.run.id)}, ${x.word}${x.quiet ? ', ' + x.quiet : ''}: ${e.summary}`);
+  return b;
+}
+let paneOpen = false;
+function renderPane(live, now) {
+  const pane = document.getElementById('pane');
+  if (!paneOpen && !following) { pane.hidden = true; return; }
+  pane.hidden = false;
+  if (!live) return;
+  const list = following ? live.filter(x => x.run.room === following) : live;
+  document.getElementById('panetitle').innerHTML = following ? `${roomObjs[following].r.name} · ${list.length} open` : `active runs · <span class="kbd">a</span> · ${list.length} open`;
+  const rows = document.getElementById('panerows'); rows.replaceChildren();
+  if (!list.length) { const d = document.createElement('div'); d.className = 'empty'; d.textContent = following ? 'No open run in this room.' : 'No open run. The ledger is live.'; rows.appendChild(d); return; }
+  list.forEach((x, i) => rows.appendChild(rowFor(x, now, i === 0)));
+}
+function renderWall(live, now) {
+  if (!document.body.classList.contains('calm')) return;
+  const g = document.getElementById('wallgrid'); g.replaceChildren();
+  for (const r of ROOMS) {
+    const here = live.filter(x => x.run.room === r.id);
+    const sec = document.createElement('section'); sec.className = 'room';
+    sec.innerHTML = `<h2>${r.n} · ${r.name}<span>${r.note}</span></h2><div class="lbl">${r.phase2 ? 'phase 2 · inactive' : here.length ? summarize(here) : (r.id === 'airlock' ? 'guarded · nothing pending' : r.id === 'bridge' ? 'you' : 'empty')}</div>`;
+    here.forEach((x, i) => sec.appendChild(rowFor(x, now, false)));
+    g.appendChild(sec);
+  }
+}
+
+// ---------------------------------------------------------------- keys (page-local, a drawing of the cockpit's)
+addEventListener('keydown', e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key >= '1' && e.key <= '7') { follow(ROOMS[+e.key - 1].id); }
+  else if (e.key === 'Escape') { if (paneOpen) { paneOpen = false; renderPane(); } else unfollow(); }
+  else if (e.key === 'a') { paneOpen = !paneOpen; following = null; setFollowing(); }
+  else if (e.key === 'c') { document.body.classList.toggle('calm'); document.getElementById('wall').hidden = !document.body.classList.contains('calm'); }
+  else if (e.key === 'r') { resetReplay(); }
+});
+document.getElementById('trayopen').addEventListener('click', () => { paneOpen = !paneOpen; following = null; setFollowing(); });
+document.getElementById('paneclose').addEventListener('click', () => { paneOpen = false; following = null; setFollowing(); });
+
+// ---------------------------------------------------------------- the loop
+let now0 = performance.now();
+function frame(t) {
+  requestAnimationFrame(frame);
+  now0 = t;
+  const dt = t - lastReal; lastReal = t;
+  clock += dt * SPEED;
+  if (clock > loopEnd) { resetReplay(); loops += 1; }
+  while (cursor < events.length && Date.parse(events[cursor].ts) <= clock) apply(events[cursor++]);
+  // walks and bubbles
+  for (const run of runs.values()) {
+    if (run.obj && run.walk0 !== undefined) { const k = reduced ? 1 : Math.min(1, (t - run.walk0) / 600); const s = k * k * (3 - 2 * k); run.obj.position.lerpVectors(run.from, run.to, s); if (k >= 1) run.walk0 = undefined; }
+    if (run.bubble && run.bubbleUntil && t > run.bubbleUntil) { run.bubble.classList.remove('show'); run.bubbleUntil = 0; }
+  }
+  for (const f of Object.values(fixtures)) { if (f.until && t > f.until) { setMode(f.svg, f.mode); f.until = 0; } if (f.bubbleUntil && t > f.bubbleUntil) { f.bubble.classList.remove('show'); f.bubbleUntil = 0; } }
+  if (arbiter) { if (arbiter.bubbleUntil && t > arbiter.bubbleUntil) { arbiter.bubble.classList.remove('show'); arbiter.bubbleUntil = 0; } if (arbiter.until && t > arbiter.until) { setMode(arbiter.svg, 'idle'); arbiter.until = 0; } }
+  // camera
+  const ease = reduced ? 1 : .1;
+  zoom += (wantZoom - zoom) * ease; target.lerp(wantTarget, ease);
+  camera.zoom = zoom; camera.updateProjectionMatrix();
+  camera.position.copy(target).add(CAM); camera.lookAt(target);
+  if (t - (frame.lastWords || 0) > 250) { frame.lastWords = t; renderWords(clock); }
+  document.getElementById('labels').style.setProperty('--z', zoom.toFixed(3));
+  if (!document.body.classList.contains('calm')) { composer.render(); labels.render(scene, camera); }
+}
+
+(async () => {
+  await loadCast();
+  fixture('guard', 'airlock', 'idle'); fixture('michou', 'bridge', 'asleep');
+  const text = await (await fetch(`${base}/station/sample-events.jsonl`)).text();
+  events = text.split('\n').filter(Boolean).map(l => JSON.parse(l)).sort((a, b) => a.ts < b.ts ? -1 : 1);
+  const stamps = events.map(e => Date.parse(e.ts)).filter(Number.isFinite);
+  lastTs = stamps.length ? Math.max(...stamps) : T0 + 15 * 60 * 1000; loopEnd = lastTs + LOOP_TAIL;
+  document.getElementById('microright').textContent = `replay of ${events.length} ledger samples · 2026-10-08 19:40 → ${fmtClock(lastTs)} · ×${SPEED} · loops`;
+  lastReal = performance.now(); requestAnimationFrame(frame);
+})().catch(err => { document.getElementById('traysum').textContent = 'the cast or the ledger did not load: ' + err.message; console.error(err); });
+</script>
+
+</body>
+</html>
