@@ -1,0 +1,65 @@
+---
+id: HANDOFF-0043
+type: handoff
+created: 2026-10-13T12:20:00-07:00
+from: cowork
+to: claude-code
+tier: 2
+status: proposed
+depends_on: [HANDOFF-0034, HANDOFF-0037, HANDOFF-0042, HANDOFF-0045]
+plan_ref: PLAN-PHASE-1 step 12b
+---
+
+# Handoff 0043 (proposed) — `kgme review --loop`: the build-review loop runs to green without a human in it
+
+## Why
+Michou, 2026-10-13 12:05, on the cockpit build: "is there a way we can set an agent loop to make it run perfectly at the end? i mean a real loop, where there is no human intervention outside of the objective setting. the two adversarial agents should just make the thing always run perfectly, like debug as much as they can."
+
+Today `kgme review` (HANDOFF-0029) runs one cycle and returns to a person: the builder stages, a human runs the command, reads the findings, fixes, writes dispositions, runs it again, and commits when it passes. Every piece of the loop exists; the human is the thread between them. The bound (ADR-016), the ledger tree per handoff, the arbiter's ruling and Michou's override are all in place, so closing the loop is wiring, not a new protocol.
+
+The honest limit, stated first: a loop can only drive to what it can measure. "Perfect" means the objective is a machine oracle: `make check` plus an acceptance suite that encodes the handoff's acceptance test. The reviewer catches what the suite does not express; the builder fixes what either catches; the loop ends when both are satisfied. What no oracle measures (whether the timeline *feels* right, whether the tray reads in ten seconds) stays Michou's, on the design canvas, before the loop starts. Objective setting is: approve the handoff and its suite. Everything after that is the loop's.
+
+## What
+1. **The objective, as a suite.** For a handoff whose acceptance test can be machine-checked, `tests/acceptance/<handoff id>/` holds it: for HANDOFF-0037, Playwright against `kgme cockpit` in headless Chromium (already in the tree under CDH-0001's fixture harness): the page serves on `127.0.0.1:8642`, the last fifty events render grouped by run in time order, an appended event appears within two seconds without reload, `<script>` in a summary renders as text, non-GET returns 404, the LAN address refuses, the five states of `docs/design/cockpit-v0/` render with their strings and keys (the key map on board 7, the chips and classes on board 1, the tray's words on board 11), `prefers-reduced-motion` and `c` remove the noise. Each test carries an ADR-016 class. The suite is written by the builder *before* the first build cycle and is the first thing the reviewer reviews (cycle 0: "does this suite state the handoff?"); Michou approves the suite with the handoff. A suite that passes against an empty page is a `blocking` finding on cycle 0.
+2. **`kgme review --loop --handoff HANDOFF-NNNN [--builder claude|codex] [--max-cycles 8] [--max-minutes 120]`.** One command, one run tree in the ledger (`parent` = the first intent, as today), these steps until closure:
+   a. **build** — the builder runs headless under its profile with the handoff, the acceptance suite, the previous cycle's findings and the test output as its prompt (`claude -p --output-format stream-json` under the hooks of HANDOFF-0028, so every tool call is ledgered; or `codex exec -s workspace-write` under the `codex-builder` profile of HANDOFF-0042). The builder may edit only the handoff's `Outputs` paths and its own tests; the guard (rule 4) refuses the rest, as it does for an interactive session.
+   b. **gate** — `make check` and the acceptance suite. Red: the failing output, classed, becomes the next build prompt; no reviewer call, no cycle counted (a red gate is not reviewed, as today). Three consecutive red gates on the same failing test are one `blocking` root cause and count as a strike.
+   c. **review** — green: one `kgme review` cycle exactly as HANDOFF-0029 runs it, reviewer read-only, findings classed, audit file written, `outcome` bound to the diff hash.
+   d. **dispose** — `blocking` findings go back to the builder as the next build prompt; the builder's reply is written as the dispositions file for the next cycle (what it fixed, what it disputes). `cosmetic` is auto-fixed where a deterministic tool exists; `advisory` is recorded.
+   e. **arbitrate** — a disputed `blocking` finding goes to the arbiter (`kgme review rule`, the Opus model of `kgme.toml [models]`, through `claude -p` with the finding, the diff and both arguments), once per finding, as today's protocol says; the ruling applies from the next cycle. This is the step that removes the last human hop: today a dispute waits for Michou to run the Agent tool.
+   f. **close** — a PASS verdict on a green gate: the builder commits on the handoff's branch (`loop/HANDOFF-NNNN`), message bound to the reviewed diff hash; `kgme sync` pushes on commit (HANDOFF-0040); the loop appends the run's closing `outcome` and prints one screen: cycles, strikes, the audit ids, the commit, the suite's final run. Merge to `main`: fast-forward by the loop when the handoff says `merge: auto` in its frontmatter (0037 does: Michou set the objective), otherwise left for Michou's word.
+3. **The halt is ADR-016's, plus a budget.** The loop stops and sends the escalation packet when: three distinct `blocking` root causes survive a fix cycle, or one root cause stands blocking in three consecutive review cycles (unchanged); or `--max-cycles` or `--max-minutes` is reached; or the provider window of either harness reads 90 % (the usage bars on board 3; the loop reads the same source). A transient tooling failure (429, sandbox without network, reviewer exited 1 with no text, as on 2026-10-08) pauses the loop until the window resets and resumes by itself; it never counts, never halts, never wakes Michou. Nothing is committed on a halt; the branch holds the work. The packet is one screen with a one-word answer: `override` resumes the loop with the strike window cleared (as `kgme review override` does today), `reject` closes the run and leaves the branch, `retry` runs one more cycle.
+4. **What the loop never does** (adds to the review reader's list): it never edits the suite after cycle 0 without a `blocking` finding from the reviewer that names the test; it never runs the reviewer with write access; it never merges over a halt; it never pushes to any remote but `origin`; it never runs a login, a browser outside headless Chromium on `127.0.0.1`, or any network call the policy layer does not already allow. The loop is a job under ADR-013: its profile row is `kgme-loop`, and the canary matrix gains its probes.
+5. **Observable in the cockpit.** The loop's events are ordinary ledger events, so board 3 shows them as they happen: the builder's run as the builder, the review runs as the reviewer, the arbiter's ruling as a note, the halt as the magenta frame and the strike boxes, and the active-runs tray (CDH-0007) saying `1 working · 1 waiting` while the reviewer thinks. No new UI. A loop that Michou can watch is a loop he can leave.
+6. **First use.** HANDOFF-0037 (cockpit v0), after HANDOFF-0034 lands and HANDOFF-0042's builder profile and git-scoped lint exist. The design canvas on branch `design` (HANDOFF-0036) is the objective's visual half; it stays human-and-Cowork, and `docs/design/cockpit-v0/` is read by the suite, never written by the loop.
+
+## Outputs
+`kgme/loop.py` (effects: `run_loop`; logic: `next_step`, `budget_state`, `halt_reason`, pure over the handoff's ledger events), `kgme/cli.py` (`review --loop` and its flags), `kgme/review_run.py` (the dispositions file written from the builder's reply), `tools/review/builder-prompt.md` and `tools/review/arbiter-prompt.md` (fixed prompts, like `prompt.md`), `tools/policy/profiles/kgme-loop.toml`, `tests/test_loop.py` (next_step and halt from a synthetic ledger: green-then-PASS closes; red gate three times is one strike; a dispute rules once; a 429 pauses and resumes; the budget halts), `tests/acceptance/HANDOFF-0037/` (the suite, item 1), `docs/readers/review-loop.md` (a `--loop` section, the halt and budget, the never-list; Cowork's diff, shown), `docs/schema-v1.md` (`merge: auto|manual` on handoffs, optional, default manual; a 1.6 changelog line).
+
+## Acceptance test (under fifteen minutes)
+On a toy handoff whose suite has one failing test and one deliberate `blocking` seed in the diff: `kgme review --loop --handoff <toy> --max-cycles 4` runs without a keystroke, the ledger shows build → red gate → build → green gate → review BLOCK → build → review PASS → commit on `loop/<toy>`, every event classed, one tree under the first intent, and the printed closing screen names the commit and the audit ids. The same toy with the `blocking` seed made unfixable (the builder prompt forbids the fix) halts after three cycles with the ADR-016 packet and no commit. A synthetic 429 in the reviewer output pauses and resumes without a strike. `make check` green; no `--skip-check`.
+
+## Reviewer
+Codex under `kgme review`, read-only, one cycle at a time as today: the loop command is not used to review itself.
+
+## Reversibility
+`git revert`; `loop/*` branches deleted; the suite stays, since it is the handoff's acceptance test made executable.
+
+## Needs from Michou
+Adoption. A yes on `merge: auto` for HANDOFF-0037 (the loop merges to `main` on PASS) or a preference for `manual` (the loop stops at the branch and the one-word answer is `merge`). The two budgets if 8 cycles / 120 minutes are wrong. Whether the builder for 0037 is Claude Code (ledgered through hooks today) or Codex (needs 0042's profile first).
+
+## Report
+`docs/audit/2026-10-DD-autonomous-loop.md`. Set `status: done`, `completed:`. Commit `review: --loop runs build, gate, review and arbitration to closure (HANDOFF-0043)`.
+
+## Amendments (Cowork review, 2026-10-14; Michou: "the rest from the review can be applied")
+These bind the proposal as adopted. The design session's text above stands; where the two differ, this section wins.
+
+1. **Merge stays manual.** `merge: auto` is not honoured until the loop has closed two handoffs under `manual` with no override. The first use (0037) ends at `loop/HANDOFF-0037` and the one-word answer `merge`.
+2. **Unattended bound is two cycles.** With nobody watching, the reader's two-cycle rule is a halt, not a disposition: one root cause blocking for two consecutive review cycles halts the loop with the ADR-016 packet, because the builder cannot "put the threat model to Michou" without the human hop the loop removed.
+3. **Write-scoping lands first.** The builder's writes are confined to the handoff's `Outputs` paths plus `tests/` and `logs/scratch/` by the guard, not by the prompt: HANDOFF-0045 §2, a dependency of this handoff (`depends_on` gains `HANDOFF-0045`).
+4. **Dead-man switch.** `kgme/loop.py` starts the builder and the reviewer as their own process groups. The hook pair writes a heartbeat (`logs/scratch/loop/<run>/heartbeat`, mtime) on every tool call; the supervisor kills the whole process group (`os.killpg`, SIGTERM then SIGKILL after 10 s) when the heartbeat is older than 120 s, appends a `blocking` outcome `summary: stalled run killed`, moves the run's scratch to `logs/scratch/loop/quarantine/<run>/` for review, and halts. `--max-minutes` stays a budget; this is the kill path. A `tests/test_loop.py` case: a builder stub that sleeps past the heartbeat is killed with its children and the outcome is written.
+5. **Compaction is logged and treated as transient.** The hook pair gains a `PreCompact` entry that appends a `note` with the context size read from the transcript's last `usage` record and the loop step in progress; a compaction inside a fix cycle re-prompts the builder with that cycle's findings and dispositions rather than trusting the compacted context, and never counts as a cycle.
+6. **Provider window and model are recorded per run.** The run's first `intent` payload names the builder's model id and the harness version (`claude --version`, `codex --version`), so a loop's audit says what built it; the "harness version per run" open item closes here.
+7. **Grilling before adoption.** Michou runs a grilling session on this proposal (Cowork, or Claude Code with the vendored `grilling` skill of HANDOFF-0044) and the answers are appended here as "Answers, YYYY-MM-DD"; adoption follows the answers, not this text alone.
+8. **Background sessions are not assumed.** The runner uses `claude -p` per build step as written; `claude --bg` / `claude agents` (seen in `mattpocock/skills` `claude-handoff`) may be used only after `claude --help` on the installed CLI shows them, recorded in the audit.
+9. **Sequence.** After 0034, 0037's interactive build, 0042 and 0045. Review `tools/review/design-prompt.md` is not touched; the design track stays outside the loop.

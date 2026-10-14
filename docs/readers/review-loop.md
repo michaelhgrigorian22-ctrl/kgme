@@ -3,7 +3,7 @@ id: READER-REVIEW-LOOP
 type: note
 status: active
 created: 2026-09-14T23:10:00-07:00
-modified: 2026-09-23T19:05:00-07:00
+modified: 2026-10-14T00:20:00-07:00
 author: claude-code
 source: stated
 tier: 2
@@ -47,6 +47,8 @@ A reviewer that must resolve links needs `-s workspace-write -c 'sandbox_workspa
 - Strikes count **distinct blocking root causes**, never attempts. The same root cause across three cycles is one strike with an attempt count.
 - **Tooling failures never count:** sandbox without network, HTTP 429, `curl` 000, a reviewer timeout. They are `transient`, retried within ADR-016's bound, and if exhausted they reclassify to `blocking: exhausted` against the tooling, not the diff.
 - **Halt** when three distinct blocking root causes are still unresolved after the builder's fix cycle and the re-review, or when one root cause has stood blocking in three consecutive cycles. A first-cycle review may raise any number of findings; strikes are what survives a fix. (Wording amended by Michou 2026-09-15 after the first halt fired at the end of cycle one, before any fix attempt; coded in `kgme/review.py` `loop_state` under HANDOFF-0029, which counts the window since the last override.)
+- **Two cycles, then the mechanism goes or the threat model goes to Michou.** When one root cause has stood blocking for two consecutive cycles, the builder's next disposition must either remove the mechanism the finding attaches to or put the threat model to Michou for a ruling; a third patch on the same mechanism is not an option. (Michou's standing rule of 2026-10-13: the three halts in a row, 0032, 0040, and 0033, were all closed by simplification, never by the patch that would have been cycle three.)
+- **A fix cycle starts with a red command.** Before the patch, the builder's disposition names, for each `blocking` finding, one command that goes red on that finding's exact symptom (deterministic, seconds, runnable with nobody present) and shows it having run once; where no such command exists the disposition says so, and that absence is itself a finding for the reviewer. A patch without its red command is not a fix cycle. (Michou, 2026-10-14, adopting the Phase 1 discipline of `diagnosing-bugs` in `mattpocock/skills`; the review that brought it in is `memory/agent/2026-10-13-external-repos-review.md`.)
 - A halt sends Michou the ADR-016 escalation packet, one screen: what failed, its class, the evidence, the options (override / reject / retry), a recommended default, and what happens if he does nothing (nothing is committed). The intended reply is one word.
 
 ## What the loop never does

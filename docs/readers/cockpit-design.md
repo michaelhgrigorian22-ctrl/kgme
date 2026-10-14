@@ -3,7 +3,7 @@ id: READER-COCKPIT-DESIGN
 type: note
 status: active
 created: 2026-10-09T21:50:00-07:00
-modified: 2026-10-09T21:50:00-07:00
+modified: 2026-10-09T22:55:00-07:00
 author: cowork
 source: stated
 tier: 2
@@ -38,8 +38,9 @@ Eleven plain files, all hand-written by Cowork from Michou's brief and the wishl
 - The frame carries system state: cyan live, magenta flood on blocking or halt, amber strip while an intent awaits its outcome, grey static when disconnected.
 - Keys: `j`/`k` move, `g`/`G` ends, `Enter` detail, `Esc` back, `u` parent, `Tab` pane, `f` follow, `/` filter line with `run:` `kind:` `job:`, `1`–`4` class toggles, `0` all, `r` run filter, `t` trace, `o` open intents, `x` clear, `c` calm, `p` payload, `w` wall, `?` keys. Reserved for Phase 2, dashed and unbound: `b` `/btw`, `m` model, `y`/`n` approve, `;` command, `Space` queue.
 - ADR-016 strikes as three boxes filling per cycle, magenta on halt.
-- Sprites: one per `actor` (not per model), 24 × 24, original line work, two frames per mode at most, the accent colour is the row's class colour, phosphor in the timeline, sticker palette only in the detail pane header and the Phase 2 model selector. Mapping in `kgme.toml [sprites]`, first rule wins, `default = "stranger"`. "Outrageous, but it retains all the darkness" is the brief for them.
+- Sprites, as first decided: one per `actor` (not per model), 24 × 24, original line work, two frames per mode at most, the accent colour is the row's class colour, phosphor in the timeline, sticker palette only in the detail pane header and the Phase 2 model selector. Mapping in `kgme.toml [sprites]`, first rule wins, `default = "stranger"`. "Outrageous, but it retains all the darkness" is the brief for them.
 - Wishlist's empty sections stay empty for v0.
+- **Superseded 2026-10-09, design session (CDH-0001):** the sprite direction moved from 24 × 24 pixel art to original vector characters, 240 × 280 source, six material roles, cel-shaded, static in the matrices and animated only in the selected detail; see `docs/design/cockpit-v0/chibi/README.md`. The actor mapping, the two-palette rule, the class-colour accent and the noise rule are unchanged. The design track's own handoffs are `CDH-NNNN` under `docs/handoff/cockpit-design/` (HANDOFF-0042 registers them).
 
 ## Open (Michou has not ruled)
 - Acceptance of the canvas as a whole (HANDOFF-0036's acceptance test: identify the timeline, a run, a failure class and the keyboard focus within ten minutes using only the keyboard map).
@@ -49,7 +50,7 @@ Eleven plain files, all hand-written by Cowork from Michou's brief and the wishl
 - Every value in the top bar is a sample; the real cockpit reads them. The versions shown are placeholders.
 
 ## How to review it (Codex, GPT-6 Astra)
-The `.dc.html` format renders only inside the canvas editor; nobody outside it sees pixels. Review the **source**. If PNG exports exist under `memory/attachments/cockpit/` (Michou exports them from the canvas page), take them as image input alongside the source; they are the only way to see the result.
+The `.dc.html` format renders only inside the canvas editor; nobody outside it sees pixels. Review the **source**. If PNG exports exist under `docs/design/cockpit-v0/review/` (small ones Michou exports from the canvas page) or `logs/scratch/design-review/` (captures an agent made; disposable, never committed), take them as image input alongside the source; they are the only way to see the result. `memory/attachments/` is the vault's and is never an agent's output directory (ADR-004).
 
 What a design review is for, and the class each finding carries:
 - a fact shown only by colour, or a decorative element that carries a fact shown nowhere else → `blocking`

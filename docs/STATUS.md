@@ -3,7 +3,7 @@ id: STATUS
 type: note
 status: active
 created: 2026-09-10T09:50:00-07:00
-modified: 2026-10-09T22:36:00-07:00
+modified: 2026-10-14T00:40:00-07:00
 author: cowork
 source: stated
 tier: 2
@@ -48,6 +48,8 @@ Unit reduced to its 80 human files (6.3 MB) at `~/Projects/Finance/ARCHIVE PITCH
 
 ## Proposals still open (`docs/handoff/proposed/`)
 0011 path renaming — folded into the migration plan · 0012 `pmset` — deferred to end of observation window · **0025–0039 Phase 1 sequence (2026-09-14)**, adopted one by one in order; 0030 is for Cowork, 0035 for Michou, 0036 for Cowork and Michou. All others superseded, abandoned, or done.
+
+**Queued behind Loop 0 (2026-10-14):** 0042 design-track registration (after 0034) · 0043 `kgme review --loop` (after 0034, 0037, 0042, 0045; amended 2026-10-14: merge manual, two-cycle halt unattended, dead-man switch, compaction logged, grilled before adoption) · 0044 toolbox (after 0034; scout half after 0038) · 0045 guard: destructive git, Outputs scoping, per-entry fingerprints (after 0032, before 0043) · 0046 `kgme dream` (after 0043 and the Phase 3 heartbeat) · ADR-021 Tier 1 disclosure by request, encryption's place, the gate (proposed; amends ADR-002). The review behind the four new items: `memory/agent/2026-10-13-external-repos-review.md`. Review-loop reader gained the red-command rule the same day.
 
 ## Housekeeping (non-blocking)
 - VS Code → Open Recent → clear the three dead `finance-python` entries (UI only).
