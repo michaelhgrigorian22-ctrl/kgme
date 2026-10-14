@@ -18,19 +18,23 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .tr-kbd{display:inline-block;min-width:16px;padding:0 5px;border:1px solid #39d0ff;color:#39d0ff;font-size:10px;line-height:16px;text-align:center;border-radius:2px}
 .tr-chip{display:inline-block;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:0 6px;border:1px solid currentColor;line-height:15px;border-radius:1px;white-space:nowrap}
 .tr-ok{color:#4de38a}.tr-block{color:#ff3d7f}.tr-amber{color:#ffb02e}.tr-muted{color:#6f8290}.tr-live{color:#39d0ff}.tr-text{color:#cfe6ef}
+.tr-root button{font:inherit;font-family:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;text-align:left}
+.tr-root button:focus-visible{outline:2px solid #39d0ff;outline-offset:2px}
 .tr-col{display:flex;flex-direction:column;gap:2px}
 .tr-bar{display:flex;align-items:center;gap:10px;min-height:24px}
+.tr-open{display:flex;align-items:center;gap:10px;border-radius:2px}
 .tr-stack{display:flex;align-items:center}
 .tr-stack .chibi{background:#11151c;border-radius:2px;box-shadow:0 0 0 1px #0a0c10;margin-left:-7px}
 .tr-stack .chibi:first-child{margin-left:0}
 .tr-sum{font-size:14px;white-space:nowrap}
-.tr-stale .tr-sum{color:#6f8290}
+.tr-stale .tr-sum{color:#cfe6ef}
 .tr-pane{display:flex;flex-direction:column;min-width:0}
 .tr-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding-bottom:8px}
-.tr-row{display:grid;grid-template-columns:24px minmax(0,1fr) auto;grid-template-rows:auto auto;gap:1px 8px;align-items:center;padding:5px 6px;border-top:1px solid #141b22}
+.tr-row{width:100%;display:grid;grid-template-columns:24px minmax(0,1fr) auto;grid-template-rows:auto auto;gap:1px 8px;align-items:center;padding:5px 6px;border-top:1px solid #141b22}
 .tr-row .chibi{grid-row:1/3}
 .tr-row:hover{background:#0f141b}
 .tr-focus{outline:1px solid #39d0ff;outline-offset:-1px;background:#0e1a22}
+.tr-focus .tr-run,.tr-focus .tr-l2{color:#7a8d9b}
 .tr-l1{display:flex;gap:8px;min-width:0;font-size:11px;white-space:nowrap;overflow:hidden}
 .tr-l1 .tr-map{flex:none}.tr-l1 .tr-run{color:#6f8290;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .tr-life{font-size:10px;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;text-align:right}
@@ -797,27 +801,29 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 <div class="tr-col">
   <span class="tr-lbl">active runs · <span class="tr-kbd">a</span></span>
   <div class="tr-bar {{staleCls}}">
-    <div class="tr-stack">
-      <sc-for list="{{runs}}" as="r" hint-placeholder-count="3">
-        <svg class="chibi portrait actor-{{r.actor}} mode-{{r.mode}} pal-phosphor tone-{{r.tone}}" viewBox="{{r.crop}}" aria-hidden="true" focusable="false"><use href="#chibi-{{r.actor}}"></use></svg>
-      </sc-for>
-    </div>
-    <span class="tr-sum {{sumCls}}">{{summary}}</span>
+    <button type="button" class="tr-open" aria-label="open the active runs pane, key a">
+      <span class="tr-stack">
+        <sc-for list="{{runs}}" as="r" hint-placeholder-count="3">
+          <svg class="chibi portrait actor-{{r.actor}} mode-{{r.mode}} pal-phosphor tone-{{r.tone}}" viewBox="{{r.crop}}" aria-hidden="true" focusable="false"><use href="#chibi-{{r.actor}}"></use></svg>
+        </sc-for>
+      </span>
+      <span class="tr-sum {{sumCls}}">{{summary}}</span>
+    </button>
   </div>
 </div>
 </sc-if>
 <sc-if value="{{isPane}}" hint-placeholder-val="{{ false }}">
 <div class="tr-pane">
-  <div class="tr-head"><span class="tr-lbl">active runs · <span class="tr-kbd">a</span> · {{count}}</span><span class="tr-lbl"><span class="tr-kbd">Esc</span> closes</span></div>
+  <div class="tr-head"><span class="tr-lbl">active runs · <span class="tr-kbd">a</span> · {{count}}</span><button type="button" class="tr-lbl" aria-label="close the active runs pane, key Escape"><span class="tr-kbd">Esc</span> closes</button></div>
   <sc-if value="{{hasRuns}}" hint-placeholder-val="{{ true }}">
     <sc-for list="{{runs}}" as="r" hint-placeholder-count="3">
-      <div class="tr-row {{r.focusCls}}">
+      <button type="button" class="tr-row {{r.focusCls}}" aria-label="{{r.label}}">
         <svg class="chibi portrait actor-{{r.actor}} mode-{{r.mode}} pal-phosphor tone-{{r.tone}}" viewBox="{{r.crop}}" aria-hidden="true" focusable="false"><use href="#chibi-{{r.actor}}"></use></svg>
         <span class="tr-l1"><span class="tr-map">{{r.mapping}}</span><span class="tr-run">{{r.run}}</span></span>
         <span class="tr-life {{r.lifeCls}}">{{r.lifecycle}}<span class="tr-quiet">{{r.quietText}}</span></span>
         <span class="tr-l2"><span class="tr-el">{{r.elapsed}}</span><span class="tr-ev">{{r.event}}</span></span>
         <span><span class="tr-chip {{r.chipCls}}">{{r.chip}}</span></span>
-      </div>
+      </button>
     </sc-for>
   </sc-if>
   <sc-if value="{{noRuns}}" hint-placeholder-val="{{ false }}">
@@ -836,12 +842,14 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
           <div class="tr-col">
             <span class="tr-lbl">active runs · <span class="tr-kbd">a</span></span>
             <div class="tr-bar {{d.staleCls}}">
-              <div class="tr-stack">
-                <sc-for list="{{d.runs}}" as="r" hint-placeholder-count="3">
-                  <svg class="chibi portrait actor-{{r.actor}} mode-{{r.mode}} pal-phosphor tone-{{r.tone}}" viewBox="{{r.crop}}" aria-hidden="true" focusable="false"><use href="#chibi-{{r.actor}}"></use></svg>
-                </sc-for>
-              </div>
-              <span class="tr-sum {{d.sumCls}}">{{d.summary}}</span>
+              <button type="button" class="tr-open" aria-label="open the active runs pane, key a">
+                <span class="tr-stack">
+                  <sc-for list="{{d.runs}}" as="r" hint-placeholder-count="3">
+                    <svg class="chibi portrait actor-{{r.actor}} mode-{{r.mode}} pal-phosphor tone-{{r.tone}}" viewBox="{{r.crop}}" aria-hidden="true" focusable="false"><use href="#chibi-{{r.actor}}"></use></svg>
+                  </sc-for>
+                </span>
+                <span class="tr-sum {{d.sumCls}}">{{d.summary}}</span>
+              </button>
             </div>
           </div>
           <p class="tr-note"><b>{{d.label}}</b> · {{d.note}}</p>
@@ -853,15 +861,15 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
     <h2 class="tr-h">Expanded · key a · a pane in the detail column, the way o lists open intents</h2>
     <div class="tr-anatomy">
       <div class="tr-pane">
-        <div class="tr-head"><span class="tr-lbl">active runs · <span class="tr-kbd">a</span> · {{count}}</span><span class="tr-lbl"><span class="tr-kbd">Esc</span> closes</span></div>
+        <div class="tr-head"><span class="tr-lbl">active runs · <span class="tr-kbd">a</span> · {{count}}</span><button type="button" class="tr-lbl" aria-label="close the active runs pane, key Escape"><span class="tr-kbd">Esc</span> closes</button></div>
         <sc-for list="{{runs}}" as="r" hint-placeholder-count="4">
-          <div class="tr-row {{r.focusCls}}">
+          <button type="button" class="tr-row {{r.focusCls}}" aria-label="{{r.label}}">
             <svg class="chibi portrait actor-{{r.actor}} mode-{{r.mode}} pal-phosphor tone-{{r.tone}}" viewBox="{{r.crop}}" aria-hidden="true" focusable="false"><use href="#chibi-{{r.actor}}"></use></svg>
             <span class="tr-l1"><span class="tr-map">{{r.mapping}}</span><span class="tr-run">{{r.run}}</span></span>
             <span class="tr-life {{r.lifeCls}}">{{r.lifecycle}}<span class="tr-quiet">{{r.quietText}}</span></span>
             <span class="tr-l2"><span class="tr-el">{{r.elapsed}}</span><span class="tr-ev">{{r.event}}</span></span>
             <span><span class="tr-chip {{r.chipCls}}">{{r.chip}}</span></span>
-          </div>
+          </button>
         </sc-for>
         <div class="tr-foot"><span><span class="tr-kbd">j</span> <span class="tr-kbd">k</span> move</span><span><span class="tr-kbd">Enter</span> jumps to the run · <span class="tr-kbd">r</span> filter</span><span><span class="tr-kbd">Esc</span> closes</span></div>
       </div>
@@ -869,9 +877,9 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
         <span>row</span><span>portrait · actor mapping · run id, short · lifecycle word · elapsed since the run's first event, live · the run's newest event, ellipsised · that event's ADR-016 class chip. Two lines, 24 px portrait, 11 / 10 px type; <span class="tr-kbd">j</span> <span class="tr-kbd">k</span> move the 1 px cyan focus, <span class="tr-kbd">Enter</span> sets the <span class="tr-kbd">r</span> filter to that run and returns to the timeline.</span>
         <span>working</span><span>the newest event is younger than the run's median gap. Portrait: working.</span>
         <span>waiting</span><span>the newest event is an intent with no outcome (what <span class="tr-kbd">o</span> lists): a tool call still running, in Phase 2 an approval. Portrait: waiting. Amber word.</span>
-        <span>transient</span><span>the newest outcome is class transient; a retry is scheduled. Portrait: transient. Amber word, amber chip.</span>
+        <span>transient</span><span>the newest outcome is class transient; a retry is scheduled. Portrait: transient. Amber word, amber chip. An exhausted retry that names a time (<b>retry after 23:06</b>) stays transient: the run is parked, not halted, so the word is transient while the event's own chip keeps its class, as the review sample shows.</span>
         <span>blocked</span><span>the newest outcome or note is class blocking and the run has not moved since: a halt, a refusal that stopped it. Portrait: blocked. Magenta word, magenta chip, and the frame floods as on board 4.</span>
-        <span>quiet</span><span>a working run with no event for longer than its median gap. The word stays <b>working</b>; <b>quiet 4m</b> follows it in muted text; the portrait waits. The bar counts it: <b>1 quiet</b>.</span>
+        <span>quiet</span><span>a working run with no event for longer than its median gap. The word stays <b>working</b>; <b>quiet 4m</b> follows it in muted text; the portrait waits. The bar counts it inside working: <b>2 working (1 quiet)</b>.</span>
         <span>idle</span><span>no open run: the bar reads <b>idle</b> in muted text and shows no portrait; the pane says when the last run closed.</span>
         <span>stale</span><span>server unreachable (board 6): the last known state, the whole slot greyed with the page, and <b>stale · … · as of 19:52:14</b> in text.</span>
         <span>rule</span><span>every fact in the tray is a word or a number; the portraits mirror the words and never add one. Calm hides every portrait and leaves the words. Reduced motion changes nothing here: the tray adds no animation of its own, only board 10's selected detail animates. A shell (Codex, Claude Code, a terminal worker) is an actor like any other; <code>kgme.toml [sprites]</code> decides its face, the stranger until it is given one. Read-only: nothing in the tray dispatches, approves or chooses a model (Phase 2, board 8).</span>
@@ -899,12 +907,14 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
           <div class="tr-col">
             <span class="tr-lbl">active runs · <span class="tr-kbd">a</span></span>
             <div class="tr-bar {{d.staleCls}}">
-              <div class="tr-stack">
-                <sc-for list="{{d.runs}}" as="r" hint-placeholder-count="3">
-                  <svg class="chibi portrait actor-{{r.actor}} mode-{{r.mode}} pal-phosphor tone-{{r.tone}}" viewBox="{{r.crop}}" aria-hidden="true" focusable="false"><use href="#chibi-{{r.actor}}"></use></svg>
-                </sc-for>
-              </div>
-              <span class="tr-sum {{d.sumCls}}">{{d.summary}}</span>
+              <button type="button" class="tr-open" aria-label="open the active runs pane, key a">
+                <span class="tr-stack">
+                  <sc-for list="{{d.runs}}" as="r" hint-placeholder-count="3">
+                    <svg class="chibi portrait actor-{{r.actor}} mode-{{r.mode}} pal-phosphor tone-{{r.tone}}" viewBox="{{r.crop}}" aria-hidden="true" focusable="false"><use href="#chibi-{{r.actor}}"></use></svg>
+                  </sc-for>
+                </span>
+                <span class="tr-sum {{d.sumCls}}">{{d.summary}}</span>
+              </button>
             </div>
           </div>
           <p class="tr-note"><b>{{d.label}}</b> · {{d.note}}</p>
@@ -916,15 +926,15 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
     <h2 class="tr-h">Expanded · key a · a pane in the detail column, the way o lists open intents</h2>
     <div class="tr-anatomy">
       <div class="tr-pane">
-        <div class="tr-head"><span class="tr-lbl">active runs · <span class="tr-kbd">a</span> · {{count}}</span><span class="tr-lbl"><span class="tr-kbd">Esc</span> closes</span></div>
+        <div class="tr-head"><span class="tr-lbl">active runs · <span class="tr-kbd">a</span> · {{count}}</span><button type="button" class="tr-lbl" aria-label="close the active runs pane, key Escape"><span class="tr-kbd">Esc</span> closes</button></div>
         <sc-for list="{{runs}}" as="r" hint-placeholder-count="4">
-          <div class="tr-row {{r.focusCls}}">
+          <button type="button" class="tr-row {{r.focusCls}}" aria-label="{{r.label}}">
             <svg class="chibi portrait actor-{{r.actor}} mode-{{r.mode}} pal-phosphor tone-{{r.tone}}" viewBox="{{r.crop}}" aria-hidden="true" focusable="false"><use href="#chibi-{{r.actor}}"></use></svg>
             <span class="tr-l1"><span class="tr-map">{{r.mapping}}</span><span class="tr-run">{{r.run}}</span></span>
             <span class="tr-life {{r.lifeCls}}">{{r.lifecycle}}<span class="tr-quiet">{{r.quietText}}</span></span>
             <span class="tr-l2"><span class="tr-el">{{r.elapsed}}</span><span class="tr-ev">{{r.event}}</span></span>
             <span><span class="tr-chip {{r.chipCls}}">{{r.chip}}</span></span>
-          </div>
+          </button>
         </sc-for>
         <div class="tr-foot"><span><span class="tr-kbd">j</span> <span class="tr-kbd">k</span> move</span><span><span class="tr-kbd">Enter</span> jumps to the run · <span class="tr-kbd">r</span> filter</span><span><span class="tr-kbd">Esc</span> closes</span></div>
       </div>
@@ -932,9 +942,9 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
         <span>row</span><span>portrait · actor mapping · run id, short · lifecycle word · elapsed since the run's first event, live · the run's newest event, ellipsised · that event's ADR-016 class chip. Two lines, 24 px portrait, 11 / 10 px type; <span class="tr-kbd">j</span> <span class="tr-kbd">k</span> move the 1 px cyan focus, <span class="tr-kbd">Enter</span> sets the <span class="tr-kbd">r</span> filter to that run and returns to the timeline.</span>
         <span>working</span><span>the newest event is younger than the run's median gap. Portrait: working.</span>
         <span>waiting</span><span>the newest event is an intent with no outcome (what <span class="tr-kbd">o</span> lists): a tool call still running, in Phase 2 an approval. Portrait: waiting. Amber word.</span>
-        <span>transient</span><span>the newest outcome is class transient; a retry is scheduled. Portrait: transient. Amber word, amber chip.</span>
+        <span>transient</span><span>the newest outcome is class transient; a retry is scheduled. Portrait: transient. Amber word, amber chip. An exhausted retry that names a time (<b>retry after 23:06</b>) stays transient: the run is parked, not halted, so the word is transient while the event's own chip keeps its class, as the review sample shows.</span>
         <span>blocked</span><span>the newest outcome or note is class blocking and the run has not moved since: a halt, a refusal that stopped it. Portrait: blocked. Magenta word, magenta chip, and the frame floods as on board 4.</span>
-        <span>quiet</span><span>a working run with no event for longer than its median gap. The word stays <b>working</b>; <b>quiet 4m</b> follows it in muted text; the portrait waits. The bar counts it: <b>1 quiet</b>.</span>
+        <span>quiet</span><span>a working run with no event for longer than its median gap. The word stays <b>working</b>; <b>quiet 4m</b> follows it in muted text; the portrait waits. The bar counts it inside working: <b>2 working (1 quiet)</b>.</span>
         <span>idle</span><span>no open run: the bar reads <b>idle</b> in muted text and shows no portrait; the pane says when the last run closed.</span>
         <span>stale</span><span>server unreachable (board 6): the last known state, the whole slot greyed with the page, and <b>stale · … · as of 19:52:14</b> in text.</span>
         <span>rule</span><span>every fact in the tray is a word or a number; the portraits mirror the words and never add one. Calm hides every portrait and leaves the words. Reduced motion changes nothing here: the tray adds no animation of its own, only board 10's selected detail animates. A shell (Codex, Claude Code, a terminal worker) is an actor like any other; <code>kgme.toml [sprites]</code> decides its face, the stranger until it is given one. Read-only: nothing in the tray dispatches, approves or chooses a model (Phase 2, board 8).</span>
@@ -969,19 +979,19 @@ class Component extends DCLogic {
       elapsed: run.elapsed || '',
       event: run.event || '',
       quietText: run.quiet ? ' · quiet ' + run.quiet : '',
-      focusCls: run.focus ? 'tr-focus' : ''
+      focusCls: run.focus ? 'tr-focus' : '',
+      label: (run.mapping || actor) + ' ' + (run.run || '') + ', ' + lifecycle + (run.quiet ? ', quiet ' + run.quiet : '') + ', ' + (run.elapsed || '') + ': ' + (run.event || '') + ' (' + chip + '); Enter filters the timeline to this run'
     };
   }
   summarize(runs, stale, lastSeen) {
     const counts = {};
     let quiet = 0;
     runs.forEach(r => { counts[r.lifecycle] = (counts[r.lifecycle] || 0) + 1; if (r.quietText) quiet += 1; });
-    const parts = ['working', 'waiting', 'transient', 'blocked'].filter(k => counts[k]).map(k => counts[k] + ' ' + k);
-    if (quiet) parts.push(quiet + ' quiet');
+    const parts = ['working', 'waiting', 'transient', 'blocked'].filter(k => counts[k]).map(k => k === 'working' && quiet ? counts[k] + ' working (' + quiet + ' quiet)' : counts[k] + ' ' + k);
     const idle = parts.length === 0;
     let summary = idle ? 'idle' : parts.join(' · ');
     if (stale) summary = 'stale · ' + summary + (lastSeen ? ' · as of ' + lastSeen : '');
-    return { summary, idle, sumCls: (idle || stale) ? 'tr-muted' : 'tr-text', count: runs.length === 1 ? '1 open' : runs.length + ' open' };
+    return { summary, idle, sumCls: idle ? 'tr-muted' : 'tr-text', count: runs.length === 1 ? '1 open' : runs.length + ' open' };
   }
   samples() {
     return [
@@ -1015,7 +1025,7 @@ class Component extends DCLogic {
       hasRuns: runs.length > 0, noRuns: runs.length === 0,
       idleNote: lastSeen ? 'The last run closed at ' + lastSeen + '.' : 'The ledger is live.',
       demos: [
-        demo('live', 'portraits stack like cards, newest run last; the words carry the count per lifecycle, and quiet.', live, 'live', ''),
+        demo('live', 'portraits stack like cards, newest run last; the words carry the count per lifecycle, quiet inside working.', live, 'live', ''),
         demo('idle', 'nothing open: muted idle, no portrait. The slot keeps its place so the bar does not reflow.', [], 'live', ''),
         demo('stale', 'board 6: the page greys as a whole; the slot repeats its last known state and says when.', [samples[1], samples[2]], 'stale', '19:52:14')
       ]

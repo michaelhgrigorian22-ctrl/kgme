@@ -2,10 +2,13 @@
 id: CDH-0010
 type: handoff
 created: 2026-10-13T16:40:00-07:00
-from: cowork
+from: michou
 to: cowork
 tier: 2
-status: proposed
+status: open
+adopted_by: michou
+adopted: 2026-10-13T20:26:00-07:00
+rulings: "take all six (Michou, 2026-10-13 20:26)"
 depends_on: [CDH-0008]
 design_track: HANDOFF-0036
 ---
