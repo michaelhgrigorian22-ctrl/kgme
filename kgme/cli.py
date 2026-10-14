@@ -5,7 +5,8 @@ Until a handoff lands, its subcommand says so and exits 2. `lint` (HANDOFF-0031)
 every note under the configured roots against the schema and exits 1 on a blocking finding.
 `ledger` (HANDOFF-0026) reads both streams or appends one human-authored event. `review`
 (HANDOFF-0029) runs one cycle of the review loop, or records a ruling or an override. `sync`
-(HANDOFF-0040) commits `logs/ledger/` by pathspec if it changed and pushes if ahead.
+(HANDOFF-0040) commits `logs/ledger/` by pathspec if it changed and pushes if ahead. `clean`
+(HANDOFF-0033) deletes disposable output by named target, a dry run unless `--yes`.
 Inputs: argv.
 Outputs: exit code; one line per finding or event, a summary, or a review's escalation packet.
 Side effects: `ledger note`, `review`, `review rule`, and `review override` append to the real
@@ -21,7 +22,6 @@ import sys
 CLASSES = ("blocking", "transient", "cosmetic", "advisory")
 NOT_BUILT = {
     "brief": "HANDOFF-0034",
-    "clean": "HANDOFF-0033",
     "cockpit": "HANDOFF-0037",
 }
 
@@ -31,7 +31,16 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="kgme", description="Kuang Grade Mark Eleven.")
     subcommands = parser.add_subparsers(dest="command", required=True)
     subcommands.add_parser("brief", help="Loop 0: write today's brief from the vault")
-    subcommands.add_parser("clean", help="delete disposable outputs by named target")
+    clean_parser = subcommands.add_parser(
+        "clean", help="delete disposable outputs by named target; a dry run unless --yes"
+    )
+    clean_parser.add_argument(
+        "target", nargs="?", help="briefs, agent, scratch, trace, caches, venv, ledger-test"
+    )
+    clean_parser.add_argument("--yes", action="store_true", help="delete what the plan lists")
+    clean_parser.add_argument(
+        "--dry-run", action="store_true", help="the default: print the plan, delete nothing"
+    )
     lint_parser = subcommands.add_parser("lint", help="validate every note under memory/ and docs/")
     lint_parser.add_argument(
         "--root", action="append", help="lint this root instead of kgme.toml's"
@@ -96,6 +105,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_review(args)
     if args.command == "sync":
         return run_sync(args)
+    if args.command == "clean":
+        return run_clean(args)
     print(f"kgme {args.command}: not built ({NOT_BUILT[args.command]})", file=sys.stderr)
     return 2
 
@@ -177,6 +188,21 @@ def run_review(args: argparse.Namespace) -> int:
     return review_run.run_cycle(
         args.handoff, model, dispositions, patch, places, args.dry_run, arbiter=arbiter
     )
+
+
+def run_clean(args: argparse.Namespace) -> int:
+    """`kgme clean TARGET [--yes]` (HANDOFF-0033): the run in `kgme.clean_io`, on this checkout."""
+    from kgme import clean_io, config, paths
+
+    settings = config.read_config()
+    if not args.target:
+        targets = ", ".join(sorted(settings["clean"]["targets"]))
+        print(f"kgme clean: name a target: {targets}", file=sys.stderr)
+        return 2
+    if args.yes and args.dry_run:
+        print("kgme clean: --yes and --dry-run contradict; pass one", file=sys.stderr)
+        return 2
+    return clean_io.run_clean(args.target, args.yes, paths.root(), settings)
 
 
 def run_sync(args: argparse.Namespace) -> int:

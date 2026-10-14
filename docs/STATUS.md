@@ -3,7 +3,7 @@ id: STATUS
 type: note
 status: active
 created: 2026-09-10T09:50:00-07:00
-modified: 2026-10-14T00:40:00-07:00
+modified: 2026-10-14T00:32:07-07:00
 author: cowork
 source: stated
 tier: 2
@@ -11,10 +11,10 @@ tier: 2
 
 # KGME — current status (ADR-014)
 
-The one place that says what is true *now*. Historical records are never edited; this file is. Last updated 2026-10-09 22:36 PDT by Claude Code (HANDOFF-0040 done, AUDIT-0034).
+The one place that says what is true *now*. Historical records are never edited; this file is. Last updated 2026-10-14 00:32 PDT by Claude Code (HANDOFF-0033 done, AUDIT-0050; the previous line's 2026-10-09 22:36 was the 0040 close, and Cowork's queue paragraph of 2026-10-14, committed at 00:22 under a stamp of 00:40, is kept as written).
 
 ## Phase
-**Phase 0 — Prepare: complete as of 2026-09-11**, except the housekeeping list below. **Phase 1 — Loop 0 and the cockpit: open as of 2026-09-14.** Plan amended that evening after a four-model deliberation (AUDIT-0011); build order at `plans/phase-1-loop-0.md`. Done: HANDOFF-0025 packaging (AUDIT-0012), 0026 ledger (AUDIT-0013), 0027 permissions and 0028 hook pair (AUDIT-0014), 0029 `kgme review` (AUDIT-0016, reviewed by itself over five cycles), 0030 schema v1.3 and 0031 validator (AUDIT-0022), 0032 canary tests and worker manifests (AUDIT-0026, seven cycles, two overrides), 0040 `kgme sync` (AUDIT-0034, six cycles, one override: every commit is pushed by the backgrounded post-commit hook and the ledger is committed by `kgme sync`, one mode, one lock); ADR-019 accepted. Adopted 2026-10-08 and built, awaiting their reviews: 0033 `kgme clean`, then 0034 `kgme brief` v1; their reviews run through `kgme review`. The cockpit design track (0036) runs in parallel under Cowork, Codex, and Michou; 0037 waits for its approval. Nothing runs unattended; the hooks run on every Claude Code tool call in the repository.
+**Phase 0 — Prepare: complete as of 2026-09-11**, except the housekeeping list below. **Phase 1 — Loop 0 and the cockpit: open as of 2026-09-14.** Plan amended that evening after a four-model deliberation (AUDIT-0011); build order at `plans/phase-1-loop-0.md`. Done: HANDOFF-0025 packaging (AUDIT-0012), 0026 ledger (AUDIT-0013), 0027 permissions and 0028 hook pair (AUDIT-0014), 0029 `kgme review` (AUDIT-0016, reviewed by itself over five cycles), 0030 schema v1.3 and 0031 validator (AUDIT-0022), 0032 canary tests and worker manifests (AUDIT-0026, seven cycles, two overrides), 0040 `kgme sync` (AUDIT-0034, six cycles, one override: every commit is pushed by the backgrounded post-commit hook and the ledger is committed by `kgme sync`, one mode, one lock); ADR-019 accepted. 0033 `kgme clean` done 2026-10-14 (AUDIT-0050, eight cycles, two halts closed by Michou's overrides of 2026-10-13: the hold-and-restore design rejected and rebuilt by pathname with one final check per deletion; his ruling of 2026-10-14 puts a local process swapping repository directories during a clean run outside the threat model; report `audit/2026-10-08-loop-0.md`). Adopted 2026-10-08 and built, awaiting its review: 0034 `kgme brief` v1, through `kgme review`. The cockpit design track (0036) runs in parallel under Cowork, Codex, and Michou; 0037 waits for its approval. Nothing runs unattended; the hooks run on every Claude Code tool call in the repository.
 
 ## Gates before anything is scheduled (ADR-013 §6)
 | Gate | State | Record |

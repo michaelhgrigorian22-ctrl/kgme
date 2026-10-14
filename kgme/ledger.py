@@ -48,6 +48,16 @@ def read_default_dirs(settings: dict | None = None) -> Dirs:
     )
 
 
+def read_base_dirs(settings: dict, base: Path) -> Dirs:
+    """The streams of the checkout at `base`, for a job told which checkout to act on
+    (HANDOFF-0033): a test's temporary root gets its own ledger, never this one's."""
+    return Dirs(
+        ledger=paths.ledger_dir(settings, base),
+        trace=paths.trace_dir(settings, base),
+        read_only_tools=tuple(settings["hooks"]["read_only_tools"]),
+    )
+
+
 def read_test_dirs(settings: dict | None = None) -> Dirs:
     """The gitignored test streams from `kgme.toml`, so `make check` never dirties the tree."""
     settings = settings or config.read_config()
