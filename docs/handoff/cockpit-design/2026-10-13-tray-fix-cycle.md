@@ -5,9 +5,10 @@ created: 2026-10-13T16:40:00-07:00
 from: michou
 to: cowork
 tier: 2
-status: open
+status: done
 adopted_by: michou
 adopted: 2026-10-13T20:26:00-07:00
+completed: 2026-10-13T20:40:00-07:00
 rulings: "take all six (Michou, 2026-10-13 20:26)"
 depends_on: [CDH-0008]
 design_track: HANDOFF-0036
