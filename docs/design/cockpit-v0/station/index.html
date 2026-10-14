@@ -3,19 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<!-- CDH-0009 · the station: a hand-built page, not a canvas artboard. Serve docs/design/cockpit-v0/ over HTTP and open station/.
-     The same body is published as the private review artifact; the only remote script is three@0.182.0 from jsDelivr (HANDOFF-0044 vendors it for the cockpit). -->
+<!-- CDH-0009 · the station, cycle 2 under CDH-0012: a hand-built page, not a canvas artboard. Serve docs/design/cockpit-v0/ over HTTP and open station/.
+     The same body is published as the private review artifact; the only remote load is the pinned three@0.182.0 package from jsDelivr (HANDOFF-0044 vendors it for the cockpit). -->
 <style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
 <title>KGME Station</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-/* CDH-0009 · the station. Layout: one full-window isometric deck (WebGL) under an HTML HUD that carries every
-   fact in words; light in the hull mirrors the words and never replaces them. One dark world on purpose
-   (the cockpit's phosphor palette), so there is no light theme. */
+/* CDH-0009 · the station, cycle 2 (CDH-0012). Layout: one full-window isometric deck (WebGL) under an HTML HUD that
+   carries every fact in words; light in the hull mirrors the words and never replaces them. One dark world on purpose
+   (the cockpit's phosphor palette), so there is no light theme. Nothing remote but the pinned three.js package: the
+   type is the system monospace (AUDIT-CDH-0011 S6). */
 :root{--ground:#0a0c10;--surface:#11151c;--rule:#1e2a33;--text:#cfe6ef;--muted:#7a8d9b;--dim:#6f8290;--cyan:#39d0ff;--magenta:#ff3d7f;--amber:#ffb02e;--green:#4de38a;--mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color-scheme:dark}
 html,body{height:100%}
 body{margin:0;background:var(--ground);color:var(--text);font-family:var(--mono);font-size:12px;line-height:1.45;overflow:hidden}
@@ -83,16 +81,25 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--cyan);outl
 .row .l2{display:flex;gap:8px;min-width:0;font-size:10px;color:var(--dim);white-space:nowrap;overflow:hidden}
 .row .l2 .ev{overflow:hidden;text-overflow:ellipsis;min-width:0}
 .row.focus{outline:1px solid var(--cyan);outline-offset:-1px;background:#0e1a22}
-.row.focus .run,.row.focus .l2{color:var(--muted)}
+.row:focus-visible{background:#0e1a22}
+/* AUDIT-CDH-0011 S5: every muted descendant of a focused row, painted or really focused, reads #7a8d9b on #0e1a22 */
+.row.focus .run,.row.focus .l2,.row.focus .life .q,.row.focus .c-none,.row:focus-visible .run,.row:focus-visible .l2,.row:focus-visible .life .q,.row:focus-visible .c-none{color:var(--muted)}
+#hull{white-space:normal;max-width:64ch}
+.hull-halt{color:var(--magenta);font-weight:700}
 .empty{font-size:11px;color:var(--dim)}
 /* the wall: what c drops to */
-#wall{position:fixed;inset:0;z-index:8;background:var(--ground);padding:calc(36px + env(safe-area-inset-top,0px)) 36px 36px;overflow:auto;display:flex;flex-direction:column;gap:14px}
+#wall{position:fixed;inset:0;z-index:5;background:var(--ground);padding:var(--hudtop,130px) 36px var(--hudbottom,70px);overflow:auto;display:flex;flex-direction:column;gap:14px}
 #wall[hidden]{display:none}
 #wall .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
 #wall .room{background:var(--surface);border:1px solid var(--rule);padding:12px;display:flex;flex-direction:column;gap:6px;min-width:0}
 #wall .room h2{margin:0;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);font-weight:500;display:flex;justify-content:space-between;gap:10px}
 #wall .room h2 span{color:var(--dim);letter-spacing:.08em}
+#wall .val{white-space:normal}
+#wall .room .lines{display:flex;flex-direction:column;gap:3px;font-size:10px;color:var(--text)}
+#wall .room .lines .t{color:var(--dim);margin-right:6px}
+#wall .room .lines .chip{margin-left:6px;vertical-align:1px}
 body.calm .scan,body.calm .vig,body.calm .frame,body.calm .micro,body.calm #stage,body.calm .pane{display:none}
+body.calm .hud{background:var(--ground)}
 body.calm .chibi{visibility:hidden}
 @media (prefers-reduced-motion:reduce){.blink{animation:none}.scan{display:none}.bubble{transition:none}.frame{transition:none}}
 @media (max-width:720px){.hud{padding-inline:16px}.hud.top .val{font-size:12px;white-space:normal}.clock{font-size:18px}.micro{display:none}.pane{right:16px;left:16px;width:auto;top:auto;bottom:70px;max-height:40vh}#wall{padding-inline:16px}}
@@ -159,7 +166,7 @@ body.calm .chibi{visibility:hidden}
 .chibi.portrait{overflow:hidden}
 </style>
 
-<div id="stage" aria-hidden="true"><canvas id="gl"></canvas><div id="labels"></div></div>
+<div id="stage"><canvas id="gl" aria-hidden="true"></canvas><div id="labels"></div></div>
 <div class="frame" id="frame"></div>
 <div class="scan"></div>
 <div class="vig"></div>
@@ -173,9 +180,10 @@ body.calm .chibi{visibility:hidden}
   <div class="col"><span class="lbl">ledger</span><span class="val"><span class="c-live blink">●</span> live · <b style="font-weight:500" id="nev">0</b> events · <span id="nrun">0</span> runs <span style="color:var(--dim)">· replay <span id="nloop">1</span></span></span></div>
   <div class="col"><span class="lbl">session</span><span class="val">c70d687b…8447 <span style="color:var(--dim)">claude-code</span></span></div>
   <div class="col"><span class="lbl">harnesses</span><span class="val">claude 2.1.111 · codex 0.154.0 <span style="color:var(--dim)">· arbiter claude-opus-5-5 · ollama idle</span></span></div>
+  <div class="col"><span class="lbl">hull</span><span class="val" id="hull"><span style="color:var(--dim)">nominal</span></span></div>
   <div class="col">
     <span class="lbl">active runs · <span class="kbd">a</span></span>
-    <button type="button" class="tr-open" id="trayopen" aria-label="open the active runs pane"><span class="tr-stack" id="traystack"></span><span class="tr-sum" id="traysum">idle</span></button>
+    <button type="button" class="tr-open" id="trayopen" aria-label="open the active runs pane"><span class="tr-stack" id="traystack" aria-hidden="true"></span><span class="tr-sum" id="traysum">idle</span></button>
   </div>
   <div style="flex:1 1 40px"></div>
   <div class="col"><span class="lbl">following</span><span class="val" id="following">the whole deck <span style="color:var(--dim)">· 1–7 pick a room · Esc back</span></span></div>
@@ -190,10 +198,9 @@ body.calm .chibi{visibility:hidden}
 <section id="wall" hidden aria-label="the wall: the same facts as text">
   <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:baseline">
     <div><div class="lbl">KGME cockpit · calm · the wall</div><h1 style="margin:2px 0 0;font-size:22px;font-weight:700;letter-spacing:.04em">Who is working, in words</h1></div>
-    <div class="lbl">calm removes the deck, the frame and the portraits; every fact below was already in text · <span class="kbd">c</span> returns</div>
+    <div class="lbl">calm removes the deck, the frame and the portraits; the HUD above and every fact below were already text · <span class="kbd">c</span> returns</div>
   </div>
-  <div class="val">active runs · <span id="wallsum">idle</span>
-  </div>
+  <div class="val">active runs · <span id="wallsum">idle</span> <span style="color:var(--dim)">· hull</span> <span id="wallhull"><span style="color:var(--dim)">nominal</span></span></div>
   <div class="grid" id="wallgrid"></div>
 </section>
 
@@ -239,7 +246,7 @@ const DEFAULT_SPRITE = ['stranger', 'dock'];
 const ACTORS = ['builder', 'reviewer', 'arbiter', 'guard', 'scribe', 'michou', 'stranger'];
 const TONE = { working: 'live', waiting: 'pending', transient: 'transient', blocked: 'blocking', idle: 'live', asleep: 'muted' };
 const WORD_CLS = { working: 'c-live', waiting: 'c-amber', transient: 'c-amber', blocked: 'c-block' };
-const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const rmq = matchMedia('(prefers-reduced-motion: reduce)'); let reduced = rmq.matches;   // AUDIT-CDH-0011 S8: observed live, see below
 const base = location.pathname.includes('/station/') ? '..' : '.';   // repo: docs/design/cockpit-v0/station/ · artifact: root
 
 // ---------------------------------------------------------------- the cast, read from ../chibi/*.svg
@@ -274,8 +281,10 @@ function setMode(svg, mode) {
 
 // ---------------------------------------------------------------- the ledger: replay, then runs
 const T0 = Date.parse('2026-10-08T19:40:00-07:00');
-const SPEED = 20, LOOP_TAIL = 4 * 60 * 1000;
-let events = [], cursor = 0, clock = T0, lastReal = performance.now(), lastTs = T0, loopEnd = T0 + 20 * 60 * 1000, loops = 1;
+const Q = new URLSearchParams(location.search);   // test affordances, read-only: ?speed=N (replay rate, default 20) and ?at=HH:MM:SS (start the replay there)
+const SPEED = Math.max(1, Math.min(60, +Q.get('speed') || 20)), LOOP_TAIL = 4 * 60 * 1000, QUIET_FLOOR = 3 * 60 * 1000;
+const START = /^\d\d:\d\d:\d\d$/.test(Q.get('at') || '') ? Date.parse('2026-10-08T' + Q.get('at') + '-07:00') : T0;
+let events = [], cursor = 0, clock = START, lastReal = performance.now(), lastTs = T0, loopEnd = T0 + 20 * 60 * 1000, loops = 1;
 const runs = new Map(), bubbles = [];
 function fmtClock(ms) { const d = new Date(ms); return new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: 'America/Los_Angeles' }).format(d); }
 function elapsed(ms) { const s = Math.max(0, Math.floor(ms / 1000)); return s >= 3600 ? `${Math.floor(s / 3600)}h ${String(Math.floor(s % 3600 / 60)).padStart(2, '0')}m` : `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, '0')}s`; }
@@ -284,21 +293,25 @@ function mapping(actor) { for (const [prefix] of SPRITES) if (actor.startsWith(p
 function shortRun(id) { return id.length > 14 ? id.slice(0, 8) + '…' + id.slice(-4) : id; }
 
 function lifecycle(run, now) {
+  // AUDIT-CDH-0011 S2: the written rules of board 11 and the README, in order.
   const ev = run.events, last = ev[ev.length - 1];
-  const ops = ev.filter(e => e.kind === 'intent' || e.kind === 'outcome'), newest = ops[ops.length - 1] || last;
-  const openIntent = ops.find(e => e.kind === 'intent' && e.parent !== null && !ops.some(o => o.ref === e.id));
+  const ops = ev.filter(e => e.kind === 'intent' || e.kind === 'outcome'), newest = ops[ops.length - 1];
   const sinceNewest = now - Date.parse(last.ts);
-  if (ev.some(e => e.kind === 'note' && e.class === 'blocking')) return { word: 'blocked', quiet: '' };
+  // a blocking note (a halt, a strike-out) halts the run until it moves again: blocked while no intent, outcome or approval has followed it
+  let bn = -1, moved = -1;
+  for (let i = ev.length - 1; i >= 0; i--) { const k = ev[i].kind; if (moved < 0 && (k === 'intent' || k === 'outcome' || k === 'approval')) moved = i; if (k === 'note' && ev[i].class === 'blocking') { bn = i; break; } }
+  if (bn >= 0 && bn > moved) return { word: 'blocked', quiet: '' };
+  if (!newest) return { word: 'working', quiet: '' };
   if (newest.kind === 'outcome' && newest.class === 'blocking' && /retry after/.test(newest.summary)) return { word: 'transient', quiet: '' };
   if (newest.kind === 'outcome' && newest.class === 'blocking') return { word: 'blocked', quiet: '' };
   if (newest.kind === 'outcome' && newest.class === 'transient') return { word: 'transient', quiet: '' };
-  if (openIntent && newest.kind === 'intent') return { word: 'waiting', quiet: '' };
-  // quiet: no event for longer than three times the run's median gap between intents, and at least three minutes
+  if (newest.kind === 'intent') return { word: 'waiting', quiet: '' };   // an intent with no outcome yet, whatever its parent
+  // quiet (S7, one threshold with board 11): no event for longer than the run's median gap between intents, never under three minutes;
+  // with fewer than two intents, three minutes
   const intents = ops.filter(e => e.kind === 'intent'), gaps = [];
   for (let i = 1; i < intents.length; i++) gaps.push(Date.parse(intents[i].ts) - Date.parse(intents[i - 1].ts));
   gaps.sort((a, b) => a - b);
-  const median = gaps.length ? gaps[Math.floor(gaps.length / 2)] : 180000;
-  const limit = Math.max(3 * median, 180000);
+  const limit = gaps.length ? Math.max(gaps[Math.floor(gaps.length / 2)], QUIET_FLOOR) : QUIET_FLOOR;
   return { word: 'working', quiet: sinceNewest > limit ? `quiet ${Math.max(1, Math.floor(sinceNewest / 60000))}m` : '' };
 }
 function runClosed(run) {
@@ -342,7 +355,7 @@ const hull = new THREE.Mesh(hullGeo, matHull); hull.position.y = -.35; scene.add
 const hullEdge = new THREE.LineSegments(new THREE.EdgesGeometry(hullGeo, 20), lineCyan); hullEdge.position.y = -.35; scene.add(hullEdge); hullLines.push(hullEdge);
 const grid = new THREE.GridHelper(40, 40, 0x1e2a33, 0x151c24); grid.position.y = -.34; grid.material.transparent = true; grid.material.opacity = .55; scene.add(grid);
 
-function anchor(el) { const w = document.createElement('div'); w.appendChild(el); return w; }
+function anchor(el, decorative) { const w = document.createElement('div'); if (decorative) w.setAttribute('aria-hidden', 'true'); w.appendChild(el); return w; }
 const roomObjs = {};
 for (const r of ROOMS) {
   const cx = r.x + r.w / 2, cz = r.z + r.d / 2, lines = r.phase2 ? lineDash : lineCyan;
@@ -361,6 +374,7 @@ for (const r of ROOMS) {
   // chip
   const el = document.createElement('button'); el.type = 'button'; el.className = 'chip-room' + (r.phase2 ? ' phase2' : '');
   el.innerHTML = `<span class="name"><b>${r.n}</b>${r.name}</span><span class="state">${r.phase2 ? 'phase 2 · inactive' : 'empty'}</span>`;
+  el.setAttribute('aria-label', `${r.n} ${r.name}: ${r.phase2 ? 'phase 2 · inactive' : 'empty'}`);
   el.addEventListener('click', () => follow(r.id));
   const chip = new CSS2DObject(anchor(el)); chip.position.set(cx, 1.15, r.z + .2); scene.add(chip);
   roomObjs[r.id] = { r, cx, cz, light, chipEl: el, occupied: new Set() };
@@ -380,6 +394,9 @@ composer.addPass(new RenderPass(scene, camera));
 const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 1.1, .5, .32);
 if (!reduced) composer.addPass(bloom);
 composer.addPass(new OutputPass());
+function setMotion(r) { reduced = r; if (reduced) composer.removePass(bloom); else if (!composer.passes.includes(bloom)) composer.insertPass(bloom, 1); document.documentElement.dataset.motion = reduced ? 'reduced' : 'full'; document.documentElement.dataset.bloom = composer.passes.includes(bloom) ? 'on' : 'off'; }
+rmq.addEventListener('change', e => setMotion(e.matches));
+setMotion(rmq.matches);
 
 function resize() {
   const w = stage.clientWidth, h = stage.clientHeight, aspect = w / h, half = 8.2;
@@ -415,7 +432,7 @@ function placeRun(run) {
   const svg = chibi(run.actor, 'working', false); el.appendChild(svg);
   const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = run.mapping; el.appendChild(tag);
   const bub = document.createElement('div'); bub.className = 'bubble'; el.appendChild(bub);
-  const obj = new CSS2DObject(anchor(el)); scene.add(obj);
+  const obj = new CSS2DObject(anchor(el, true)); scene.add(obj);   // S3: the crew is decoration; its facts are in the rows
   run.el = el; run.svg = svg; run.bubble = bub; run.obj = obj;
   run.from = new THREE.Vector3(DOCK_GATE[0], 0, DOCK_GATE[1]); run.to = new THREE.Vector3(sx, 0, sz); run.walk0 = performance.now();
   obj.position.copy(reduced ? run.to : run.from);
@@ -440,13 +457,14 @@ function fixture(actor, room, mode) {
   const svg = chibi(actor, mode, false); el.appendChild(svg);
   const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = actor === 'michou' ? 'you' : 'kgme.guard'; el.appendChild(tag);
   const bub = document.createElement('div'); bub.className = 'bubble'; el.appendChild(bub);
-  const obj = new CSS2DObject(anchor(el)); obj.position.set(sx, 0, sz); scene.add(obj);
-  fixtures[actor] = { el, svg, bubble: bub, obj, mode, until: 0 };
+  const obj = new CSS2DObject(anchor(el, true)); obj.position.set(sx, 0, sz); scene.add(obj);
+  fixtures[actor] = { el, svg, bubble: bub, obj, mode, until: 0, last: null };
 }
 
 // ---------------------------------------------------------------- apply events as the clock passes them
 function apply(e) {
   let run = runs.get(e.run_id);
+  const [actorSprite] = spriteFor(e.actor);
   if (!run) {
     const [actor, room] = spriteFor(e.actor);
     run = { id: e.run_id, actor, room, mapping: mapping(e.actor), events: [], first: Date.parse(e.ts), closed: false };
@@ -456,25 +474,35 @@ function apply(e) {
   if (run.closed) { run.closed = false; placeRun(run); }
   run.events.push(e);
   if (e.actor.startsWith('arbiter.')) { arbiterSpeaks(e); }
-  else if (run.fixture) { const f = fixtures[run.fixture]; f.until = performance.now() + 9000; setMode(f.svg, 'working'); f.bubble.innerHTML = `<span class="t">${fmtClock(Date.parse(e.ts))}</span>${esc(e.summary)}`; f.bubble.classList.add('show'); f.bubbleUntil = performance.now() + 7000; }
+  else if (fixtures[actorSprite]) { fixtureSpeaks(fixtures[actorSprite], e); }
   else say(run, e);
-  if (e.status === 'refused') { const g = fixtures.guard; g.until = performance.now() + 9000; setMode(g.svg, 'working'); g.bubble.innerHTML = `<span class="t">${fmtClock(Date.parse(e.ts))}</span>${esc(e.summary)}<span class="chip c-block">refused</span>`; g.bubble.classList.add('show'); g.bubbleUntil = performance.now() + 7000; roomObjs.airlock.flash = performance.now() + 1800; }
+  if (e.status === 'refused') { const g = fixtures.guard; fixtureSpeaks(g, e, '<span class="chip c-block">refused</span>'); roomObjs.airlock.flash = performance.now() + 1800; }
   if (!run.fixture && runClosed(run)) { run.closed = true; retireRun(run); }
+}
+function fixtureSpeaks(f, e, chip) {
+  f.last = e; f.until = performance.now() + 9000; setMode(f.svg, 'working');
+  f.bubble.innerHTML = `<span class="t">${fmtClock(Date.parse(e.ts))}</span>${esc(e.summary)}${chip || (e.kind === 'approval' ? '<span class="chip c-ok">approval</span>' : '')}`;
+  f.bubble.classList.add('show'); f.bubbleUntil = performance.now() + 7000;
 }
 let arbiter = null;
 function arbiterSpeaks(e) {
-  if (!arbiter) { const o = roomObjs.review; const [sx, sz] = o.r.seats[2]; const el = document.createElement('div'); el.className = 'crew'; const svg = chibi('arbiter', 'working', false); el.appendChild(svg); const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = 'arbiter.*'; el.appendChild(tag); const bub = document.createElement('div'); bub.className = 'bubble'; el.appendChild(bub); const obj = new CSS2DObject(anchor(el)); obj.position.set(sx, 0, sz); scene.add(obj); arbiter = { el, svg, bubble: bub, obj }; }
+  if (!arbiter) { const o = roomObjs.review; const [sx, sz] = o.r.seats[2]; const el = document.createElement('div'); el.className = 'crew'; const svg = chibi('arbiter', 'working', false); el.appendChild(svg); const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = 'arbiter.*'; el.appendChild(tag); const bub = document.createElement('div'); bub.className = 'bubble'; el.appendChild(bub); const obj = new CSS2DObject(anchor(el, true)); obj.position.set(sx, 0, sz); scene.add(obj); arbiter = { el, svg, bubble: bub, obj, last: null }; }
+  arbiter.last = e;
   arbiter.bubble.innerHTML = `<span class="t">${fmtClock(Date.parse(e.ts))}</span>${esc(e.summary)}<span class="chip c-none">note</span>`; arbiter.bubble.classList.add('show'); arbiter.bubbleUntil = performance.now() + 9000; arbiter.until = performance.now() + 12000;
 }
 
 function resetReplay() {
   for (const run of runs.values()) if (run.obj) { scene.remove(run.obj); run.obj.element.remove(); }
   runs.clear(); for (const o of Object.values(roomObjs)) o.occupied.clear();
+  for (const w of Object.values(wallRooms)) w.rows.replaceChildren();
+  document.getElementById('panerows').replaceChildren();
   if (arbiter) { scene.remove(arbiter.obj); arbiter.obj.element.remove(); arbiter = null; }
-  cursor = 0; clock = T0;
+  for (const f of Object.values(fixtures)) { f.last = null; f.until = 0; f.bubble.classList.remove('show'); f.bubbleUntil = 0; setMode(f.svg, f.mode); }
+  roomObjs.airlock.flash = 0;
+  cursor = 0; clock = START;
 }
 
-// ---------------------------------------------------------------- words: the tray, the chips, the pane, the wall
+// ---------------------------------------------------------------- words: one snapshot feeds the HUD, the chips, the pane and the wall (AUDIT-CDH-0011 S1)
 function summarize(list) {
   const counts = {}; let quiet = 0;
   for (const r of list) { counts[r.word] = (counts[r.word] || 0) + 1; if (r.quiet) quiet++; }
@@ -487,65 +515,128 @@ function liveRuns(now) {
   for (const run of runs.values()) { if (run.closed || run.fixture) continue; const lc = lifecycle(run, now); out.push({ run, ...lc }); }
   return out;
 }
-function renderWords(now) {
+function isHalt(e) { return e.kind === 'note' && e.class === 'blocking' && (e.key || '').startsWith('halt:'); }
+function snapshot(now) {
+  // Every fact the deck shows, as text. The chips, the pane, the wall and the lights all read this; nothing reads the scene.
   const live = liveRuns(now);
+  const halt = live.map(x => x.run.events[x.run.events.length - 1]).find(isHalt) || null;
+  const rooms = ROOMS.map(r => {
+    const here = live.filter(x => x.run.room === r.id), lines = [];
+    let state;
+    if (r.phase2) state = 'phase 2 · inactive';
+    else if (r.id === 'airlock') {
+      const g = fixtures.guard, flash = roomObjs.airlock.flash && roomObjs.airlock.flash > now0;
+      state = flash ? 'refused · guard rule 4' : g.last ? `guarded · last refusal ${fmtClock(Date.parse(g.last.ts))}` : 'guarded · nothing pending';
+      if (g.last) lines.push({ ts: g.last.ts, text: g.last.summary, chip: ['refused', 'c-block'] });
+    } else if (r.id === 'bridge') {
+      const m = fixtures.michou;
+      const verb = m.last && m.last.kind === 'approval' ? 'approved' : 'noted', lastWord = m.last && m.last.kind === 'approval' ? 'approval' : 'note';
+      state = m.last ? (m.until > now0 ? `you · ${verb} ${fmtClock(Date.parse(m.last.ts))}` : `you · asleep · last ${lastWord} ${fmtClock(Date.parse(m.last.ts))}`) : 'you · asleep';
+      if (m.last) lines.push({ ts: m.last.ts, text: m.last.summary, chip: m.last.kind === 'approval' ? ['approval', 'c-ok'] : ['note', 'c-none'] });
+    } else state = here.length ? summarize(here) : 'empty';
+    if (r.id === 'review' && arbiter && arbiter.last) { lines.push({ ts: arbiter.last.ts, text: arbiter.last.summary, chip: ['ruling', 'c-none'] }); state += ` · ruled ${fmtClock(Date.parse(arbiter.last.ts))}`; }
+    return { r, here, state, cls: worst(here), lines };
+  });
+  return { now, live, rooms, summary: summarize(live), halt, hullText: halt ? `HALT · ${halt.summary}` : 'nominal' };
+}
+function renderWords(now) {
+  const snap = snapshot(now);
+  const { live } = snap;
   const stack = document.getElementById('traystack'); stack.replaceChildren();
   for (const { run, word, quiet } of live) stack.appendChild(chibi(run.actor, quiet ? 'waiting' : word, true));
-  document.getElementById('traysum').textContent = summarize(live);
-  document.getElementById('wallsum').textContent = summarize(live);
+  document.getElementById('traysum').textContent = snap.summary;
+  document.getElementById('wallsum').textContent = snap.summary;
+  const hullHtml = snap.halt ? `<span class="hull-halt">${esc(snap.hullText)}</span>` : `<span style="color:var(--dim)">nominal</span>`;
+  document.getElementById('hull').innerHTML = hullHtml; document.getElementById('wallhull').innerHTML = hullHtml;
   document.getElementById('nev').textContent = String(cursor);
   document.getElementById('nrun').textContent = String(runs.size);
   document.getElementById('nloop').textContent = String(loops);
   document.getElementById('clock').innerHTML = `${fmtClock(now)}<small> −07:00</small>`;
-  let halted = false;
-  for (const o of Object.values(roomObjs)) {
-    const here = live.filter(x => x.run.room === o.r.id);
-    const cls = worst(here);
-    o.chipEl.className = 'chip-room' + (o.r.phase2 ? ' phase2' : '') + (cls ? ' ' + cls : '') + (o.r.id === following ? ' on' : '');
-    const state = o.chipEl.querySelector('.state');
-    state.textContent = o.r.phase2 ? 'phase 2 · inactive' : (o.r.id === 'airlock' ? (o.flash && o.flash > now0 ? 'refused · guard rule 4' : 'guarded · nothing pending') : o.r.id === 'bridge' ? (fixtures.michou && fixtures.michou.until > now0 ? 'you · noted' : 'you · asleep') : (here.length ? summarize(here) : 'empty'));
+  for (const { r, here, state, cls } of snap.rooms) {
+    const o = roomObjs[r.id];
+    o.chipEl.className = 'chip-room' + (r.phase2 ? ' phase2' : '') + (cls ? ' ' + cls : '') + (r.id === following ? ' on' : '');
+    const st = o.chipEl.querySelector('.state'); if (st.textContent !== state) st.textContent = state;
+    o.chipEl.setAttribute('aria-label', `${r.n} ${r.name}: ${state}`);
     // light carries the same state as the words
     const want = cls === 's-block' ? ['#ff3d7f', 9] : cls === 's-amber' ? ['#ffb02e', 4.5] : cls === 's-live' ? ['#39d0ff', 2.6] : ['#39d0ff', 0];
-    if (o.r.id === 'airlock' && o.flash && o.flash > now0) { want[0] = '#ff3d7f'; want[1] = 9; }
+    if (r.id === 'airlock' && o.flash && o.flash > now0) { want[0] = '#ff3d7f'; want[1] = 9; }
     o.light.color.set(want[0]); o.light.intensity += (want[1] - o.light.intensity) * (reduced ? 1 : .12);
-    if (here.some(x => x.run.events.some(e => e.kind === 'note' && (e.key || '').startsWith('halt:')))) halted = true;
     for (const x of here) { const target = x.quiet ? 'waiting' : x.word; if (x.run.svg && x.run.mode !== target) { setMode(x.run.svg, target); x.run.mode = target; } }
   }
-  const hullColor = halted ? '#ff3d7f' : '#39d0ff';
+  const hullColor = snap.halt ? '#ff3d7f' : '#39d0ff';
   lineCyan.color.set(hullColor);
   document.getElementById('frame').style.setProperty('--hull', hullColor);
-  document.getElementById('frame').style.setProperty('--hullglow', halted ? 'rgba(255,61,127,.14)' : 'rgba(57,208,255,.10)');
-  renderPane(live, now); renderWall(live, now);
+  document.getElementById('frame').style.setProperty('--hullglow', snap.halt ? 'rgba(255,61,127,.14)' : 'rgba(57,208,255,.10)');
+  renderPane(snap); renderWall(snap);
 }
-function rowFor(x, now, focus) {
-  const b = document.createElement('button'); b.type = 'button'; b.className = 'row' + (focus ? ' focus' : '');
-  const e = x.run.events[x.run.events.length - 1], [chip, cls] = chipFor(e);
+// rows are keyed by run and updated in place, so a focused row survives every refresh (AUDIT-CDH-0011 S4)
+function rowFor(x, now) {
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'row'; b.dataset.run = x.run.id;
   b.appendChild(chibi(x.run.actor, x.quiet ? 'waiting' : x.word, true));
-  b.insertAdjacentHTML('beforeend', `<span class="l1"><span class="map">${x.run.mapping}</span><span class="run">${shortRun(x.run.id)}</span></span><span class="life ${WORD_CLS[x.word]}">${x.word}${x.quiet ? `<span class="q"> · ${x.quiet}</span>` : ''}</span><span class="l2"><span>${elapsed(now - x.run.first)}</span><span class="ev">${esc(e.summary)}</span></span><span><span class="chip ${cls}">${chip}</span></span>`);
-  b.setAttribute('aria-label', `${x.run.mapping} ${shortRun(x.run.id)}, ${x.word}${x.quiet ? ', ' + x.quiet : ''}: ${e.summary}`);
+  b.insertAdjacentHTML('beforeend', `<span class="l1"><span class="map"></span><span class="run"></span></span><span class="life"></span><span class="l2"><span class="el"></span><span class="ev"></span></span><span><span class="chip"></span></span>`);
+  b.querySelector('.map').textContent = x.run.mapping; b.querySelector('.run').textContent = shortRun(x.run.id);
+  updateRow(b, x, now);
   return b;
 }
+function updateRow(b, x, now) {
+  const e = x.run.events[x.run.events.length - 1], [chip, cls] = chipFor(e), mode = x.quiet ? 'waiting' : x.word;
+  const svg = b.querySelector('.chibi'); if (b.dataset.mode !== mode) { setMode(svg, mode); b.dataset.mode = mode; }
+  const life = b.querySelector('.life'), lifeHtml = `${x.word}${x.quiet ? `<span class="q"> · ${x.quiet}</span>` : ''}`;
+  if (life.dataset.v !== lifeHtml) { life.innerHTML = lifeHtml; life.dataset.v = lifeHtml; life.className = `life ${WORD_CLS[x.word]}`; }
+  const el = b.querySelector('.el'), elText = elapsed(now - x.run.first); if (el.textContent !== elText) el.textContent = elText;
+  const ev = b.querySelector('.ev'); if (ev.textContent !== e.summary) ev.textContent = e.summary;
+  const c = b.querySelector('.chip'); if (c.textContent !== chip) c.textContent = chip; c.className = `chip ${cls}`;
+  const label = `${x.run.mapping} ${shortRun(x.run.id)}, ${x.word}${x.quiet ? ', ' + x.quiet : ''}: ${e.summary}`;
+  if (b.getAttribute('aria-label') !== label) b.setAttribute('aria-label', label);
+}
+function syncRows(container, list, now, paint, emptyText) {
+  const want = new Set(list.map(x => x.run.id)), have = new Map();
+  for (const el of [...container.children]) {
+    if (!el.dataset.run) { el.remove(); continue; }
+    if (!want.has(el.dataset.run)) { if (el.contains(document.activeElement)) (el.nextElementSibling || el.previousElementSibling || container).focus?.(); el.remove(); }
+    else have.set(el.dataset.run, el);
+  }
+  for (const x of list) { const el = have.get(x.run.id); if (el) updateRow(el, x, now); else container.appendChild(rowFor(x, now)); }
+  if (!list.length && emptyText) { const d = document.createElement('div'); d.className = 'empty'; d.textContent = emptyText; container.appendChild(d); }
+  // the painted focus is the drawing's default (board 3's first row) only while no row really has focus
+  const real = container.contains(document.activeElement) && document.activeElement.classList.contains('row');
+  let i = 0; for (const el of container.children) if (el.dataset.run) { el.classList.toggle('focus', paint && i === 0 && !real); i++; }
+}
 let paneOpen = false;
-function renderPane(live, now) {
+function renderPane(snap) {
   const pane = document.getElementById('pane');
   if (!paneOpen && !following) { pane.hidden = true; return; }
   pane.hidden = false;
-  if (!live) return;
-  const list = following ? live.filter(x => x.run.room === following) : live;
-  document.getElementById('panetitle').innerHTML = following ? `${roomObjs[following].r.name} · ${list.length} open` : `active runs · <span class="kbd">a</span> · ${list.length} open`;
-  const rows = document.getElementById('panerows'); rows.replaceChildren();
-  if (!list.length) { const d = document.createElement('div'); d.className = 'empty'; d.textContent = following ? 'No open run in this room.' : 'No open run. The ledger is live.'; rows.appendChild(d); return; }
-  list.forEach((x, i) => rows.appendChild(rowFor(x, now, i === 0)));
+  if (!snap) return;
+  const list = following ? snap.live.filter(x => x.run.room === following) : snap.live;
+  const title = following ? `${roomObjs[following].r.name} · ${list.length} open` : `active runs · <span class="kbd">a</span> · ${list.length} open`;
+  const t = document.getElementById('panetitle'); if (t.dataset.v !== title) { t.innerHTML = title; t.dataset.v = title; }
+  syncRows(document.getElementById('panerows'), list, snap.now, true, following ? 'No open run in this room.' : 'No open run. The ledger is live.');
 }
-function renderWall(live, now) {
+const wallRooms = {};
+function renderWall(snap) {
   if (!document.body.classList.contains('calm')) return;
-  const g = document.getElementById('wallgrid'); g.replaceChildren();
-  for (const r of ROOMS) {
-    const here = live.filter(x => x.run.room === r.id);
-    const sec = document.createElement('section'); sec.className = 'room';
-    sec.innerHTML = `<h2>${r.n} · ${r.name}<span>${r.note}</span></h2><div class="lbl">${r.phase2 ? 'phase 2 · inactive' : here.length ? summarize(here) : (r.id === 'airlock' ? 'guarded · nothing pending' : r.id === 'bridge' ? 'you' : 'empty')}</div>`;
-    here.forEach((x, i) => sec.appendChild(rowFor(x, now, false)));
-    g.appendChild(sec);
+  const g = document.getElementById('wallgrid');
+  for (const { r, here, state, lines } of snap.rooms) {
+    let w = wallRooms[r.id];
+    if (!w) {
+      const sec = document.createElement('section'); sec.className = 'room';
+      sec.innerHTML = `<h2>${r.n} · ${r.name}<span>${r.note}</span></h2><div class="lbl state"></div><div class="lines"></div><div class="rows"></div>`;
+      g.appendChild(sec); w = wallRooms[r.id] = { sec, state: sec.querySelector('.state'), lines: sec.querySelector('.lines'), rows: sec.querySelector('.rows') };
+    }
+    if (w.state.textContent !== state) w.state.textContent = state;
+    const linesHtml = lines.map(l => `<div><span class="t">${fmtClock(Date.parse(l.ts))}</span>${esc(l.text)}<span class="chip ${l.chip[1]}">${l.chip[0]}</span></div>`).join('');
+    if (w.lines.dataset.v !== linesHtml) { w.lines.innerHTML = linesHtml; w.lines.dataset.v = linesHtml; }
+    syncRows(w.rows, here, snap.now, false, '');
+  }
+}
+function setCalm(on) {
+  document.body.classList.toggle('calm', on);
+  const wall = document.getElementById('wall'); wall.hidden = !on;
+  if (on) {
+    wall.style.setProperty('--hudtop', (document.querySelector('.hud.top').offsetHeight + 12) + 'px');
+    wall.style.setProperty('--hudbottom', (document.querySelector('.hud.bottom').offsetHeight + 8) + 'px');
+    renderWords(clock);
   }
 }
 
@@ -555,7 +646,7 @@ addEventListener('keydown', e => {
   if (e.key >= '1' && e.key <= '7') { follow(ROOMS[+e.key - 1].id); }
   else if (e.key === 'Escape') { if (paneOpen) { paneOpen = false; renderPane(); } else unfollow(); }
   else if (e.key === 'a') { paneOpen = !paneOpen; following = null; setFollowing(); }
-  else if (e.key === 'c') { document.body.classList.toggle('calm'); document.getElementById('wall').hidden = !document.body.classList.contains('calm'); }
+  else if (e.key === 'c') { setCalm(!document.body.classList.contains('calm')); }
   else if (e.key === 'r') { resetReplay(); }
 });
 document.getElementById('trayopen').addEventListener('click', () => { paneOpen = !paneOpen; following = null; setFollowing(); });
@@ -566,25 +657,28 @@ let now0 = performance.now();
 function frame(t) {
   requestAnimationFrame(frame);
   now0 = t;
-  const dt = t - lastReal; lastReal = t;
+  const dt = Math.min(t - lastReal, 1000); lastReal = t;   // a backgrounded tab pauses rAF; its first frame back must not jump the replay past its end (CW15's cause)
   clock += dt * SPEED;
   if (clock > loopEnd) { resetReplay(); loops += 1; }
   while (cursor < events.length && Date.parse(events[cursor].ts) <= clock) apply(events[cursor++]);
-  // walks and bubbles
+  const calm = document.body.classList.contains('calm');
+  // bubbles fade on their own clock; walks and the camera only move while the deck is shown (calm does no scene work, S8)
   for (const run of runs.values()) {
-    if (run.obj && run.walk0 !== undefined) { const k = reduced ? 1 : Math.min(1, (t - run.walk0) / 600); const s = k * k * (3 - 2 * k); run.obj.position.lerpVectors(run.from, run.to, s); if (k >= 1) run.walk0 = undefined; }
+    if (!calm && run.obj && run.walk0 !== undefined) { const k = reduced ? 1 : Math.min(1, (t - run.walk0) / 600); const s = k * k * (3 - 2 * k); run.obj.position.lerpVectors(run.from, run.to, s); if (k >= 1) run.walk0 = undefined; }
     if (run.bubble && run.bubbleUntil && t > run.bubbleUntil) { run.bubble.classList.remove('show'); run.bubbleUntil = 0; }
   }
   for (const f of Object.values(fixtures)) { if (f.until && t > f.until) { setMode(f.svg, f.mode); f.until = 0; } if (f.bubbleUntil && t > f.bubbleUntil) { f.bubble.classList.remove('show'); f.bubbleUntil = 0; } }
   if (arbiter) { if (arbiter.bubbleUntil && t > arbiter.bubbleUntil) { arbiter.bubble.classList.remove('show'); arbiter.bubbleUntil = 0; } if (arbiter.until && t > arbiter.until) { setMode(arbiter.svg, 'idle'); arbiter.until = 0; } }
-  // camera
-  const ease = reduced ? 1 : .1;
-  zoom += (wantZoom - zoom) * ease; target.lerp(wantTarget, ease);
-  camera.zoom = zoom; camera.updateProjectionMatrix();
-  camera.position.copy(target).add(CAM); camera.lookAt(target);
+  if (!calm) {
+    const ease = reduced ? 1 : .1;
+    zoom += (wantZoom - zoom) * ease; target.lerp(wantTarget, ease);
+    camera.zoom = zoom; camera.updateProjectionMatrix();
+    camera.position.copy(target).add(CAM); camera.lookAt(target);
+    document.getElementById('labels').style.setProperty('--z', zoom.toFixed(3));
+  }
   if (t - (frame.lastWords || 0) > 250) { frame.lastWords = t; renderWords(clock); }
-  document.getElementById('labels').style.setProperty('--z', zoom.toFixed(3));
-  if (!document.body.classList.contains('calm')) { composer.render(); labels.render(scene, camera); }
+  if (t - (frame.lastMotion || 0) > 1000) { frame.lastMotion = t; if (rmq.matches !== reduced) setMotion(rmq.matches); }
+  if (!calm) { composer.render(); labels.render(scene, camera); }
 }
 
 (async () => {
@@ -594,7 +688,7 @@ function frame(t) {
   events = text.split('\n').filter(Boolean).map(l => JSON.parse(l)).sort((a, b) => a.ts < b.ts ? -1 : 1);
   const stamps = events.map(e => Date.parse(e.ts)).filter(Number.isFinite);
   lastTs = stamps.length ? Math.max(...stamps) : T0 + 15 * 60 * 1000; loopEnd = lastTs + LOOP_TAIL;
-  document.getElementById('microright').textContent = `replay of ${events.length} ledger samples · 2026-10-08 19:40 → ${fmtClock(lastTs)} · ×${SPEED} · loops`;
+  document.getElementById('microright').textContent = `replay of ${events.length} ledger samples · 2026-10-08 ${fmtClock(START)} → ${fmtClock(lastTs)} · ×${SPEED} · loops`;
   lastReal = performance.now(); requestAnimationFrame(frame);
 })().catch(err => { document.getElementById('traysum').textContent = 'the cast or the ledger did not load: ' + err.message; console.error(err); });
 </script>
