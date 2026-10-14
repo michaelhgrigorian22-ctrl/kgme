@@ -27,10 +27,14 @@ This section uses its own `CDH-0001`, `CDH-0002` sequence, at Michou's request o
 | CDH-0009 | Cowork | The station: the ship, its rooms and the crew at work as a second wall layout, a hand-built three.js page under `docs/design/cockpit-v0/station/` (Michou's wish, 2026-10-13 13:17). Done 2026-10-13 16:45, first pass, commit `373de74`; review artifact "KGME Station". | [The station](2026-10-13-the-station.md) |
 | CDH-0010 | Cowork | The tray's second cycle: AUDIT-CDH-0008's F1–F6 applied on Michou's ruling "take all six" (20:26). Done 2026-10-13 20:40, PASS (AUDIT-CDH-0010; F1 5.14:1, F2 7.72:1, nine buttons, F4/F5 wording, F6 observed natively); commit `4f3e06c`. | [Tray cycle 2](2026-10-13-tray-fix-cycle.md) |
 | CDH-0011 | Codex, GPT-6 Astra (read-only review) | Review of the station (CDH-0009, `373de74`) and the tray's second cycle (CDH-0010, `4f3e06c`) in one pass. Done 2026-10-14 00:28, **`BLOCK: 6`** on the station (AUDIT-CDH-0011: S1 calm loses facts, S2 lifecycle vs rules, S3 controls inside aria-hidden, S4 focus lost on refresh, S5 quiet suffix 4.43:1, S6 remote fonts; S7–S9, T1 advisory); tray F1–F6 closed. Committed `a3558b1`. | [Station and tray review](2026-10-13-station-and-tray-review.md) |
-| CDH-0012 | Cowork | The station's second cycle: AUDIT-CDH-0011's S1–S9 and the tray's T1 applied under Michou's ruling of 2026-10-14 00:41 (blocking findings taken by default). Open. | [Station cycle 2](2026-10-14-station-fix-cycle.md) |
-| CDH-0013 | Codex, GPT-6 Astra (read-only review) | Re-review of the station's second cycle and T1. Proposed; `ready` when CDH-0012 is done. | [Station cycle review](2026-10-14-station-cycle-review.md) |
+| CDH-0012 | Cowork | The station's second cycle: AUDIT-CDH-0011's S1–S9 and the tray's T1 applied under Michou's ruling of 2026-10-14 00:41 (blocking findings taken by default). Done 2026-10-14 01:45, PASS (AUDIT-CDH-0012); commit `dd90ca6`; CW19, CW20 advisory/cosmetic. | [Station cycle 2](2026-10-14-station-fix-cycle.md) |
+| CDH-0013 | Codex, GPT-6 Astra (read-only review) | Re-review of the station's second cycle and T1 at `dd90ca6`. Proposed; **`ready` in the Codex queue** since 2026-10-14 01:45. | [Station cycle review](2026-10-14-station-cycle-review.md) |
 
 Both handoffs were explicitly adopted by Michou on 2026-10-09: "theyre good to go i just want to plug and play codex to start working and then just say the word to cowork to read the folder and move forward given the brief". Their files now carry `from: michou` and `status: open`. Codex mechanically recorded Michou's adoption; it did not adopt its own proposal. This approval covers the written local implementation and verification plans, including the scoped board 10 edits. It does not grant final canvas approval.
+
+## Status 2026-10-14 01:45
+
+**CDH-0012 (Cowork) done 01:45, PASS** (AUDIT-CDH-0012, commit `dd90ca6`): the station's second cycle under the new rule — S1 one textual snapshot behind the HUD, the chips, the pane and the wall (the wall now under the HUD; the hull as text; the fixtures' last events persist), S2 the lifecycle as written, S3 only the canvas and the crew are decorative, S4 rows keyed by run (focus survives refreshes), S5 focused muted lines 5.14:1, S6 no remote font, S7 one quiet threshold (the median gap with a three-minute floor — not three times the median, which contradicted board 3's own sample), S8 reduced motion observed live, S9 fresh labelled captures; T1 the tray's cascade. CW15's cause found (a hidden tab's first frame jumped the replay) and capped. Review copy version 26, KGME Station version 4. **CDH-0013 is `ready`** in the Codex queue below. `origin/design` is behind until Michou pushes.
 
 ## Status 2026-10-14 00:55
 
@@ -63,7 +67,7 @@ Michou starts Codex with one fixed prompt, every time: `tools/review/codex-queue
 | 1 | CDH-0005 | Board 10 native cast, commit `a27d2f2` (CDH-0003 + CDH-0006) | done 2026-10-12 | [Design review](2026-10-11-chibi-design-review.md) |
 | 2 | CDH-0008 | The active-runs tray (CDH-0007), commit `5182d6a`, boards 1, 3, 4, 5, 6, 7, 9 and 11; captures under `logs/scratch/design-review/cdh-0007/` | done 2026-10-13 | [Tray review](2026-10-12-tray-design-review.md) |
 | 3 | CDH-0011 | The station (CDH-0009, `373de74`) and the tray's second cycle (CDH-0010, `4f3e06c`, AUDIT-CDH-0010); captures under `logs/scratch/design-review/cdh-0009/` and `cdh-0010/` | done 2026-10-14 | [Station and tray review](2026-10-13-station-and-tray-review.md) |
-| 4 | CDH-0013 | The station's second cycle and the tray's T1 (CDH-0012, sha from its report); captures under `logs/scratch/design-review/cdh-0012/` | waiting on CDH-0012 | [Station cycle review](2026-10-14-station-cycle-review.md) |
+| 4 | CDH-0013 | The station's second cycle and the tray's T1 (CDH-0012, `dd90ca6`, AUDIT-CDH-0012); captures under `logs/scratch/design-review/cdh-0012/` | ready 2026-10-14 01:45 | [Station cycle review](2026-10-14-station-cycle-review.md) |
 
 ## Start here
 

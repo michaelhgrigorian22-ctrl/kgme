@@ -5,9 +5,10 @@ created: 2026-10-14T00:50:00-07:00
 from: michou
 to: cowork
 tier: 2
-status: open
+status: done
 adopted_by: michou
 adopted: 2026-10-14T00:41:00-07:00
+completed: 2026-10-14T01:45:00-07:00
 rulings: "commit and keep working (Michou, 2026-10-14 00:41): blocking findings are taken by default; S7's threshold is Cowork's default pick until Michou says otherwise"
 depends_on: [CDH-0011]
 design_track: HANDOFF-0036
@@ -27,7 +28,7 @@ AUDIT-CDH-0011 (Codex, 2026-10-14 00:23) returned `BLOCK: 6 blocking findings` o
 4. **S4 [take].** Pane and wall rows are keyed by run (and room) and updated in place; nothing focused is removed on a refresh. The painted `.focus` is the drawing's default on the first row only while no row has real focus; a really focused row shows the same treatment.
 5. **S5 [take].** Every muted descendant of a focused station row reads `#7a8d9b` (5.14:1): the run id, the second line, the quiet suffix, the `—` chip.
 6. **S6 [take].** The three Google Fonts tags go; the font stack falls back to the system monospace. The page loads the pinned three.js package and the repository's files, nothing else; the README says so and the network list is checked.
-7. **S7 [take, Cowork's default].** One quiet threshold in both anatomy copies, the station README and the code: three times the run's median gap between intents, never under three minutes; with fewer than two intents, three minutes. Michou may change it.
+7. **S7 [take, Cowork's default].** One quiet threshold in both anatomy copies, the station README and the code: the run's median gap between intents, never under three minutes; with fewer than two intents, three minutes. (First written here as three times the median; changed during the cycle because that contradicts board 3's own drawn sample, see AUDIT-CDH-0012.) Michou may change it.
 8. **S8 [take].** The reduced-motion preference is observed live (bloom pass added or removed, walks and camera snap); calm skips the walks and the camera as well as the two renders.
 9. **S9 [take].** Fresh standalone captures from the committed source with the served sha, wrapper and viewport recorded; the two earlier captures are labelled historical and their differences explained.
 10. **T1 [take].** The tray's button reset drops to zero specificity (`:where`), the focused-row colour override moves after the base rule and covers the quiet suffix and the muted chip; the focus tint survives hover. Remeasure the focused pairs.
