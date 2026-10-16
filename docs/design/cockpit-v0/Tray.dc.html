@@ -19,8 +19,11 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .tr-chip{display:inline-block;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:0 6px;border:1px solid currentColor;line-height:15px;border-radius:1px;white-space:nowrap}
 .tr-ok{color:#4de38a}.tr-block{color:#ff3d7f}.tr-amber{color:#ffb02e}.tr-muted{color:#6f8290}.tr-live{color:#39d0ff}.tr-text{color:#cfe6ef}
 .tr-root :where(button){font:inherit;font-family:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;text-align:left}
+/* CDH-0014: the count's status region (ux-guidelines 118), visually hidden, one atomic sentence; the pane's close button at 24 px (row 104) */
+.tr-vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+.tr-head button{min-height:24px;display:inline-flex;align-items:center;padding:0 2px}
 .tr-root button:focus-visible{outline:2px solid #39d0ff;outline-offset:2px}
-.tr-col{display:flex;flex-direction:column;gap:2px}
+.tr-col{position:relative;display:flex;flex-direction:column;gap:2px}
 .tr-bar{display:flex;align-items:center;gap:10px;min-height:24px}
 .tr-open{display:flex;align-items:center;gap:10px;border-radius:2px}
 .tr-stack{display:flex;align-items:center}
@@ -801,6 +804,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 <sc-if value="{{isBar}}" hint-placeholder-val="{{ false }}">
 <div class="tr-col">
   <span class="tr-lbl">active runs · <span class="tr-kbd">a</span></span>
+  <span class="tr-vh" role="status" aria-atomic="true">active runs: {{summary}}</span>
   <div class="tr-bar {{staleCls}}">
     <button type="button" class="tr-open" aria-label="open the active runs pane, key a">
       <span class="tr-stack">
@@ -880,7 +884,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
         <span>waiting</span><span>the newest event is an intent with no outcome (what <span class="tr-kbd">o</span> lists): a tool call still running, in Phase 2 an approval. Portrait: waiting. Amber word.</span>
         <span>transient</span><span>the newest outcome is class transient; a retry is scheduled. Portrait: transient. Amber word, amber chip. An exhausted retry that names a time (<b>retry after 23:06</b>) stays transient: the run is parked, not halted, so the word is transient while the event's own chip keeps its class, as the review sample shows.</span>
         <span>blocked</span><span>the newest outcome or note is class blocking and the run has not moved since: a halt, a refusal that stopped it. Portrait: blocked. Magenta word, magenta chip, and the frame floods as on board 4.</span>
-        <span>quiet</span><span>a working run with no event for longer than its median gap between intents, and never less than three minutes (with fewer than two intents, three minutes); the station's code is the reference. The word stays <b>working</b>; <b>quiet 4m</b> follows it in muted text; the portrait waits. The bar counts it inside working: <b>2 working (1 quiet)</b>.</span>
+        <span>quiet</span><span>a working run with no event for longer than its median gap between intents (the ordinary median: the mean of the two middle gaps when their count is even), and never less than three minutes (with fewer than two intents, three minutes); the station's code is the reference. The word stays <b>working</b>; <b>quiet 4m</b> follows it in muted text; the portrait waits. The bar counts it inside working: <b>2 working (1 quiet)</b>.</span>
         <span>idle</span><span>no open run: the bar reads <b>idle</b> in muted text and shows no portrait; the pane says when the last run closed.</span>
         <span>stale</span><span>server unreachable (board 6): the last known state, the whole slot greyed with the page, and <b>stale · … · as of 19:52:14</b> in text.</span>
         <span>rule</span><span>every fact in the tray is a word or a number; the portraits mirror the words and never add one. Calm hides every portrait and leaves the words. Reduced motion changes nothing here: the tray adds no animation of its own, only board 10's selected detail animates. A shell (Codex, Claude Code, a terminal worker) is an actor like any other; <code>kgme.toml [sprites]</code> decides its face, the stranger until it is given one. Read-only: nothing in the tray dispatches, approves or chooses a model (Phase 2, board 8).</span>
@@ -945,7 +949,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
         <span>waiting</span><span>the newest event is an intent with no outcome (what <span class="tr-kbd">o</span> lists): a tool call still running, in Phase 2 an approval. Portrait: waiting. Amber word.</span>
         <span>transient</span><span>the newest outcome is class transient; a retry is scheduled. Portrait: transient. Amber word, amber chip. An exhausted retry that names a time (<b>retry after 23:06</b>) stays transient: the run is parked, not halted, so the word is transient while the event's own chip keeps its class, as the review sample shows.</span>
         <span>blocked</span><span>the newest outcome or note is class blocking and the run has not moved since: a halt, a refusal that stopped it. Portrait: blocked. Magenta word, magenta chip, and the frame floods as on board 4.</span>
-        <span>quiet</span><span>a working run with no event for longer than its median gap between intents, and never less than three minutes (with fewer than two intents, three minutes); the station's code is the reference. The word stays <b>working</b>; <b>quiet 4m</b> follows it in muted text; the portrait waits. The bar counts it inside working: <b>2 working (1 quiet)</b>.</span>
+        <span>quiet</span><span>a working run with no event for longer than its median gap between intents (the ordinary median: the mean of the two middle gaps when their count is even), and never less than three minutes (with fewer than two intents, three minutes); the station's code is the reference. The word stays <b>working</b>; <b>quiet 4m</b> follows it in muted text; the portrait waits. The bar counts it inside working: <b>2 working (1 quiet)</b>.</span>
         <span>idle</span><span>no open run: the bar reads <b>idle</b> in muted text and shows no portrait; the pane says when the last run closed.</span>
         <span>stale</span><span>server unreachable (board 6): the last known state, the whole slot greyed with the page, and <b>stale · … · as of 19:52:14</b> in text.</span>
         <span>rule</span><span>every fact in the tray is a word or a number; the portraits mirror the words and never add one. Calm hides every portrait and leaves the words. Reduced motion changes nothing here: the tray adds no animation of its own, only board 10's selected detail animates. A shell (Codex, Claude Code, a terminal worker) is an actor like any other; <code>kgme.toml [sprites]</code> decides its face, the stranger until it is given one. Read-only: nothing in the tray dispatches, approves or chooses a model (Phase 2, board 8).</span>

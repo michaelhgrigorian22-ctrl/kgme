@@ -69,9 +69,10 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--cyan);outl
 .bubble .t{color:var(--dim);margin-right:6px}
 .bubble .chip{margin-left:6px;vertical-align:1px}
 /* the followed room's runs, on the right */
-.pane{position:fixed;right:36px;top:118px;width:360px;max-width:calc(100vw - 72px);max-height:calc(100vh - 220px);overflow:auto;z-index:6;background:rgba(17,21,28,.92);border:1px solid var(--rule);padding:10px 12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.pane{position:fixed;right:36px;top:var(--hudtop,130px);width:360px;max-width:calc(100vw - 72px);max-height:calc(100vh - 220px);overflow:auto;z-index:6;background:rgba(17,21,28,.92);border:1px solid var(--rule);padding:10px 12px;display:flex;flex-direction:column;gap:6px;min-width:0}
 .pane[hidden]{display:none}
-.pane .head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.pane .head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.pane .head button{min-height:24px;display:inline-flex;align-items:center;padding:0 2px}
 .row{display:grid;grid-template-columns:24px minmax(0,1fr) auto;grid-template-rows:auto auto;gap:1px 8px;align-items:center;padding:5px 6px;border-top:1px solid #141b22;text-align:left;width:100%}
 .row .chibi{grid-row:1/3}
 .row .l1{display:flex;gap:8px;min-width:0;font-size:11px;white-space:nowrap;overflow:hidden}
@@ -85,6 +86,10 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--cyan);outl
 /* AUDIT-CDH-0011 S5: every muted descendant of a focused row, painted or really focused, reads #7a8d9b on #0e1a22 */
 .row.focus .run,.row.focus .l2,.row.focus .life .q,.row.focus .c-none,.row:focus-visible .run,.row:focus-visible .l2,.row:focus-visible .life .q,.row:focus-visible .c-none{color:var(--muted)}
 #hull{white-space:normal;max-width:64ch}
+/* CDH-0014: the count's status region (ux-guidelines 118) is visually hidden; the pane sits under the measured HUD (row 100); every button is 24 px tall (row 104) */
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+.ctl{min-height:24px;display:inline-flex;align-items:center;gap:6px;padding:0 8px;border:1px solid var(--rule);border-radius:2px;color:var(--text);font-size:11px}
+.ctl[aria-pressed="true"]{border-color:var(--amber);color:var(--amber)}
 .hull-halt{color:var(--magenta);font-weight:700}
 .empty{font-size:11px;color:var(--dim)}
 /* the wall: what c drops to */
@@ -102,7 +107,7 @@ body.calm .scan,body.calm .vig,body.calm .frame,body.calm .micro,body.calm #stag
 body.calm .hud{background:var(--ground)}
 body.calm .chibi{visibility:hidden}
 @media (prefers-reduced-motion:reduce){.blink{animation:none}.scan{display:none}.bubble{transition:none}.frame{transition:none}}
-@media (max-width:720px){.hud{padding-inline:16px}.hud.top .val{font-size:12px;white-space:normal}.clock{font-size:18px}.micro{display:none}.pane{right:16px;left:16px;width:auto;top:auto;bottom:70px;max-height:40vh}#wall{padding-inline:16px}}
+@media (max-width:720px){.hud{padding-inline:16px}.hud.top .val{font-size:12px;white-space:normal}.clock{font-size:18px}.micro{display:none}.pane{right:16px;left:16px;width:auto;top:auto;bottom:var(--hudbottom,70px);max-height:40vh}#wall{padding-inline:16px}}
 /* --- board 10's chibi stylesheet, verbatim (Sprites.dc.html), so the cast renders here exactly as there --- */
 /* Only the SVG body is copied into each symbol. Root paint and material roles
    are preserved here, so every use inherits its own palette and mode. */
@@ -183,7 +188,12 @@ body.calm .chibi{visibility:hidden}
   <div class="col"><span class="lbl">hull</span><span class="val" id="hull"><span style="color:var(--dim)">nominal</span></span></div>
   <div class="col">
     <span class="lbl">active runs · <span class="kbd">a</span></span>
+    <span class="vh" id="traystatus" role="status" aria-atomic="true">active runs: idle</span>
     <button type="button" class="tr-open" id="trayopen" aria-label="open the active runs pane"><span class="tr-stack" id="traystack" aria-hidden="true"></span><span class="tr-sum" id="traysum">idle</span></button>
+  </div>
+  <div class="col">
+    <span class="lbl">replay · <span class="kbd">p</span></span>
+    <button type="button" class="ctl" id="pause" aria-pressed="false" aria-label="pause the replay, key p">pause</button>
   </div>
   <div style="flex:1 1 40px"></div>
   <div class="col"><span class="lbl">following</span><span class="val" id="following">the whole deck <span style="color:var(--dim)">· 1–7 pick a room · Esc back</span></span></div>
@@ -209,8 +219,9 @@ body.calm .chibi{visibility:hidden}
   <span><span class="kbd">Esc</span> whole deck</span>
   <span><span class="kbd">a</span> runs</span>
   <span><span class="kbd">c</span> calm → wall</span>
+  <span><span class="kbd">p</span> pause</span>
   <span><span class="kbd">r</span> restart replay</span>
-  <span style="margin-left:auto">the station is decoration over the ledger · nothing here launches a process</span>
+  <span style="margin-left:auto">keys act only while focus is on the station, never in a text field · the station is decoration over the ledger · nothing here launches a process</span>
 </footer>
 
 <svg id="symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" style="position:absolute;width:0;height:0;overflow:hidden"><defs></defs></svg>
@@ -311,7 +322,8 @@ function lifecycle(run, now) {
   const intents = ops.filter(e => e.kind === 'intent'), gaps = [];
   for (let i = 1; i < intents.length; i++) gaps.push(Date.parse(intents[i].ts) - Date.parse(intents[i - 1].ts));
   gaps.sort((a, b) => a - b);
-  const limit = gaps.length ? Math.max(gaps[Math.floor(gaps.length / 2)], QUIET_FLOOR) : QUIET_FLOOR;
+  const n = gaps.length, median = n ? (n % 2 ? gaps[(n - 1) / 2] : (gaps[n / 2 - 1] + gaps[n / 2]) / 2) : 0;   // the ordinary median (AUDIT-CDH-0013 F3)
+  const limit = n ? Math.max(median, QUIET_FLOOR) : QUIET_FLOOR;
   return { word: 'working', quiet: sinceNewest > limit ? `quiet ${Math.max(1, Math.floor(sinceNewest / 60000))}m` : '' };
 }
 function runClosed(run) {
@@ -398,8 +410,16 @@ function setMotion(r) { reduced = r; if (reduced) composer.removePass(bloom); el
 rmq.addEventListener('change', e => setMotion(e.matches));
 setMotion(rmq.matches);
 
+function layoutHud() {
+  const top = document.querySelector('.hud.top').offsetHeight, bottom = document.querySelector('.hud.bottom').offsetHeight;
+  if (top === layoutHud.top && bottom === layoutHud.bottom) return;
+  layoutHud.top = top; layoutHud.bottom = bottom;
+  document.documentElement.style.setProperty('--hudtop', (top + 12) + 'px'); document.documentElement.style.setProperty('--hudbottom', (bottom + 8) + 'px');
+}
 function resize() {
+  layoutHud();
   const w = stage.clientWidth, h = stage.clientHeight, aspect = w / h, half = 8.2;
+  if (!w || !h) return;   // AUDIT-CDH-0013 F2: the stage is hidden under calm; sizing it now would write NaN bounds
   camera.left = -half * aspect; camera.right = half * aspect; camera.top = half; camera.bottom = -half; camera.updateProjectionMatrix();
   renderer.setSize(w, h, false); composer.setSize(w, h); labels.setSize(w, h); bloom.setSize(w, h);
 }
@@ -432,7 +452,7 @@ function placeRun(run) {
   const svg = chibi(run.actor, 'working', false); el.appendChild(svg);
   const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = run.mapping; el.appendChild(tag);
   const bub = document.createElement('div'); bub.className = 'bubble'; el.appendChild(bub);
-  const obj = new CSS2DObject(anchor(el, true)); scene.add(obj);   // S3: the crew is decoration; its facts are in the rows
+  const obj = new CSS2DObject(anchor(el)); scene.add(obj);   // AUDIT-CDH-0013 F6: the portrait is decorative (aria-hidden on the svg); the tag and the bubble are text
   run.el = el; run.svg = svg; run.bubble = bub; run.obj = obj;
   run.from = new THREE.Vector3(DOCK_GATE[0], 0, DOCK_GATE[1]); run.to = new THREE.Vector3(sx, 0, sz); run.walk0 = performance.now();
   obj.position.copy(reduced ? run.to : run.from);
@@ -457,7 +477,7 @@ function fixture(actor, room, mode) {
   const svg = chibi(actor, mode, false); el.appendChild(svg);
   const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = actor === 'michou' ? 'you' : 'kgme.guard'; el.appendChild(tag);
   const bub = document.createElement('div'); bub.className = 'bubble'; el.appendChild(bub);
-  const obj = new CSS2DObject(anchor(el, true)); obj.position.set(sx, 0, sz); scene.add(obj);
+  const obj = new CSS2DObject(anchor(el)); obj.position.set(sx, 0, sz); scene.add(obj);
   fixtures[actor] = { el, svg, bubble: bub, obj, mode, until: 0, last: null };
 }
 
@@ -486,7 +506,7 @@ function fixtureSpeaks(f, e, chip) {
 }
 let arbiter = null;
 function arbiterSpeaks(e) {
-  if (!arbiter) { const o = roomObjs.review; const [sx, sz] = o.r.seats[2]; const el = document.createElement('div'); el.className = 'crew'; const svg = chibi('arbiter', 'working', false); el.appendChild(svg); const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = 'arbiter.*'; el.appendChild(tag); const bub = document.createElement('div'); bub.className = 'bubble'; el.appendChild(bub); const obj = new CSS2DObject(anchor(el, true)); obj.position.set(sx, 0, sz); scene.add(obj); arbiter = { el, svg, bubble: bub, obj, last: null }; }
+  if (!arbiter) { const o = roomObjs.review; const [sx, sz] = o.r.seats[2]; const el = document.createElement('div'); el.className = 'crew'; const svg = chibi('arbiter', 'working', false); el.appendChild(svg); const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = 'arbiter.*'; el.appendChild(tag); const bub = document.createElement('div'); bub.className = 'bubble'; el.appendChild(bub); const obj = new CSS2DObject(anchor(el)); obj.position.set(sx, 0, sz); scene.add(obj); arbiter = { el, svg, bubble: bub, obj, last: null }; }
   arbiter.last = e;
   arbiter.bubble.innerHTML = `<span class="t">${fmtClock(Date.parse(e.ts))}</span>${esc(e.summary)}<span class="chip c-none">note</span>`; arbiter.bubble.classList.add('show'); arbiter.bubbleUntil = performance.now() + 9000; arbiter.until = performance.now() + 12000;
 }
@@ -516,10 +536,15 @@ function liveRuns(now) {
   return out;
 }
 function isHalt(e) { return e.kind === 'note' && e.class === 'blocking' && (e.key || '').startsWith('halt:'); }
+function activeHalt(run) {   // AUDIT-CDH-0013 F1: the same rule as lifecycle(): a halt note governs until an intent, outcome or approval follows it; later bookkeeping notes do not clear it
+  const ev = run.events;
+  for (let i = ev.length - 1; i >= 0; i--) { const k = ev[i].kind; if (k === 'intent' || k === 'outcome' || k === 'approval') return null; if (isHalt(ev[i])) return ev[i]; }
+  return null;
+}
 function snapshot(now) {
   // Every fact the deck shows, as text. The chips, the pane, the wall and the lights all read this; nothing reads the scene.
   const live = liveRuns(now);
-  const halt = live.map(x => x.run.events[x.run.events.length - 1]).find(isHalt) || null;
+  const halt = live.map(x => activeHalt(x.run)).find(Boolean) || null;
   const rooms = ROOMS.map(r => {
     const here = live.filter(x => x.run.room === r.id), lines = [];
     let state;
@@ -545,6 +570,8 @@ function renderWords(now) {
   const stack = document.getElementById('traystack'); stack.replaceChildren();
   for (const { run, word, quiet } of live) stack.appendChild(chibi(run.actor, quiet ? 'waiting' : word, true));
   document.getElementById('traysum').textContent = snap.summary;
+  const statusText = 'active runs: ' + snap.summary, statusEl = document.getElementById('traystatus'); if (statusEl.textContent !== statusText) statusEl.textContent = statusText;
+  layoutHud();
   document.getElementById('wallsum').textContent = snap.summary;
   const hullHtml = snap.halt ? `<span class="hull-halt">${esc(snap.hullText)}</span>` : `<span style="color:var(--dim)">nominal</span>`;
   document.getElementById('hull').innerHTML = hullHtml; document.getElementById('wallhull').innerHTML = hullHtml;
@@ -586,7 +613,8 @@ function updateRow(b, x, now) {
   const el = b.querySelector('.el'), elText = elapsed(now - x.run.first); if (el.textContent !== elText) el.textContent = elText;
   const ev = b.querySelector('.ev'); if (ev.textContent !== e.summary) ev.textContent = e.summary;
   const c = b.querySelector('.chip'); if (c.textContent !== chip) c.textContent = chip; c.className = `chip ${cls}`;
-  const label = `${x.run.mapping} ${shortRun(x.run.id)}, ${x.word}${x.quiet ? ', ' + x.quiet : ''}: ${e.summary}`;
+  // AUDIT-CDH-0013 F6: the name carries every visible fact, with separators the inline spans would not give it
+  const label = `${x.run.mapping} ${shortRun(x.run.id)}, ${x.word}${x.quiet ? ', ' + x.quiet : ''}, ${elText}, ${e.summary}, ${chip}`;
   if (b.getAttribute('aria-label') !== label) b.setAttribute('aria-label', label);
 }
 function syncRows(container, list, now, paint, emptyText) {
@@ -633,31 +661,34 @@ function renderWall(snap) {
 function setCalm(on) {
   document.body.classList.toggle('calm', on);
   const wall = document.getElementById('wall'); wall.hidden = !on;
-  if (on) {
-    wall.style.setProperty('--hudtop', (document.querySelector('.hud.top').offsetHeight + 12) + 'px');
-    wall.style.setProperty('--hudbottom', (document.querySelector('.hud.bottom').offsetHeight + 8) + 'px');
-    renderWords(clock);
-  }
+  if (on) renderWords(clock); else resize();   // F2: the stage is shown again; size it before the next frame
 }
 
 // ---------------------------------------------------------------- keys (page-local, a drawing of the cockpit's)
 addEventListener('keydown', e => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.target && e.target.closest && e.target.closest('input,textarea,select,[contenteditable]')) return;   // WCAG 2.1.4: single-character keys never act in a text field
   if (e.key >= '1' && e.key <= '7') { follow(ROOMS[+e.key - 1].id); }
   else if (e.key === 'Escape') { if (paneOpen) { paneOpen = false; renderPane(); } else unfollow(); }
   else if (e.key === 'a') { paneOpen = !paneOpen; following = null; setFollowing(); }
   else if (e.key === 'c') { setCalm(!document.body.classList.contains('calm')); }
   else if (e.key === 'r') { resetReplay(); }
+  else if (e.key === 'p') { setPaused(!paused); }
 });
+document.getElementById('pause').addEventListener('click', () => setPaused(!paused));
 document.getElementById('trayopen').addEventListener('click', () => { paneOpen = !paneOpen; following = null; setFollowing(); });
 document.getElementById('paneclose').addEventListener('click', () => { paneOpen = false; following = null; setFollowing(); });
 
 // ---------------------------------------------------------------- the loop
-let now0 = performance.now();
+let now0 = performance.now(), paused = false;
+function setPaused(on) {   // CDH-0014: auto-rotation-controls (ux-guidelines 108); the toggle keeps one name and reports its state
+  paused = on; const b = document.getElementById('pause'); b.textContent = on ? 'play' : 'pause'; b.setAttribute('aria-pressed', String(on));
+  document.getElementById('microright').dataset.paused = on ? '1' : '';
+}
 function frame(t) {
   requestAnimationFrame(frame);
   now0 = t;
-  const dt = Math.min(t - lastReal, 1000); lastReal = t;   // a backgrounded tab pauses rAF; its first frame back must not jump the replay past its end (CW15's cause)
+  const dt = paused ? 0 : Math.min(t - lastReal, 1000); lastReal = t;   // a backgrounded tab pauses rAF; its first frame back must not jump the replay past its end (CW15's cause)
   clock += dt * SPEED;
   if (clock > loopEnd) { resetReplay(); loops += 1; }
   while (cursor < events.length && Date.parse(events[cursor].ts) <= clock) apply(events[cursor++]);
@@ -689,6 +720,7 @@ function frame(t) {
   const stamps = events.map(e => Date.parse(e.ts)).filter(Number.isFinite);
   lastTs = stamps.length ? Math.max(...stamps) : T0 + 15 * 60 * 1000; loopEnd = lastTs + LOOP_TAIL;
   document.getElementById('microright').textContent = `replay of ${events.length} ledger samples · 2026-10-08 ${fmtClock(START)} → ${fmtClock(lastTs)} · ×${SPEED} · loops`;
+  if (reduced) setPaused(true);   // CDH-0014: moving content stops when reduced motion is requested; p or the control resumes it
   lastReal = performance.now(); requestAnimationFrame(frame);
 })().catch(err => { document.getElementById('traysum').textContent = 'the cast or the ledger did not load: ' + err.message; console.error(err); });
 </script>
