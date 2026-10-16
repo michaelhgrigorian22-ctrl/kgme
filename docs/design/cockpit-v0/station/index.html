@@ -63,8 +63,9 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--cyan);outl
 .crew{position:relative;width:72px;height:72px;transform:translate(-50%,-92%) scale(var(--z));transform-origin:50% 92%;display:grid;place-items:end center}
 .crew .chibi{width:72px;height:72px;filter:drop-shadow(0 6px 4px rgba(0,0,0,.55))}
 .crew .tag{position:absolute;left:50%;top:100%;transform:translate(-50%,2px);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);white-space:nowrap}
-.bubble{position:absolute;left:50%;bottom:calc(100% + 6px);transform:translateX(-50%);max-width:280px;min-width:120px;background:var(--surface);border:1px solid var(--rule);padding:5px 8px;font-size:10px;line-height:1.35;color:var(--text);white-space:normal;text-align:left;opacity:0;transition:opacity .25s}
-.bubble::after{content:"";position:absolute;left:50%;top:100%;width:6px;height:6px;background:var(--surface);border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);transform:translate(-50%,-3px) rotate(45deg)}
+/* CDH-0017 CW16: a bubble hangs below its crew member's tag, never above it, so it cannot cover a room's chip (chips sit above the back wall; bubbles fall toward the floor) */
+.bubble{position:absolute;left:50%;top:calc(100% + 16px);transform:translateX(-50%);max-width:260px;min-width:120px;background:var(--surface);border:1px solid var(--rule);padding:5px 8px;font-size:10px;line-height:1.35;color:var(--text);white-space:normal;text-align:left;opacity:0;transition:opacity .25s}
+.bubble::after{content:"";position:absolute;left:50%;top:0;width:6px;height:6px;background:var(--surface);border-left:1px solid var(--rule);border-top:1px solid var(--rule);transform:translate(-50%,-4px) rotate(45deg)}
 .bubble.show{opacity:1}
 .bubble .t{color:var(--dim);margin-right:6px}
 .bubble .chip{margin-left:6px;vertical-align:1px}
@@ -95,7 +96,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--cyan);outl
 /* the wall: what c drops to */
 #wall{position:fixed;inset:0;z-index:5;background:var(--ground);padding:var(--hudtop,130px) 36px var(--hudbottom,70px);overflow:auto;display:flex;flex-direction:column;gap:14px}
 #wall[hidden]{display:none}
-#wall .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+#wall .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:14px}
 #wall .room{background:var(--surface);border:1px solid var(--rule);padding:12px;display:flex;flex-direction:column;gap:6px;min-width:0}
 #wall .room h2{margin:0;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);font-weight:500;display:flex;justify-content:space-between;gap:10px}
 #wall .room h2 span{color:var(--dim);letter-spacing:.08em}
@@ -342,7 +343,8 @@ const labels = new CSS2DRenderer({ element: document.getElementById('labels') })
 const scene = new THREE.Scene(); scene.background = new THREE.Color('#0a0c10');
 const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 200);
 const CAM = new THREE.Vector3(14, 11.5, 14);
-let target = new THREE.Vector3(0.5, 0, 0), zoom = 1, wantZoom = 1, wantTarget = target.clone();
+const HOME = new THREE.Vector3(-0.8, 0, -1.4);   // CDH-0017: the deck's default framing, chosen so the top rooms' chips clear the HUD at 1440
+let target = HOME.clone(), zoom = 1, wantZoom = 1, wantTarget = target.clone();
 camera.position.copy(target).add(CAM); camera.lookAt(target);
 
 const matFloor = new THREE.MeshStandardMaterial({ color: '#161d26', roughness: .9, metalness: .05 });
@@ -434,7 +436,7 @@ gl.addEventListener('pointerup', () => { drag = null; });
 gl.addEventListener('wheel', e => { e.preventDefault(); wantZoom = Math.min(3, Math.max(.6, wantZoom * (e.deltaY > 0 ? .9 : 1.1))); }, { passive: false });
 let following = null;
 function follow(id) { const o = roomObjs[id]; if (!o) return; following = id; wantTarget.set(o.cx, 0, o.cz); wantZoom = 1.9; setFollowing(); }
-function unfollow() { following = null; wantTarget.set(0.5, 0, 0); wantZoom = 1; setFollowing(); }
+function unfollow() { following = null; wantTarget.copy(HOME); wantZoom = 1; setFollowing(); }
 function setFollowing() {
   for (const o of Object.values(roomObjs)) o.chipEl.classList.toggle('on', o.r.id === following);
   const f = document.getElementById('following');
@@ -562,7 +564,7 @@ function snapshot(now) {
     if (r.id === 'review' && arbiter && arbiter.last) { lines.push({ ts: arbiter.last.ts, text: arbiter.last.summary, chip: ['ruling', 'c-none'] }); state += ` · ruled ${fmtClock(Date.parse(arbiter.last.ts))}`; }
     return { r, here, state, cls: worst(here), lines };
   });
-  return { now, live, rooms, summary: summarize(live), halt, hullText: halt ? `HALT · ${halt.summary}` : 'nominal' };
+  return { now, live, rooms, summary: summarize(live), halt, hullText: halt ? `HALT · ${halt.key}` : 'nominal', hullLong: halt ? `HALT · ${halt.summary}` : 'nominal' };   // CDH-0017 CW19: the HUD shows the key, the wall the sentence
 }
 function renderWords(now) {
   const snap = snapshot(now);
@@ -574,7 +576,8 @@ function renderWords(now) {
   layoutHud();
   document.getElementById('wallsum').textContent = snap.summary;
   const hullHtml = snap.halt ? `<span class="hull-halt">${esc(snap.hullText)}</span>` : `<span style="color:var(--dim)">nominal</span>`;
-  document.getElementById('hull').innerHTML = hullHtml; document.getElementById('wallhull').innerHTML = hullHtml;
+  const hullLongHtml = snap.halt ? `<span class="hull-halt">${esc(snap.hullLong)}</span>` : `<span style="color:var(--dim)">nominal</span>`;
+  document.getElementById('hull').innerHTML = hullHtml; document.getElementById('wallhull').innerHTML = hullLongHtml;
   document.getElementById('nev').textContent = String(cursor);
   document.getElementById('nrun').textContent = String(runs.size);
   document.getElementById('nloop').textContent = String(loops);

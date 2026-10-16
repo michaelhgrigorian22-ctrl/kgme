@@ -32,6 +32,9 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .row:hover{background:#0f141b}
 .grp{display:flex;gap:12px;align-items:baseline;padding:8px 10px 4px;border-bottom:1px solid #1e2a33;color:#39d0ff;font-size:11px}
 .focus{outline:1px solid #39d0ff;outline-offset:-1px;background:#0e1a22}
+.mut{color:#6f8290}
+/* CDH-0017 CW17: the focused row's muted lines read #7a8d9b on the focus tint (5.14:1 on #0e1a22, 5.41:1 on #1c0f16, 5.28:1 on #1a150c) */
+.focus .mut{color:#7a8d9b}
 .kbd{display:inline-block;min-width:16px;padding:0 5px;border:1px solid #39d0ff;color:#39d0ff;font-size:10px;line-height:16px;text-align:center;border-radius:2px}
 .seg{display:flex;gap:2px}.seg i{display:block;width:7px;height:12px;background:#1e2a33}.seg i.on{background:#39d0ff}.seg i.warn{background:#ffb02e}
 .cell{width:11px;height:11px;background:#141b22}
@@ -63,7 +66,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 <header style="position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:12px 22px;align-items:flex-end;padding:30px 36px 10px">
   <div style="display:flex;flex-direction:column;gap:2px">
     <span class="lbl">clock</span>
-    <span style="font-size:22px;font-weight:700;letter-spacing:.04em;color:#cfe6ef">19:52:14<span style="color:#6f8290;font-size:12px;font-weight:400"> −07:00</span></span>
+    <span style="font-size:22px;font-weight:700;letter-spacing:.04em;color:#cfe6ef">19:52:14<span class="mut" style="font-size:12px;font-weight:400"> −07:00</span></span>
   </div>
   <div style="display:flex;flex-direction:column;gap:2px">
     <span class="lbl">ledger</span>
@@ -71,15 +74,15 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   </div>
   <div style="display:flex;flex-direction:column;gap:2px">
     <span class="lbl">session</span>
-    <span style="font-size:14px">c70d687b…8447 <span style="color:#6f8290">claude-code</span></span>
+    <span style="font-size:14px">c70d687b…8447 <span class="mut">claude-code</span></span>
   </div>
   <div style="display:flex;flex-direction:column;gap:2px">
     <span class="lbl">hook latency</span>
-    <span style="font-size:14px">44 ms <span style="color:#6f8290">p50</span> · 61 ms <span style="color:#6f8290">p95</span></span>
+    <span style="font-size:14px">44 ms <span class="mut">p50</span> · 61 ms <span class="mut">p95</span></span>
   </div>
   <div style="display:flex;flex-direction:column;gap:2px">
     <span class="lbl">harnesses</span>
-    <span style="font-size:14px">claude 2.1.111 · codex 0.154.0 <span style="color:#6f8290">· arbiter claude-opus-5-5</span></span>
+    <span style="font-size:14px">claude 2.1.111 · codex 0.154.0 <span class="mut">· arbiter claude-opus-5-5</span></span>
   </div>
   <dc-import name="Tray" view="bar" runs="{{trayRuns}}" calm="{{calm}}" hint-size="300px,38px"></dc-import>
   <div style="flex:1 1 40px"></div>
@@ -112,17 +115,17 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
         <div style="width:34px;height:22px;border:1px solid #39d0ff;background:#39d0ff;opacity:.9"></div>
         <div style="width:34px;height:22px;border:1px dashed #39d0ff"></div>
         <div style="width:34px;height:22px;border:1px dashed #39d0ff"></div>
-        <span style="margin-left:6px;font-size:11px">cycle 1 <span style="color:#6f8290">· 0 blocking</span></span>
+        <span style="margin-left:6px;font-size:11px">cycle 1 <span class="mut">· 0 blocking</span></span>
       </div>
     </section>
 
     <section class="pnl brk" style="padding:12px">
       <div class="lbl" style="margin-bottom:8px">filters</div>
       <div style="display:flex;flex-wrap:wrap;gap:6px">
-        <button type="button" style="font:inherit;font-size:10px;background:#0e1a22;color:#39d0ff;border:1px solid #39d0ff;padding:2px 8px;cursor:pointer">run <span class="kbd">r</span></button>
-        <button type="button" style="font:inherit;font-size:10px;background:transparent;color:#cfe6ef;border:1px solid #1e2a33;padding:2px 8px;cursor:pointer">kind <span class="kbd">/</span></button>
-        <button type="button" style="font:inherit;font-size:10px;background:transparent;color:#cfe6ef;border:1px solid #1e2a33;padding:2px 8px;cursor:pointer">class <span class="kbd">1–4</span></button>
-        <button type="button" style="font:inherit;font-size:10px;background:transparent;color:#cfe6ef;border:1px solid #1e2a33;padding:2px 8px;cursor:pointer">trace <span class="kbd">t</span></button>
+        <button type="button" style="font:inherit;font-size:10px;background:#0e1a22;color:#39d0ff;border:1px solid #39d0ff;min-height:24px;padding:2px 8px;cursor:pointer">run <span class="kbd">r</span></button>
+        <button type="button" style="font:inherit;font-size:10px;background:transparent;color:#cfe6ef;border:1px solid #1e2a33;min-height:24px;padding:2px 8px;cursor:pointer">kind <span class="kbd">/</span></button>
+        <button type="button" style="font:inherit;font-size:10px;background:transparent;color:#cfe6ef;border:1px solid #1e2a33;min-height:24px;padding:2px 8px;cursor:pointer">class <span class="kbd">1–4</span></button>
+        <button type="button" style="font:inherit;font-size:10px;background:transparent;color:#cfe6ef;border:1px solid #1e2a33;min-height:24px;padding:2px 8px;cursor:pointer">trace <span class="kbd">t</span></button>
       </div>
       <div style="margin-top:10px;display:flex;flex-direction:column;gap:4px;font-size:11px">
         <div style="display:flex;justify-content:space-between"><span><span class="chip c-ok">ok</span></span><span>694</span></div>
@@ -141,20 +144,20 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
     <div style="flex:1 1 auto;overflow:auto">
       <sc-for list="{{rows}}" as="row" hint-placeholder-count="18">
         <sc-if value="{{row.isGroup}}" hint-placeholder-val="{{ false }}">
-          <div class="grp"><span>▣ run {{row.run}}</span><span style="color:#6f8290">{{row.meta}}</span></div>
+          <div class="grp"><span>▣ run {{row.run}}</span><span class="mut">{{row.meta}}</span></div>
         </sc-if>
         <sc-if value="{{row.isEvent}}" hint-placeholder-val="{{ true }}">
           <div class="row {{row.cls}}">
-            <span style="color:#6f8290">{{row.t}}</span>
+            <span class="mut">{{row.t}}</span>
             <span style="{{row.glyphStyle}}">{{row.glyph}}</span>
-            <span style="color:#6f8290;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{row.job}}</span>
+            <span class="mut" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{row.job}}</span>
             <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{row.summary}}</span>
             <span><span class="chip {{row.chipCls}}">{{row.chip}}</span></span>
             <span style="text-align:right;color:#6f8290">{{row.dt}}</span>
           </div>
         </sc-if>
       </sc-for>
-      <div class="row" style="border-bottom:0"><span style="color:#6f8290">19:52:14</span><span class="c-live blink">▮</span><span></span><span style="color:#6f8290">waiting for the next event…</span><span></span><span></span></div>
+      <div class="row" style="border-bottom:0"><span class="mut">19:52:14</span><span class="c-live blink">▮</span><span></span><span class="mut">waiting for the next event…</span><span></span><span></span></div>
     </div>
   </main>
 
@@ -163,9 +166,9 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
     <div style="font-size:11px;color:#6f8290">Opened with <span class="kbd">a</span>. The focused row is <span style="color:#cfe6ef">c70d687b…8447</span>; <span class="kbd">Enter</span> sets the run filter to it and returns to the timeline. Nothing selected in the timeline: <span class="kbd">Enter</span> on a row opens the event here instead.</div>
     <div style="margin-top:auto;border-top:1px solid #1e2a33;padding-top:8px;display:flex;flex-direction:column;gap:4px">
       <span class="lbl">open handoff</span>
-      <span>HANDOFF-0040 · <span style="color:#6f8290">kgme sync · adopted 19:40</span></span>
+      <span>HANDOFF-0040 · <span class="mut">kgme sync · adopted 19:40</span></span>
       <span class="lbl" style="margin-top:6px">last review</span>
-      <span>cycle 1 · <span class="c-trans">reviewer exhausted</span> <span style="color:#6f8290">· usage limit</span></span>
+      <span>cycle 1 · <span class="c-trans">reviewer exhausted</span> <span class="mut">· usage limit</span></span>
     </div>
   </aside>
 </div>

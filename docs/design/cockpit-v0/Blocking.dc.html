@@ -33,6 +33,9 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .row:hover{background:#0f141b}
 .grp{display:flex;gap:12px;align-items:baseline;padding:8px 10px 4px;border-bottom:1px solid #1e2a33;color:#39d0ff;font-size:11px}
 .focus{outline:1px solid #ff3d7f;outline-offset:-1px;background:#1c0f16}
+.mut{color:#6f8290}
+/* CDH-0017 CW17: the focused row's muted lines read #7a8d9b on the focus tint (5.14:1 on #0e1a22, 5.41:1 on #1c0f16, 5.28:1 on #1a150c) */
+.focus .mut{color:#7a8d9b}
 .kbd{display:inline-block;min-width:16px;padding:0 5px;border:1px solid #39d0ff;color:#39d0ff;font-size:10px;line-height:16px;text-align:center;border-radius:2px}
 .seg{display:flex;gap:2px}.seg i{display:block;width:7px;height:12px;background:#1e2a33}.seg i.on{background:#39d0ff}.seg i.warn{background:#ffb02e}
 .cell{width:11px;height:11px;background:#141b22}
@@ -61,11 +64,11 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 </sc-if>
 
 <header style="position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:12px 22px;align-items:flex-end;padding:30px 36px 10px">
-  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">clock</span><span style="font-size:22px;font-weight:700;letter-spacing:.04em">09:49:58<span style="color:#6f8290;font-size:12px;font-weight:400"> −07:00</span></span></div>
+  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">clock</span><span style="font-size:22px;font-weight:700;letter-spacing:.04em">09:49:58<span class="mut" style="font-size:12px;font-weight:400"> −07:00</span></span></div>
   <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">ledger</span><span style="font-size:14px"><span class="c-block blink">●</span> <span class="c-block">halted</span> · <b style="font-weight:500">1 302</b> events · 61 runs</span></div>
-  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">session</span><span style="font-size:14px">01M38FTP…TYM <span style="color:#6f8290">kgme.review</span></span></div>
-  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">hook latency</span><span style="font-size:14px">44 ms <span style="color:#6f8290">p50</span> · 61 ms <span style="color:#6f8290">p95</span></span></div>
-  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">harnesses</span><span style="font-size:14px">claude 2.1.111 · codex 0.154.0 <span style="color:#6f8290">· arbiter claude-opus-5-5</span></span></div>
+  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">session</span><span style="font-size:14px">01M38FTP…TYM <span class="mut">kgme.review</span></span></div>
+  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">hook latency</span><span style="font-size:14px">44 ms <span class="mut">p50</span> · 61 ms <span class="mut">p95</span></span></div>
+  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">harnesses</span><span style="font-size:14px">claude 2.1.111 · codex 0.154.0 <span class="mut">· arbiter claude-opus-5-5</span></span></div>
   <dc-import name="Tray" view="bar" runs="{{trayRuns}}" calm="{{calm}}" hint-size="300px,38px"></dc-import>
   <div style="flex:1 1 40px"></div>
   <div style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Claude Max · week · judgment cap 50%</span><div style="display:flex;gap:10px;align-items:center"><div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span style="font-size:11px">44%</span></div></div>
@@ -94,10 +97,10 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
     <section class="pnl brk" style="padding:12px">
       <div class="lbl" style="margin-bottom:8px">filters</div>
       <div style="display:flex;flex-wrap:wrap;gap:6px">
-        <button type="button" style="font:inherit;font-size:10px;background:#0e1a22;color:#39d0ff;border:1px solid #39d0ff;padding:2px 8px;cursor:pointer">run <span class="kbd">r</span></button>
-        <button type="button" style="font:inherit;font-size:10px;background:transparent;color:#cfe6ef;border:1px solid #1e2a33;padding:2px 8px;cursor:pointer">kind <span class="kbd">/</span></button>
-        <button type="button" style="font:inherit;font-size:10px;background:#1c0f16;color:#ff3d7f;border:1px solid #ff3d7f;padding:2px 8px;cursor:pointer">blocking <span class="kbd" style="color:#ff3d7f;border-color:#ff3d7f">2</span></button>
-        <button type="button" style="font:inherit;font-size:10px;background:transparent;color:#cfe6ef;border:1px solid #1e2a33;padding:2px 8px;cursor:pointer">trace <span class="kbd">t</span></button>
+        <button type="button" style="font:inherit;font-size:10px;background:#0e1a22;color:#39d0ff;border:1px solid #39d0ff;min-height:24px;padding:2px 8px;cursor:pointer">run <span class="kbd">r</span></button>
+        <button type="button" style="font:inherit;font-size:10px;background:transparent;color:#cfe6ef;border:1px solid #1e2a33;min-height:24px;padding:2px 8px;cursor:pointer">kind <span class="kbd">/</span></button>
+        <button type="button" style="font:inherit;font-size:10px;background:#1c0f16;color:#ff3d7f;border:1px solid #ff3d7f;min-height:24px;padding:2px 8px;cursor:pointer">blocking <span class="kbd" style="color:#ff3d7f;border-color:#ff3d7f">2</span></button>
+        <button type="button" style="font:inherit;font-size:10px;background:transparent;color:#cfe6ef;border:1px solid #1e2a33;min-height:24px;padding:2px 8px;cursor:pointer">trace <span class="kbd">t</span></button>
       </div>
     </section>
   </aside>
@@ -109,12 +112,12 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
     </div>
     <div style="flex:1 1 auto;overflow:auto">
       <sc-for list="{{rows}}" as="row" hint-placeholder-count="14">
-        <sc-if value="{{row.isGroup}}" hint-placeholder-val="{{ false }}"><div class="grp"><span>▣ run {{row.run}}</span><span style="color:#6f8290">{{row.meta}}</span></div></sc-if>
+        <sc-if value="{{row.isGroup}}" hint-placeholder-val="{{ false }}"><div class="grp"><span>▣ run {{row.run}}</span><span class="mut">{{row.meta}}</span></div></sc-if>
         <sc-if value="{{row.isEvent}}" hint-placeholder-val="{{ true }}">
           <div class="row {{row.cls}}">
-            <span style="color:#6f8290">{{row.t}}</span>
+            <span class="mut">{{row.t}}</span>
             <span style="{{row.glyphStyle}}">{{row.glyph}}</span>
-            <span style="color:#6f8290;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{row.job}}</span>
+            <span class="mut" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{row.job}}</span>
             <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{row.summary}}</span>
             <span><span class="chip {{row.chipCls}}">{{row.chip}}</span></span>
             <span style="text-align:right;color:#6f8290">{{row.dt}}</span>
@@ -137,7 +140,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
       <b>job</b><span>review:HANDOFF-0032</span>
       <b>key</b><span>halt:HANDOFF-0032:3</span>
       <b>ref</b><span>null</span>
-      <b>parent</b><span><a href="#parent">01M38FTPMCYH0SGPH7CNPEZTYM</a> <span style="color:#6f8290">· cycle 1 intent · <span class="kbd">u</span> jumps up</span></span>
+      <b>parent</b><span><a href="#parent">01M38FTPMCYH0SGPH7CNPEZTYM</a> <span class="mut">· cycle 1 intent · <span class="kbd">u</span> jumps up</span></span>
       <b>payload_ref</b><span>logs/scratch/payloads/01M3MER5YW9F20GVV8P2KXNTYX.json</span>
       <b>payload_sha256</b><span>9c41e7…b02d</span>
     </div>

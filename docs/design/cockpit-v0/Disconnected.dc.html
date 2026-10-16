@@ -20,20 +20,22 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.7) 100%);z-index:2}
 .tx{position:absolute;left:28px;right:28px;height:6px;background:repeating-linear-gradient(90deg,var(--f) 0 1px,transparent 1px 8px);opacity:.45;pointer-events:none;z-index:3}
 .ty{position:absolute;top:28px;bottom:28px;width:6px;background:repeating-linear-gradient(180deg,var(--f) 0 1px,transparent 1px 8px);opacity:.45;pointer-events:none;z-index:3}
-.micro{position:absolute;font-size:9px;letter-spacing:.14em;color:#6f8290;text-transform:uppercase;pointer-events:none;z-index:3;white-space:nowrap}
+.micro{position:absolute;font-size:9px;letter-spacing:.14em;color:#a3b0b8;text-transform:uppercase;pointer-events:none;z-index:3;white-space:nowrap}
 .pnl{position:relative;background:#11151c;border:1px solid #1e2a33;clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
 .brk::before,.brk::after{content:"";position:absolute;width:10px;height:10px;border:1px solid var(--f);pointer-events:none;z-index:1}
 .brk::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
 .brk::after{bottom:-1px;right:-1px;border-left:0;border-top:0}
-.lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#6f8290}
+.lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#a3b0b8}
 .chip{display:inline-block;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:0 6px;border:1px solid currentColor;line-height:15px;border-radius:1px;white-space:nowrap}
-.c-ok{color:#4de38a}.c-block{color:#ff3d7f}.c-trans{color:#ffb02e}.c-none{color:#6f8290}.c-live{color:#39d0ff}
+.c-ok{color:#4de38a}.c-block{color:#ff3d7f}.c-trans{color:#ffb02e}.c-none{color:#a3b0b8}.c-live{color:#39d0ff}
 .row{display:grid;grid-template-columns:70px 16px 112px minmax(0,1fr) 92px 56px;gap:10px;align-items:center;padding:3px 10px;border-bottom:1px solid #141b22;min-height:22px}
 .grp{display:flex;gap:12px;align-items:baseline;padding:8px 10px 4px;border-bottom:1px solid #1e2a33;color:#39d0ff;font-size:11px}
 .kbd{display:inline-block;min-width:16px;padding:0 5px;border:1px solid #39d0ff;color:#39d0ff;font-size:10px;line-height:16px;text-align:center;border-radius:2px}
 .seg{display:flex;gap:2px}.seg i{display:block;width:7px;height:12px;background:#1e2a33}.seg i.on{background:#39d0ff}
 .cell{width:11px;height:11px;background:#141b22}
 .stale{filter:saturate(.12) brightness(.72)}
+/* CDH-0017 CW18: muted text under this filter reads #a3b0b8 (4.76:1 on the ground, 4.67:1 on the panel after the filter), the mounted tray's too */
+.stale .tr-root .tr-lbl,.stale .tr-root .tr-l1 .tr-run,.stale .tr-root .tr-l2,.stale .tr-root .tr-life .tr-quiet,.stale .tr-root .tr-muted,.stale .tr-root .tr-foot,.stale .tr-root .tr-empty{color:#a3b0b8}
 .blink{animation:blink 1.2s steps(2,end) infinite}
 @keyframes blink{50%{opacity:.2}}
 .jit{animation:jit 7s steps(1,end) infinite}
@@ -58,10 +60,10 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 
 <div class="stale jit" style="position:relative;z-index:1;display:flex;flex-direction:column;flex:1 1 auto">
 <header style="display:flex;flex-wrap:wrap;gap:12px 22px;align-items:flex-end;padding:30px 36px 10px">
-  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">clock</span><span style="font-size:22px;font-weight:700;letter-spacing:.04em">19:54:31<span style="color:#6f8290;font-size:12px;font-weight:400"> −07:00</span></span></div>
-  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">ledger</span><span style="font-size:14px"><span style="color:#6f8290">○</span> unreachable · last <b style="font-weight:500">1 486</b> events · 70 runs</span></div>
-  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">session</span><span style="font-size:14px">c70d687b…8447 <span style="color:#6f8290">claude-code · stale</span></span></div>
-  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">hook latency</span><span style="font-size:14px;color:#6f8290">— ms</span></div>
+  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">clock</span><span style="font-size:22px;font-weight:700;letter-spacing:.04em">19:54:31<span style="color:#a3b0b8;font-size:12px;font-weight:400"> −07:00</span></span></div>
+  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">ledger</span><span style="font-size:14px"><span style="color:#a3b0b8">○</span> unreachable · last <b style="font-weight:500">1 486</b> events · 70 runs</span></div>
+  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">session</span><span style="font-size:14px">c70d687b…8447 <span style="color:#a3b0b8">claude-code · stale</span></span></div>
+  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">hook latency</span><span style="font-size:14px;color:#a3b0b8">— ms</span></div>
   <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">harnesses</span><span style="font-size:14px">claude 2.1.111 · codex 0.154.0</span></div>
   <dc-import name="Tray" view="bar" state="stale" last-seen="19:52:14" runs="{{trayRuns}}" calm="{{calm}}" hint-size="300px,38px"></dc-import>
   <div style="flex:1 1 40px"></div>
@@ -83,36 +85,36 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   <main class="pnl brk" style="flex:999 1 560px;min-width:0;display:flex;flex-direction:column">
     <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid #1e2a33"><span class="lbl">timeline · frozen at 19:52:14</span><span class="lbl">time · kind · job · summary · class · Δt</span></div>
     <div style="flex:1 1 auto;overflow:auto">
-      <div class="grp"><span>▣ run c70d687b…8447</span><span style="color:#6f8290">claude-code · HANDOFF-0040 · resumed 19:51:58</span></div>
-      <div class="row"><span style="color:#6f8290">19:51:58</span><span style="color:#6f8290">▶</span><span style="color:#6f8290">tool:Edit</span><span>Edit docs/audit/2026-10-08-push-on-commit.md</span><span><span class="chip c-none">—</span></span><span></span></div>
-      <div class="row"><span style="color:#6f8290">19:51:59</span><span>◀</span><span style="color:#6f8290">tool:Edit</span><span>Edit ok</span><span><span class="chip c-ok">ok</span></span><span style="text-align:right;color:#6f8290">0.4 s</span></div>
-      <div class="row"><span style="color:#6f8290">19:52:03</span><span style="color:#6f8290">▶</span><span style="color:#6f8290">tool:Bash</span><span>Bash uv run --frozen kgme lint</span><span><span class="chip c-none">—</span></span><span></span></div>
-      <div class="row"><span style="color:#6f8290">19:52:05</span><span>◀</span><span style="color:#6f8290">tool:Bash</span><span>Bash ok · 97 notes · 0 blocking · 20 advisory</span><span><span class="chip c-ok">ok</span></span><span style="text-align:right;color:#6f8290">1.8 s</span></div>
-      <div class="row"><span style="color:#6f8290">19:52:14</span><span style="color:#6f8290">▶</span><span style="color:#6f8290">tool:Bash</span><span>Bash make canary-agents</span><span><span class="chip c-none">—</span></span><span></span></div>
+      <div class="grp"><span>▣ run c70d687b…8447</span><span style="color:#a3b0b8">claude-code · HANDOFF-0040 · resumed 19:51:58</span></div>
+      <div class="row"><span style="color:#a3b0b8">19:51:58</span><span style="color:#a3b0b8">▶</span><span style="color:#a3b0b8">tool:Edit</span><span>Edit docs/audit/2026-10-08-push-on-commit.md</span><span><span class="chip c-none">—</span></span><span></span></div>
+      <div class="row"><span style="color:#a3b0b8">19:51:59</span><span>◀</span><span style="color:#a3b0b8">tool:Edit</span><span>Edit ok</span><span><span class="chip c-ok">ok</span></span><span style="text-align:right;color:#a3b0b8">0.4 s</span></div>
+      <div class="row"><span style="color:#a3b0b8">19:52:03</span><span style="color:#a3b0b8">▶</span><span style="color:#a3b0b8">tool:Bash</span><span>Bash uv run --frozen kgme lint</span><span><span class="chip c-none">—</span></span><span></span></div>
+      <div class="row"><span style="color:#a3b0b8">19:52:05</span><span>◀</span><span style="color:#a3b0b8">tool:Bash</span><span>Bash ok · 97 notes · 0 blocking · 20 advisory</span><span><span class="chip c-ok">ok</span></span><span style="text-align:right;color:#a3b0b8">1.8 s</span></div>
+      <div class="row"><span style="color:#a3b0b8">19:52:14</span><span style="color:#a3b0b8">▶</span><span style="color:#a3b0b8">tool:Bash</span><span>Bash make canary-agents</span><span><span class="chip c-none">—</span></span><span></span></div>
     </div>
   </main>
   <aside class="pnl brk" style="flex:0 1 352px;min-width:300px;padding:12px;display:flex;flex-direction:column;gap:10px">
     <div class="lbl">detail</div>
-    <div style="font-size:11px;color:#6f8290">Last selection kept. Nothing here is live.</div>
+    <div style="font-size:11px;color:#a3b0b8">Last selection kept. Nothing here is live.</div>
   </aside>
 </div>
 </div>
 
 <div style="position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;pointer-events:none">
-  <div class="pnl" style="pointer-events:auto;padding:22px 28px;border-color:#6f8290;max-width:560px;background:#0a0c10;display:flex;flex-direction:column;gap:12px;box-shadow:0 0 0 1px #1e2a33,0 20px 60px rgba(0,0,0,.7)">
-    <div style="display:flex;align-items:center;gap:12px"><span style="font-size:18px;color:#6f8290" class="blink">▯</span><span style="font-size:18px;font-weight:700;letter-spacing:.06em">server unreachable</span></div>
+  <div class="pnl" style="pointer-events:auto;padding:22px 28px;border-color:#a3b0b8;max-width:560px;background:#0a0c10;display:flex;flex-direction:column;gap:12px;box-shadow:0 0 0 1px #1e2a33,0 20px 60px rgba(0,0,0,.7)">
+    <div style="display:flex;align-items:center;gap:12px"><span style="font-size:18px;color:#a3b0b8" class="blink">▯</span><span style="font-size:18px;font-weight:700;letter-spacing:.06em">server unreachable</span></div>
     <div style="font-size:12px">The page could not reach <span style="color:#cfe6ef">127.0.0.1:8642</span>. The Dock icon opens this page; it does not start the server (launchd waits for Phase 3).</div>
-    <div style="font-size:11px;color:#6f8290;display:grid;grid-template-columns:110px minmax(0,1fr);gap:4px 12px">
+    <div style="font-size:11px;color:#a3b0b8;display:grid;grid-template-columns:110px minmax(0,1fr);gap:4px 12px">
       <span>last event</span><span style="color:#cfe6ef">19:52:14 −07:00 · 2 m 17 s ago</span>
       <span>retry</span><span style="color:#cfe6ef">every 2 s · attempt 68</span>
       <span>to start</span><span><code style="color:#39d0ff">kgme cockpit</code> <span>from the repository</span></span>
       <span>the record</span><span>intact in <code style="color:#cfe6ef">logs/ledger/2026-10.jsonl</code>; this view will catch up on its own</span>
     </div>
-    <div style="font-size:11px;color:#6f8290"><span class="kbd">r</span> retry now · <span class="kbd">c</span> calm · the grey frame means no signal, never an error in the ledger</div>
+    <div style="font-size:11px;color:#a3b0b8"><span class="kbd">r</span> retry now · <span class="kbd">c</span> calm · the grey frame means no signal, never an error in the ledger</div>
   </div>
 </div>
 
-<footer style="position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;padding:8px 36px 26px;font-size:11px;color:#6f8290">
+<footer style="position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;padding:8px 36px 26px;font-size:11px;color:#a3b0b8">
   <span><span class="kbd">r</span> retry</span>
   <span><span class="kbd">c</span> calm</span>
   <span><span class="kbd">?</span> keys</span>

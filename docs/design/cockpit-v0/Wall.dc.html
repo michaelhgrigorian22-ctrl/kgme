@@ -31,6 +31,9 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .row{display:grid;grid-template-columns:70px 16px 112px minmax(0,1fr) 92px 56px;gap:10px;align-items:center;padding:3px 10px;border-bottom:1px solid #141b22;min-height:22px}
 .grp{display:flex;gap:12px;align-items:baseline;padding:8px 10px 4px;border-bottom:1px solid #1e2a33;color:#39d0ff;font-size:11px}
 .focus{outline:1px solid #39d0ff;outline-offset:-1px;background:#0e1a22}
+.mut{color:#6f8290}
+/* CDH-0017 CW17: the focused row's muted lines read #7a8d9b on the focus tint (5.14:1 on #0e1a22, 5.41:1 on #1c0f16, 5.28:1 on #1a150c) */
+.focus .mut{color:#7a8d9b}
 .kbd{display:inline-block;min-width:16px;padding:0 5px;border:1px solid #39d0ff;color:#39d0ff;font-size:10px;line-height:16px;text-align:center;border-radius:2px}
 .seg{display:flex;gap:2px}.seg i{display:block;width:7px;height:12px;background:#1e2a33}.seg i.on{background:#39d0ff}.seg i.warn{background:#ffb02e}
 .cell{width:13px;height:13px;background:#141b22}
@@ -63,10 +66,10 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 </sc-if>
 
 <header style="position:relative;z-index:1;display:flex;gap:28px;align-items:flex-end;padding:30px 40px 10px">
-  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">clock</span><span style="font-size:26px;font-weight:700;letter-spacing:.04em">19:52:14<span style="color:#6f8290;font-size:12px;font-weight:400"> −07:00 · Wed 8 Oct 2026</span></span></div>
+  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">clock</span><span style="font-size:26px;font-weight:700;letter-spacing:.04em">19:52:14<span class="mut" style="font-size:12px;font-weight:400"> −07:00 · Wed 8 Oct 2026</span></span></div>
   <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">ledger</span><span style="font-size:14px"><span class="c-live blink">●</span> live · <b style="font-weight:500">1 479</b> events · 70 runs · 1 127 this month</span></div>
-  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">session</span><span style="font-size:14px">c70d687b…8447 <span style="color:#6f8290">claude-code · HANDOFF-0040 · 19:40:02 →</span></span></div>
-  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">hook latency</span><span style="font-size:14px">44 ms <span style="color:#6f8290">p50</span> · 61 ms <span style="color:#6f8290">p95</span> · 0 hook errors</span></div>
+  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">session</span><span style="font-size:14px">c70d687b…8447 <span class="mut">claude-code · HANDOFF-0040 · 19:40:02 →</span></span></div>
+  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">hook latency</span><span style="font-size:14px">44 ms <span class="mut">p50</span> · 61 ms <span class="mut">p95</span> · 0 hook errors</span></div>
   <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">harnesses</span><span style="font-size:14px">claude 2.1.111 · codex 0.154.0 · arbiter claude-opus-5-5 · ollama idle</span></div>
   <dc-import name="Tray" view="bar" runs="{{trayRuns}}" calm="{{calm}}" hint-size="300px,38px"></dc-import>
   <div style="flex:1 1 40px"></div>
@@ -111,19 +114,19 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
     <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid #1e2a33"><span class="lbl">timeline · newest at bottom · <span class="c-live">following</span></span><span class="lbl">time · kind · job · summary · class · Δt</span></div>
     <div style="flex:1 1 auto;overflow:auto">
       <sc-for list="{{rows}}" as="row" hint-placeholder-count="30">
-        <sc-if value="{{row.isGroup}}" hint-placeholder-val="{{ false }}"><div class="grp"><span>▣ run {{row.run}}</span><span style="color:#6f8290">{{row.meta}}</span></div></sc-if>
+        <sc-if value="{{row.isGroup}}" hint-placeholder-val="{{ false }}"><div class="grp"><span>▣ run {{row.run}}</span><span class="mut">{{row.meta}}</span></div></sc-if>
         <sc-if value="{{row.isEvent}}" hint-placeholder-val="{{ true }}">
           <div class="row {{row.cls}}">
-            <span style="color:#6f8290">{{row.t}}</span>
+            <span class="mut">{{row.t}}</span>
             <span style="{{row.glyphStyle}}">{{row.glyph}}</span>
-            <span style="color:#6f8290;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{row.job}}</span>
+            <span class="mut" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{row.job}}</span>
             <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{row.summary}}</span>
             <span><span class="chip {{row.chipCls}}">{{row.chip}}</span></span>
             <span style="text-align:right;color:#6f8290">{{row.dt}}</span>
           </div>
         </sc-if>
       </sc-for>
-      <div class="row" style="border-bottom:0"><span style="color:#6f8290">19:52:14</span><span class="c-live blink">▮</span><span></span><span style="color:#6f8290">waiting for the next event…</span><span></span><span></span></div>
+      <div class="row" style="border-bottom:0"><span class="mut">19:52:14</span><span class="c-live blink">▮</span><span></span><span class="mut">waiting for the next event…</span><span></span><span></span></div>
     </div>
   </main>
 
@@ -147,13 +150,13 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
       <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="lbl">detail · outcome</span><span class="lbl"><span class="kbd">Esc</span> closes</span></div>
       <div style="font-size:13px">cycle 1 attempt 1: reviewer exited 1 with no text</div>
       <div style="display:grid;grid-template-columns:96px minmax(0,1fr);gap:3px 10px;font-size:11px">
-        <span style="color:#6f8290">id</span><span>01M4F8NV3G19D23EYWJ9JAXQKT</span>
-        <span style="color:#6f8290">ts</span><span>2026-10-08T19:43:03.408-07:00</span>
-        <span style="color:#6f8290">actor</span><span>kgme.review</span>
-        <span style="color:#6f8290">kind · class</span><span>outcome · <span class="chip c-trans">transient</span> · status error</span>
-        <span style="color:#6f8290">job · key</span><span>review:HANDOFF-0040 · review:HANDOFF-0040:6627ac35ffb583ad</span>
-        <span style="color:#6f8290">ref</span><span>01M4F8NR8147T0KJA7TD08P04E <span style="color:#6f8290">· the cycle intent</span></span>
-        <span style="color:#6f8290">payload_ref</span><span>logs/scratch/payloads/01M4F8NV3G19D23EYWJ9JAXQKT.json</span>
+        <span class="mut">id</span><span>01M4F8NV3G19D23EYWJ9JAXQKT</span>
+        <span class="mut">ts</span><span>2026-10-08T19:43:03.408-07:00</span>
+        <span class="mut">actor</span><span>kgme.review</span>
+        <span class="mut">kind · class</span><span>outcome · <span class="chip c-trans">transient</span> · status error</span>
+        <span class="mut">job · key</span><span>review:HANDOFF-0040 · review:HANDOFF-0040:6627ac35ffb583ad</span>
+        <span class="mut">ref</span><span>01M4F8NR8147T0KJA7TD08P04E <span class="mut">· the cycle intent</span></span>
+        <span class="mut">payload_ref</span><span>logs/scratch/payloads/01M4F8NV3G19D23EYWJ9JAXQKT.json</span>
       </div>
       <div style="font-size:11px;color:#6f8290;border-top:1px solid #1e2a33;padding-top:8px">Three transient attempts become one <span class="c-block">blocking</span> tooling outcome, which is not a strike (ADR-016). The loop reruns the cycle after the usage window resets.</div>
     </section>
