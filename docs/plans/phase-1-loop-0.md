@@ -3,7 +3,7 @@ id: PLAN-PHASE-1
 type: note
 status: active
 created: 2026-09-11T23:50:00-07:00
-modified: 2026-10-16T00:45:00-07:00
+modified: 2026-10-16T02:35:00-07:00
 author: cowork
 source: stated
 tier: 2
@@ -32,6 +32,7 @@ Phase 0 built the ground: backup proven, repo off-machine, toolchain pinned, cha
 | 7d | **Session levels.** `kgme session` with levels `tight`, `work`, `loose` as launcher lines (`--setting-sources project,local`, `--settings`, `--permission-mode`), sandbox admin-required, one ledger whatever the checkout, concurrent appends tested, canary cells per level | 0047 | 7c | ADR-022; every worktree mode needs one ledger |
 | 8 | **`kgme clean`.** Named targets only, allowlisted roots, one event per deletion; bare `rm -rf` stays denied | 0033 | 1 | Loop 0's reconstruction test deletes with it |
 | 9 | **Loop 0 — `kgme brief` v1.** Manual, read-only, local, no model call; four acceptance tests with classes; `--dry-run`; reminder, task, daily templates shipped | 0034 | 1, 6, 8 | The loop |
+| 9a | **One home.** `~/Projects/KGME/` holding `brain/` (main), `design/` (worktree) and `work/` (crew); `tools/` renamed `control/`; handoffs by state (`done/`, `archive/`); a front-door README; maps redrawn; report links fixed; coherence checks in `kgme lint`; the move run by Michou with a prepared script | 0049 | 9 | Michou, 2026-10-16: no visible clutter, intuitive paths, one home for brain, design and work |
 | 9b | **Design-track registration.** `kgme lint` validates git-known files (`--all` for the tree); schema v1.5 track folders; `codex-builder` profile; binaries out of tree | 0042 | 9, 0041 | The worktree is the separation today; this makes it the repo's |
 | 10 | **Seed the vault.** Michou's own act: real reminders, tasks, daily notes, ten friction entries | 0035 | 9 | The vault is empty; an empty brief measures nothing |
 | 11 | **Cockpit design canvas.** From the wishlist; five states; keyboard map; Phase 2 controls drawn greyed. Approved by Michou before any cockpit code | 0036 | — | Parallel track from day one; taste, not code |
