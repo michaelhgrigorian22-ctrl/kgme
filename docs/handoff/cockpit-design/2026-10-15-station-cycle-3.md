@@ -5,9 +5,10 @@ created: 2026-10-15T23:05:00-07:00
 from: michou
 to: cowork
 tier: 2
-status: open
+status: done
 adopted_by: michou
 adopted: 2026-10-15T22:56:00-07:00
+completed: 2026-10-15T23:45:00-07:00
 rulings: "go ahead (Michou, 2026-10-15 22:56); blocking findings taken by default under the 2026-10-14 00:41 rule"
 depends_on: [CDH-0013]
 design_track: HANDOFF-0036
