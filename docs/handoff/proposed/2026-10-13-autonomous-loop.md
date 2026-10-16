@@ -6,7 +6,7 @@ from: cowork
 to: claude-code
 tier: 2
 status: proposed
-depends_on: [HANDOFF-0034, HANDOFF-0037, HANDOFF-0042, HANDOFF-0045]
+depends_on: [HANDOFF-0034, HANDOFF-0037, HANDOFF-0042, HANDOFF-0045, HANDOFF-0047]
 plan_ref: PLAN-PHASE-1 step 12b
 ---
 
@@ -63,3 +63,6 @@ These bind the proposal as adopted. The design session's text above stands; wher
 7. **Grilling before adoption.** Michou runs a grilling session on this proposal (Cowork, or Claude Code with the vendored `grilling` skill of HANDOFF-0044) and the answers are appended here as "Answers, YYYY-MM-DD"; adoption follows the answers, not this text alone.
 8. **Background sessions are not assumed.** The runner uses `claude -p` per build step as written; `claude --bg` / `claude agents` (seen in `mattpocock/skills` `claude-handoff`) may be used only after `claude --help` on the installed CLI shows them, recorded in the audit.
 9. **Sequence.** After 0034, 0037's interactive build, 0042 and 0045. Review `tools/review/design-prompt.md` is not touched; the design track stays outside the loop.
+
+10. **Levels (2026-10-16, ADR-022).** The builder starts through `kgme session loose` (sandbox writes limited to the handoff's `Outputs`, `tests/`, `logs/scratch/`; `dontAsk` with the pinned allow list; `--permission-prompts none`; turn and budget caps), and the run's first intent names the level and the settings sha. Completion is the gate plus the reviewer's verdict in the ledger; `/goal` is not used. HANDOFF-0048 (`kgme crew`) runs this loop once per task.
+11. **Outcome-governed (2026-10-16, ADR-023, proposed).** Where items 2–3 and amendment 2 halt on a count of cycles, the loop instead sends the persistent blocking finding to the arbiter and executes the ruling (downgrade, recommended option, or the smallest two-way door on a split); it stops only on measured non-convergence, a budget (pause), or a ruling outside the mandate. Strikes stay as telemetry. Applies on ADR-023's adoption.

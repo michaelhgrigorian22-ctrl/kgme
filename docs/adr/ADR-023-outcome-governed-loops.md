@@ -1,0 +1,52 @@
+---
+id: ADR-023
+type: decision
+status: accepted
+created: 2026-10-16T01:20:00-07:00
+author: cowork
+source: stated
+tier: 2
+supersedes: null
+---
+
+# ADR-023 — Outcome-governed loops: rulings instead of counts, stops on lost progress or mandate, taste reserved only where it matters, skills that learn (amends ADR-016 for loops)
+
+## Context
+Michou, 2026-10-16, on the halt bound of `crew` and HANDOFF-0043: the bound "completely kills the ability to execute REAL automated loops that just like - figures things out ... these blocking problems come up, and 1 out of 2 times they are unsubstantive, and when they are substantive the arbitration board ... usually provides a 'recommended' option which is clearly just better than the other options. a smart loop should plan so that blocking errors are limited in the first place, but it should also be able to figure out how to get where it needs to go if there is a recommended option. if the output is bad then the loop is adjusted, rather than the kantian deontological categorical view where seemingly menial actions are to be rejected regardless of outcome quality."
+
+The record agrees with him. The three halts by attrition (0032 F1, 0040 F8, 0033 F1/F2) were each closed by a simplification that a ruling could have chosen two cycles earlier; the two-cycle rule of 2026-10-13 already says the fix is to remove the mechanism, and in practice that is the option an arbiter recommends. A count of cycles was a proxy for "no progress", and the proxy halted loops that were making progress by another route. ADR-016 itself was written against a three-strikes rule that halted on punctuation and rate limits; this finishes that thought for blocking findings.
+
+Michou again, the same evening, before any of this was committed: "this entire cockpit designing process could and should be an automated loop one shot. like if the outcome is slightly off it should be designed in a way that is modular enough for amendment or addendum. other than for PARTICULARLY IMPORTANT DESIGN CHOICS (like for example the fun little city of agents) and that comes down to the quality of planning and the quality of judgement. which like, again, if the outcome is bad then the skill autoloading should iterate and learn from its past errors in a token/context efficient way." Loops scale with the strength of their checks: what a machine can verify needs no human, so every checkable property becomes part of the gate, and only judgement of taste that no check can carry is reserved.
+
+What must not change is the one property ADR-016 keeps: a consequential decision reaches a human. The distinction this ADR draws is between quality, which the loop owns and is judged on by outcome, and mandate, which only Michou can widen.
+
+**Accepted by Michou, 2026-10-16:** "this should be how things operate through the project's whole claude.md file you know! like this should be part of the operational structure intrinsically rather than an ad hoc request." Its operating rules are in `CLAUDE.md` ("How decisions are made") and the review-loop reader; the loop mechanics of §2–§4 land in code with HANDOFF-0043.
+
+## Decision
+1. **Scope.** Every review loop: `kgme review` cycles, HANDOFF-0043's loop, `crew`'s plan and task cycles (HANDOFF-0048), and the cockpit design track's CDH cycles.
+2. **A persistent blocking finding is ruled on.** When a blocking finding is disputed, or one root cause stands blocking after a fix cycle, it goes to the arbiter: one model under `kgme review rule` today, and in `crew` a board of models from at least two vendors, none of which built the diff. The ruling is one of: **downgrade** (not blocking, with the reason; recorded and the loop proceeds), **options with a recommendation** (each option states its door, one-way or two-way, and its blast radius; the loop executes the recommended option as the next cycle's direction), or **outside the mandate** (§5, the only ruling that asks Michou).
+3. **No single recommendation.** When the board splits, the loop takes the two-way-door option with the smallest blast radius and records why. A split among one-way doors goes to Michou.
+4. **The loop stops when progress stops, measured, not counted.** It stops and escalates when: a recommended option was executed and the same root cause returns blocking a second time after a re-ruling with that evidence (the option set is exhausted); the diff returns to a hash already seen in the run (oscillation); the gate's failing-check count does not fall across three consecutive builds; or a budget (turns, minutes, USD, the provider window) is reached, which pauses rather than fails. Strikes are still counted and shown (the cockpit's strike boxes) as telemetry; a strike count alone halts nothing.
+5. **Reserved to Michou, whatever the quality.** A ruling cannot: widen a level or a profile (ADR-022), touch a human path, change how a tier is handled or add egress, edit the handoff's acceptance suite after cycle 0 (HANDOFF-0043 §4), spend beyond the run's budget, or merge to `main`. The objective, the boundary and the budget are fixed by Michou; the route to the objective is the loop's.
+6. **Why acting on rulings is safe.** Everything before approval is reversible by construction: branches, KGME workspaces, quarantine, a fixed acceptance suite, the merge gate. The one-way door is the approval, and it is Michou's at every level.
+7. **Outcomes adjust the loop.** Every ruling is a ledger `note` (finding, options with door and blast radius, recommended, chosen, by whom). The dream job (HANDOFF-0046) and the weekly review read rulings against outcomes (approved or not, reverted later or not, quarantined) and propose changes to the arbiter and planner prompts, the skills, and the thresholds of §4. A bad outcome adjusts the loop; it does not by default restore a count.
+8. **Planning to avoid blocking findings.** The planner skill and the builder skill carry the reviewer's checklist (the review prompt, the red-command rule, the merge gate's checks) as their own pre-flight, so most blocking findings are caught by the agent that would have caused them.
+
+9. **Decisions of judgement: ask only when Michou's answer is likely to be better.** Michou, 2026-10-16: "some judgements like this may just be best made in the loop by the reasoning models. so they should in a way score the importance or the realistic chance that my decision is better than theirs in that situation before intervening. it should be THAT minimal." For every judgement call the loop would otherwise put to him, the arbiter board (not the agent that raised it) scores two things and records both in the ledger with its recommended option:
+   - **stakes**, 1 to 5: how visible the decision is and how costly it would be to change after approval;
+   - **edge**, 0 to 1: the realistic chance that Michou's answer would differ from the recommendation *and* be better. Edge is high only where the decision rests on his own preference, on information only he has, or on something he explicitly approved and the decision would change; it is low where it rests on craft the models judge as well as he does.
+
+   The loop asks only when stakes × edge reaches `kgme.toml [judgement] ask_threshold` (default 1.5, so a decision needs both real stakes and a real edge). Asks are batched into one brief, each with its recommendation; only tasks that depend on an expensive-to-swap answer wait. Below the threshold the loop decides and builds behind a seam where it can; a decision scoring at least `[judgement] show_threshold` (default 0.5) is listed on the approval screen, so Michou can change it with an addendum, and the rest are only in the ledger. Every answered ask records whether Michou took the recommendation; the dream job reports the agreement rate by kind of decision, lowers edge for kinds where he agrees, raises it where he does not, and proposes a higher `ask_threshold` while he keeps agreeing. Everything a machine can check (contrast, keyboard reach, focus, drift between boards, overflow at the target widths, the accessibility rubric) is a gate check and never scored. The mandate list of §5 is not a judgement call and is never scored.
+10. **Built for amendment.** The plan splits along the product's own seams (components, boards, modules), so a result that is slightly off is corrected by an addendum that touches one task's `Outputs`, not by a redo. Approval may carry addenda: `kgme approve --sha <sha> --addendum "<text>"` merges and writes each addendum as a proposed handoff for the next run.
+11. **Skills learn, cheaply.** Each role skill is two files: the contract (`SKILL.md`: what the role may do; a human path under ADR-022 §4) and its lessons (`lessons.md`: what went wrong and what to do instead, loaded only with the skill, capped at 40 lines). The dream job (HANDOFF-0046) writes `lessons.md` directly, after a model of a different vendor reviews the change, one ledger event per edit, reverted with `git revert`; when the cap is reached it condenses rather than appends. A lesson that would change the contract is a proposal, as before. The route improves by itself; the mandate changes only by Michou.
+
+## Amends
+ADR-016's halt "when one root cause has stood blocking in three consecutive cycles or three survive a fix cycle" no longer halts a loop by itself; it is replaced by §2–§4. ADR-016's classes, the classing of every finding, and the rule that consequential failures reach a human stand. The review-loop reader's two-cycle rule of 2026-10-13 becomes: after two cycles on one root cause, the arbiter rules, and the loop executes the ruling. Both edits were made on acceptance (2026-10-16). The coded three-cycle halt in `kgme/review.py` remains until HANDOFF-0043 replaces it.
+
+## Alternatives considered
+- Keep counting with a higher threshold: still halts on the wrong signal, later (ADR-016's own objection).
+- No stops at all: loses non-convergence detection and the mandate boundary, the two things a human must still see.
+- Michou rules every persistent finding: the loop Michou asked for is the one that does not need him for this.
+
+## Consequences
+HANDOFF-0043 and HANDOFF-0048 implement §2–§4: an `arbiter` board in `kgme.toml [models]`, the ruling schema, oscillation and progress detection in `halt_reason`. The cockpit shows a ruling as a note with its options and the chosen door. The first weeks of rulings are read by Michou at the weekly review before the dream job reads them alone.
