@@ -139,7 +139,7 @@ def _fake_uv(tmp_path: Path, exit_code: int) -> dict:
 @pytest.mark.parametrize("exit_code", [1, 3, 127])
 def test_pre_wrapper_maps_every_startup_failure_to_a_block(tmp_path: Path, exit_code: int) -> None:
     result = subprocess.run(
-        ["sh", str(ROOT / "tools/hooks/pre_tool_guard.sh")],
+        ["sh", str(ROOT / "control/hooks/pre_tool_guard.sh")],
         input="{}",
         capture_output=True,
         text=True,
@@ -155,7 +155,7 @@ def test_post_wrapper_never_blocks_and_records_a_startup_failure(
     tmp_path: Path, exit_code: int
 ) -> None:
     result = subprocess.run(
-        ["sh", str(ROOT / "tools/hooks/post_tool_ledger.sh")],
+        ["sh", str(ROOT / "control/hooks/post_tool_ledger.sh")],
         input="{}",
         capture_output=True,
         text=True,

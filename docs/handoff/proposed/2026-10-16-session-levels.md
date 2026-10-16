@@ -16,7 +16,7 @@ plan_ref: PLAN-PHASE-1 step 7d
 ADR-022 (proposed) makes a session's allowance a named level started by one command and recorded in the ledger. This handoff builds the levels that need no orchestration (`tight`, `work`, and the `loose` permission set) and the two prerequisites every worktree-based mode needs: one ledger regardless of checkout, and appends that stay whole when several sessions write at once. `crew` is HANDOFF-0048.
 
 ## What
-1. **Settings files** under `tools/policy/sessions/` (human paths after HANDOFF-0045), each a plain JSON file the launcher passes with `--settings`:
+1. **Settings files** under `control/policy/sessions/` (human paths after HANDOFF-0045), each a plain JSON file the launcher passes with `--settings`:
    - `tight.json`: `permissions.disableAutoMode` and `permissions.disableBypassPermissionsMode` `"disable"`; no allow rules; the project deny list applies as always.
    - `work.json`: `sandbox.enabled` true, `sandbox.allowUnsandboxedCommands` false, `sandbox.failIfUnavailable` true, `sandbox.filesystem.allowWrite` the repository root and the temp directory; `permissions.disableBypassPermissionsMode` `"disable"`.
    - `loose.json`: as `work`, plus `sandbox.filesystem.allowWrite` replaced at launch by the task's `Outputs`, `tests/` and `logs/scratch/` (the launcher writes a per-run copy under `logs/scratch/sessions/<run>/` and hashes that); a pinned `permissions.allow` list (Read, Grep, Glob, Edit on the `Outputs` paths, `Bash(make check)`, `Bash(uv run --frozen pytest *)`, `Bash(git add *)`, `Bash(git commit *)`, `Bash(git diff *)`, `Bash(git status *)`); no network domains.
@@ -26,7 +26,7 @@ ADR-022 (proposed) makes a session's allowance a named level started by one comm
 5. **Canary cells, one set per level** (agent tier, `make canary-agents`), each a ledger event labelled by layer: `tight` refuses an Edit; `work` refuses `Bash(touch ~/kgme-canary)` at the sandbox layer and an unlisted host at the network layer; `loose` refuses an Edit outside the toy `Outputs`, a Bash write outside them, any network call, and `WebFetch`; each level's start `note` carries the settings sha.
 
 ## Outputs
-`tools/policy/sessions/{tight,work,loose}.json`, `kgme/session.py`, `kgme/cli.py`, `kgme/paths.py` (ledger root), `kgme/ledger.py` (lock, if needed), `kgme.toml` (`[sessions]` caps, as a diff for Michou), `tests/test_session.py`, `tests/test_ledger_concurrency.py`, `tests/test_paths_worktree.py` (a temporary worktree writes to the main ledger), canary rows, a section in `docs/readers/` named by Michou (proposed: `docs/readers/sessions.md`, as a diff).
+`control/policy/sessions/{tight,work,loose}.json`, `kgme/session.py`, `kgme/cli.py`, `kgme/paths.py` (ledger root), `kgme/ledger.py` (lock, if needed), `kgme.toml` (`[sessions]` caps, as a diff for Michou), `tests/test_session.py`, `tests/test_ledger_concurrency.py`, `tests/test_paths_worktree.py` (a temporary worktree writes to the main ledger), canary rows, a section in `docs/readers/` named by Michou (proposed: `docs/readers/sessions.md`, as a diff).
 
 ## Acceptance test (under fifteen minutes)
 `kgme session tight` opens in plan mode and the start note names the level and sha; an edit is refused. `kgme session work` from a temporary worktree writes its hook events into the main checkout's ledger and none into the worktree's. The concurrency test passes. `make canary-agents` shows every new cell with its layer.

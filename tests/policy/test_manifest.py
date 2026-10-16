@@ -4,7 +4,7 @@ Purpose: every manifest in the repository parses; the Python jobs' manifests ref
 and allow the job's own work; a manifest never widens the blocklist or Tier 1; symlinks are
 resolved before the roots apply; the shape is strict; the agent profiles declare what the
 settings file and the vendor sandbox enforce.
-Inputs: `jobs/*/manifest.toml`, `cockpit/manifest.toml`, `tools/policy/profiles/*.toml`, the
+Inputs: `jobs/*/manifest.toml`, `cockpit/manifest.toml`, `control/policy/profiles/*.toml`, the
 `planted` fixture.
 Outputs: pytest assertions; one cell per job and probe in the test streams and the fast matrix.
 Side effects: none outside `tmp_path` and the gitignored test paths.
@@ -23,8 +23,8 @@ JOBS = {
     "cockpit": ROOT / "cockpit" / "manifest.toml",
 }
 PROFILES = {
-    "claude-builder": ROOT / "tools" / "policy" / "profiles" / "claude-builder.toml",
-    "codex-reviewer": ROOT / "tools" / "policy" / "profiles" / "codex-reviewer.toml",
+    "claude-builder": ROOT / "control" / "policy" / "profiles" / "claude-builder.toml",
+    "codex-reviewer": ROOT / "control" / "policy" / "profiles" / "codex-reviewer.toml",
 }
 MINIMAL = """
 name = "probe"

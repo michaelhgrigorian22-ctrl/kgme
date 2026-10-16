@@ -2,15 +2,15 @@
 id: SCHEMA
 type: schema
 status: draft
-version: 1.4
+version: 1.5
 created: 2026-09-09T19:50:00-07:00
-modified: 2026-10-09T22:33:00-07:00
+modified: 2026-10-15T23:52:22-07:00
 author: cowork
 source: stated
 tier: 2
 ---
 
-# KGME note schema — v1.4 (draft)
+# KGME note schema — v1.5 (draft)
 
 Governs every Markdown file under `memory/` and `docs/`, minus the exemptions in **Scope** below. Defined by ADR-005; widened from `memory/` alone to both roots by Michou's ruling of 2026-09-14 (AUDIT-0011, HANDOFF-0030). Think of the vault as a data frame: each note is a row, the frontmatter is the typed columns, the body is one free-text column, and `type` decides which columns are required. Anything a query or a script needs goes above the line; anything for a human goes below it.
 
@@ -59,10 +59,10 @@ Paths are from the repository root.
 | `person` | `memory/notes/` | `aliases` (list), `context` (one line) | `active` → `archived` |
 | `source` | `memory/agent/` | `origin`, `hash`, `fetched` (datetime), `retention` (`discard` \| `keep`) | `quarantined` → `extracted` → `discarded` \| `kept` |
 | `decision` | `docs/adr/` | `supersedes` (id, list, or null) | `proposed` → `accepted` → `superseded` |
-| `handoff` | `docs/handoff/` (adopted) · `docs/handoff/proposed/` (proposals and their fates) | `from`, `to`, `completed` (required when `status: done`) | `proposed` → `open` → `done` \| `abandoned` \| `superseded` |
+| `handoff` | `docs/handoff/` (open) · `docs/handoff/done/` (finished) · `docs/handoff/proposed/` (live proposals) · `docs/handoff/archive/` (superseded and abandoned) (v1.5) | `from`, `to`, `completed` and `report` (the real path of its report; both required when `status: done`; `report` from v1.5) | `proposed` → `open` → `done` \| `abandoned` \| `superseded` |
 | `report` | `docs/audit/`, `memory/agent/` | `handoff` (id, or null for a report no handoff asked for), `period` (required of reports created on or after 2026-09-14; v1.3) | `final` |
 
-Ten is the ceiling. A new type is a schema version bump with a migration. The folder rule is by `type` only; folder by `status` (a `proposed` handoff sitting in `docs/handoff/`) is not checked in v1.2, because the Phase 0 record has exceptions and the record is not edited to satisfy a validator.
+Ten is the ceiling. A new type is a schema version bump with a migration. The folder rule is by `type`. From v1.5 a handoff's folder must also match its `status` (`open` at the top, `done` under `done/`, `proposed` under `proposed/`, `abandoned` and `superseded` under `archive/`), and a `done` handoff's `report` must exist; HANDOFF-0049 moved the record into those folders, so the check has no exceptions. Both are coherence checks, `advisory` for one week of use and then `blocking`.
 
 ## Provenance rules
 - **One note, one source class.** A note is `stated`, `inferred`, or `fetched` — never mixed. Synthesis is an `inferred` note whose `sources` list points at the `fetched` and `stated` notes it draws on; that is how per-fact provenance is preserved without per-sentence markup.
@@ -100,11 +100,12 @@ Email reader about the chapter 2 draft.
 Before any agent writes to `memory/` or `docs/`, the validator (`kgme lint`, the `kgme/lint.py` module of HANDOFF-0031; the first code artefact in KGME after packaging and the ledger) checks: frontmatter present and parseable; all required fields for the type, with the v1.2 exceptions above; `id` unique across both roots minus `docs/archive/`; `type` in the allowed set; type-specific required fields present; `created`, and `modified` where required, are ISO 8601 with offset; `source: fetched` has `origin`; `source: inferred` has `sources`; the file sits in a folder its `type` allows; the exempt paths in **Scope** are skipped. Reports created before 2026-09-14, the day v1.2 widened the schema to `docs/`, are held to the fields that existed when they were written: `period`, and `origin` under `source: fetched` or `sources` under `source: inferred`, are required of reports created on or after that date (v1.3). Findings carry an ADR-016 class: the checks above are `blocking`; unknown fields and id-format drift are `advisory`; whitespace is `cosmetic`. Only `blocking` fails the run. The HANDOFF-0002 lint checked only three keys and does not count as validation.
 
 ## Versioning
-This is v1.4 (draft). Changelog:
+This is v1.5 (draft). Changelog:
+- **1.5 (2026-10-15)** — handoffs by state: `docs/handoff/done/` and `docs/handoff/archive/` admitted beside the top (open) and `proposed/`; a finished handoff names its report in `report`; the folder must match the status and the report must exist, as coherence checks (HANDOFF-0049; `advisory` for a week, then `blocking`). The record was moved by `git mv` and each finished handoff gained one `report:` line; nothing else in them changed. The track folders proposed as v1.5 by HANDOFF-0042 become v1.6.
 - **1.4 (2026-10-09)** — any `README.md` is exempt by name: the index of its folder, not a note (Michou's ruling, 2026-10-09, same reasoning as the charter exemption; prompted by the handoff-track and design-asset READMEs). Named id families gain `CDH-NNNN` and `AUDIT-CDH-NNNN` for the cockpit design track. No note is edited to fit the schema; the validator follows under HANDOFF-0041. No migration: it only relaxes.
 - **1.3 (2026-09-20)** — reports created before 2026-09-14 are held to the fields that existed when they were written; `period`, and `origin` or `sources`, apply to reports created on or after that date. HANDOFF-0031's first dry run found the ten Phase 0 reports without them; per the provenance rule the schema moved and the records did not (Michou's ruling, 2026-09-20).
 - **1.2 (2026-09-14)** — scope widened to `docs/`; exempt paths named with reasons (templates, attachments, the charter and this file by Michou's ruling, the archive); append-only types (`decision`, `handoff`, `report`) no longer require `modified`; `handoff` uses `from` in place of `author` and does not require `source`; `note` admitted under `memory/inbox/`, `docs/` root, `docs/plans/`, `docs/readers/`; `decision` and `handoff` gain `proposed`, `handoff` gains `superseded`; `completed` required only on `done`; unknown fields permitted and reported as `advisory`; id families named; findings classed per ADR-016; paths written from the repository root. No note was edited to fit the schema; the schema was fitted to the record (HANDOFF-0030).
 - 1.1 (2026-09-10) — second-resolution human ids; `sources` list for inferred notes; one-source-class rule; validation section.
 - 1.0 (2026-09-09) — initial.
 
-Changes are recorded as a new version of this file plus, once notes exist that a change would move, a migration script under `tools/schema/`. v1.2 needs no migration: it only relaxes. Every note carries no schema version field on purpose: the vault is migrated as a whole, never left mixed.
+Changes are recorded as a new version of this file plus, once notes exist that a change would move, a migration script under `control/schema/`. v1.2 needs no migration: it only relaxes. Every note carries no schema version field on purpose: the vault is migrated as a whole, never left mixed.

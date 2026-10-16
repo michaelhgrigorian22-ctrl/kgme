@@ -12,7 +12,7 @@ payloads_dir = "logs/scratch/payloads"
 scratch_test_dir = "logs/scratch-test"  # hook tests write payloads and errors here, never to the live scratch
 audit_dir = "docs/audit"                # reports; kgme review writes AUDIT-NNNN-review-* here
 handoff_dir = "docs/handoff"            # adopted handoffs; kgme review finds a handoff by its id here
-review_prompt = "tools/review/prompt.md"
+review_prompt = "control/review/prompt.md"
 # Tier 1 is a separate repository elsewhere on disk (ADR-002). As of 2026-09-14 it does not
 # exist yet (Michou, HANDOFF-0025 review F2); when it does, its absolute path is added here,
 # path string only. The relative entry is the in-repo tripwire from .gitignore.
@@ -23,6 +23,11 @@ tier1_paths = ["memory/private"]
 roots = ["memory", "docs"]
 exempt = ["memory/templates", "memory/attachments", "docs/archive", "docs/charter.md", "docs/schema-v1.md"]
 skip_dirs = [".obsidian"]
+
+[coherence]
+# `kgme lint`'s coherence checks (HANDOFF-0049) are `advisory` before this day and `blocking`
+# from it: promotion by date, not by hand (Cowork's ruling on review cycle 1 F5).
+blocking_from = "2026-10-23"
 
 [brief]
 # `kgme brief` (HANDOFF-0034) reads every `due` instant in this zone: the day it falls on and

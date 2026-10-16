@@ -140,6 +140,15 @@ def run_lint(args: argparse.Namespace) -> int:
         print(f"kgme lint: {error}", file=sys.stderr)
         return 2
     findings = lint.lint_files(notes)
+    if not args.root and (base / "CLAUDE.md").is_file():
+        from datetime import date
+
+        from kgme import coherence  # the repository's own tree, not a fixture's (HANDOFF-0049)
+
+        cls = coherence.finding_class(
+            date.today(), settings.get("coherence", {}).get("blocking_from")
+        )
+        findings += coherence.check_tree(*vault.read_coherence_inputs(base), cls=cls)
     for finding in findings:
         if finding.cls != "cosmetic" or args.include_cosmetic:
             print(finding.line())

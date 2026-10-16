@@ -6,9 +6,20 @@ Inputs: root directories, exempt paths, directory names to skip, the repository 
 Outputs: `(repo-relative path, text)` pairs, roots in the given order, sorted within each.
 Side effects: reads files. Writes nothing. A root that is not a directory raises
 `FileNotFoundError`: a mistyped root must not lint nothing and report success.
+`read_coherence_inputs` also reads what `kgme.coherence` checks: the handoffs, the live
+documents, every path in the working tree, and, kept apart, the file list of the `design`
+branch through one `git ls-tree` (HANDOFF-0049).
 """
 
+import os
+import subprocess
 from pathlib import Path
+
+from kgme.frontmatter import parse_frontmatter
+
+SKIP_WALK = (".git", ".venv", ".pytest_cache", ".ruff_cache", "__pycache__", "node_modules")
+LIVE_SINGLE = ("CLAUDE.md", "README.md", "docs/README.md", "docs/STATUS.md")
+LIVE_FOLDERS = ("docs/readers", "docs/plans")
 
 
 def is_exempt(path: Path, exempt: list[Path], skip_dirs: tuple[str, ...]) -> bool:
@@ -45,3 +56,65 @@ def read_notes(
                 rel = path.as_posix()
             notes.append((rel, path.read_text(encoding="utf-8", errors="replace")))
     return notes
+
+
+def read_existing_paths(base: Path) -> frozenset[str]:
+    """Every repository-relative file and directory in this checkout's working tree."""
+    found: set[str] = set()
+    for dirpath, dirnames, filenames in os.walk(base):
+        dirnames[:] = [d for d in dirnames if d not in SKIP_WALK]
+        here = Path(dirpath).relative_to(base).as_posix()
+        if here != ".":
+            found.add(here)
+        for name in filenames:
+            found.add(name if here == "." else f"{here}/{name}")
+    return frozenset(found)
+
+
+def read_design_paths(base: Path) -> frozenset[str]:
+    """Every file and directory on the `design` branch, kept apart from this checkout's, so a
+    path the design track holds resolves only where a document points into its folders
+    (review cycle 1 F3); empty when there is no such branch."""
+    listed = subprocess.run(
+        ["git", "ls-tree", "-r", "--name-only", "design"],
+        cwd=base,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    found: set[str] = set()
+    for name in listed.stdout.splitlines() if listed.returncode == 0 else []:
+        parts = name.split("/")
+        found.update("/".join(parts[: i + 1]) for i in range(len(parts)))
+    return frozenset(found)
+
+
+def read_handoffs(base: Path) -> list[tuple[str, dict, str]]:
+    """Every handoff under `docs/handoff/` as `(repo-relative path, frontmatter, body)`; one
+    whose frontmatter does not parse is the schema check's finding, not this one's."""
+    handoffs: list[tuple[str, dict, str]] = []
+    for path in sorted((base / "docs" / "handoff").rglob("*.md")):
+        if path.name == "README.md":
+            continue
+        try:
+            data, body = parse_frontmatter(path.read_text(encoding="utf-8"))
+        except ValueError:
+            continue
+        handoffs.append((path.relative_to(base).as_posix(), data, body))
+    return handoffs
+
+
+def read_coherence_inputs(
+    base: Path,
+) -> tuple[list[tuple[str, dict, str]], list[tuple[str, str]], frozenset[str], str, frozenset[str]]:
+    """The handoffs, the live documents (`CLAUDE.md`, the two READMEs, `STATUS.md`, the
+    readers, the plans, the open handoffs), this checkout's paths, `CLAUDE.md`'s text, and
+    the `design` branch's paths, in the order `kgme.coherence.check_tree` takes them."""
+    handoffs = read_handoffs(base)
+    rels = [rel for rel in LIVE_SINGLE if (base / rel).is_file()]
+    for folder in LIVE_FOLDERS:
+        rels += [p.relative_to(base).as_posix() for p in sorted((base / folder).glob("*.md"))]
+    rels += [rel for rel, data, _ in handoffs if data.get("status") == "open"]
+    documents = [(rel, (base / rel).read_text(encoding="utf-8")) for rel in rels]
+    claude = (base / "CLAUDE.md").read_text(encoding="utf-8")
+    return handoffs, documents, read_existing_paths(base), claude, read_design_paths(base)

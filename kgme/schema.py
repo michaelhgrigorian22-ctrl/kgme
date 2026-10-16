@@ -83,6 +83,7 @@ NAMED_EXTRAS = (
     "period",
     "completed",
     "path",
+    "report",
 )
 KNOWN_FIELDS = frozenset(
     COMMON_FIELDS

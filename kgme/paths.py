@@ -83,7 +83,7 @@ def handoff_dir(settings: dict, base: Path | None = None) -> Path:
 
 
 def review_prompt(settings: dict, base: Path | None = None) -> Path:
-    """`tools/review/prompt.md`, the fixed reviewer prompt template."""
+    """`control/review/prompt.md`, the fixed reviewer prompt template."""
     return _path_setting(settings, "review_prompt", base)
 
 

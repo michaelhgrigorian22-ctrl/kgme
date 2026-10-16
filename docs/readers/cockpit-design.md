@@ -65,10 +65,10 @@ What a design review is for, and the class each finding carries:
 
 What is not a finding: that the files exceed ADR-015's 300-line guide (artboards are drawings, exempt by HANDOFF-0036); that the `.dc.html` syntax (`<x-dc>`, `<sc-for>`, `{{holes}}`, `DCLogic`) is unfamiliar, it is the editor's format; that sample data is sample data.
 
-The prompt that says all this to the reviewer is `tools/review/design-prompt.md`. First pass, from the repository root, Michou's terminal:
+The prompt that says all this to the reviewer is `control/review/design-prompt.md`. First pass, from the repository root, Michou's terminal:
 
 ```
-codex exec -s read-only -m gpt-6-astra "$(cat tools/review/design-prompt.md)" > logs/scratch/design-review-cycle-1.md
+codex exec -s read-only -m gpt-6-astra "$(cat control/review/design-prompt.md)" > logs/scratch/design-review-cycle-1.md
 ```
 
 Then Claude Code, on Michou's word, turns the scratch file into `docs/audit/AUDIT-NNNN-design-review-cockpit-v0-cycle-N.md` with report frontmatter, and records the cycle as a ledger note on `design:HANDOFF-0036`.

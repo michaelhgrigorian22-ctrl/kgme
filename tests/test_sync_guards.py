@@ -43,7 +43,7 @@ def test_full_sync_with_the_hook_enabled_attempts_the_push_once(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     repo, _ = write_seed(tmp_path)
-    run_git(["config", "core.hooksPath", "tools/git-hooks"], repo)
+    run_git(["config", "core.hooksPath", "control/git-hooks"], repo)
     run_git(["remote", "set-url", "origin", str(tmp_path / "does-not-exist.git")], repo)
     ledger.append(ledger_event(), sync_io.read_dirs(SETTINGS, repo))
     assert run_sync(repo, monkeypatch=monkeypatch) == 0
@@ -138,7 +138,7 @@ def test_a_sync_arriving_during_a_push_waits_then_commits_and_pushes(
 @pytest.mark.blocking
 def test_a_commit_arriving_during_a_push_is_pushed_by_its_own_hook(tmp_path: Path) -> None:
     repo, bare = write_seed(tmp_path)
-    run_git(["config", "core.hooksPath", "tools/git-hooks"], repo)
+    run_git(["config", "core.hooksPath", "control/git-hooks"], repo)
     holder = run_holder(repo, 0.6)
     write_commit(repo)
     holder.join()
