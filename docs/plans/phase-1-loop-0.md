@@ -3,7 +3,7 @@ id: PLAN-PHASE-1
 type: note
 status: active
 created: 2026-09-11T23:50:00-07:00
-modified: 2026-10-16T02:35:00-07:00
+modified: 2026-10-16T14:20:00-07:00
 author: cowork
 source: stated
 tier: 2
@@ -34,7 +34,9 @@ Phase 0 built the ground: backup proven, repo off-machine, toolchain pinned, cha
 | 9 | **Loop 0 — `kgme brief` v1.** Manual, read-only, local, no model call; four acceptance tests with classes; `--dry-run`; reminder, task, daily templates shipped | 0034 | 1, 6, 8 | The loop |
 | 9a | **One home.** `~/Projects/KGME/` holding `brain/` (main), `design/` (worktree) and `work/` (crew); tools/ renamed `control/`; handoffs by state (`done/`, `archive/`); a front-door README; maps redrawn; report links fixed; coherence checks in `kgme lint`; the move run by Michou with a prepared script | 0049 | 9 | Michou, 2026-10-16: no visible clutter, intuitive paths, one home for brain, design and work |
 | 9b | **Design-track registration.** `kgme lint` validates git-known files (`--all` for the tree); schema v1.5 track folders; `codex-builder` profile; binaries out of tree | 0042 | 9, 0041 | The worktree is the separation today; this makes it the repo's |
-| 10 | **Seed the vault.** Michou's own act: real reminders, tasks, daily notes, ten friction entries | 0035 | 9 | The vault is empty; an empty brief measures nothing |
+| 9c | **Capture by talking, daily notes drafted.** `kgme capture` files reminders, tasks, friction and notes in Michou's words on his say-so in any session; `kgme daily` drafts the day's note from the ledger; nothing typed in Obsidian | 0050 | 9, 9a | The vault had nothing new from Michou in a month; Loop 0 reads it |
+| 9d | **The atlas.** Generated notes per folder, module, handoff, ADR, reader and audit, linked by real dependencies; the repository as the Obsidian vault; regenerated after every commit; other projects later, opt-in, structure only | 0051 | 9a | Michou, 2026-10-16: Obsidian as a lens only |
+| 10 | **Seed the vault.** real reminders, tasks, daily notes, ten friction entries, through capture by talking (amended 2026-10-16) | 0035 | 9, 9c | The vault is empty; an empty brief measures nothing |
 | 11 | **Cockpit design canvas.** From the wishlist; five states; keyboard map; Phase 2 controls drawn greyed. Approved by Michou before any cockpit code | 0036 | — | Parallel track from day one; taste, not code |
 | 12 | **Cockpit v0.** Stdlib server on `127.0.0.1`, one page, the timeline over the ledger, installed to the Dock. Read-only; nothing else | 0037 | 1, 11 | The first pixel |
 | 12b | **`kgme review --loop`.** Build → gate → review → dispose → arbitrate → close with nobody in it; merge manual; two-cycle halt unattended; dead-man switch; compaction logged; grilled before adoption (amended 2026-10-14) | 0043 | 9, 9b, 12, 7c | The loop Michou asked for, bounded by ADR-016 and a kill path |
