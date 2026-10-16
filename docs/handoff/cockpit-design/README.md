@@ -32,8 +32,8 @@ This section uses its own `CDH-0001`, `CDH-0002` sequence, at Michou's request o
 | CDH-0014 | Cowork | The ui-ux-pro-max rubric's six checks (status region for the tray count, focus never under the header or HUD, a pause for the replay, 24 px targets, WCAG 2.1.4 on board 7 and in the station, the station against threejs rows 1–9), measured natively where the pane allows, fixes in the same cycle. Relayed by Michou from the substantive session 2026-10-15 22:43. Done 23:50, PASS (AUDIT-CDH-0014; CW22 board 3's filter buttons pass by the spacing exception, CW23 the replay starts paused under reduced motion); commit `d2f1d29`. | [Rubric checks](2026-10-15-rubric-checks.md) |
 | CDH-0015 | Cowork | The station's third cycle: AUDIT-CDH-0013's F1–F6 applied. Done 2026-10-15 23:45, PASS (AUDIT-CDH-0015; CW21 rows keep an explicit complete name); commit `d2f1d29`. | [Station cycle 3](2026-10-15-station-cycle-3.md) |
 | CDH-0016 | Codex, GPT-6 Astra (read-only review) | Review of CDH-0014 and CDH-0015 together at `d2f1d29`, the first under the cited rubric. Proposed; **`ready` in the Codex queue** since 2026-10-15 23:55. | [Rubric and cycle 3 review](2026-10-15-rubric-and-cycle-3-review.md) |
-| CDH-0017 | Cowork | The open list under ADR-023: checks run (CW17, CW18, CW22), judgement calls scored and decided (bubbles below the crew, the hull's key, the deck framed lower, the calm grid), three items left for one batched brief. Open 2026-10-16 00:05. | [Open list](2026-10-16-open-list.md) |
-| CDH-0018 | Codex, GPT-6 Astra (read-only review) | Review of CDH-0017. Proposed; `ready` when CDH-0017 is done. | [Open list review](2026-10-16-open-list-review.md) |
+| CDH-0017 | Cowork | The open list under ADR-023: checks run (CW17, CW18, CW22), judgement calls scored and decided (bubbles below the crew, the hull's key, the deck framed lower, the calm grid), three items left for one batched brief. Done 2026-10-16 00:50, PASS (AUDIT-CDH-0017; CW24 the lessons file lives under `docs/readers/` by schema v1.4, CW25 one bubble touched a chip's edge by a pixel); commit `2e14d66`. | [Open list](2026-10-16-open-list.md) |
+| CDH-0018 | Codex, GPT-6 Astra (read-only review) | Review of CDH-0017 at `2e14d66`. Proposed; **`ready` in the Codex queue** since 2026-10-16 00:50, behind CDH-0016. | [Open list review](2026-10-16-open-list-review.md) |
 
 Both handoffs were explicitly adopted by Michou on 2026-10-09: "theyre good to go i just want to plug and play codex to start working and then just say the word to cowork to read the folder and move forward given the brief". Their files now carry `from: michou` and `status: open`. Codex mechanically recorded Michou's adoption; it did not adopt its own proposal. This approval covers the written local implementation and verification plans, including the scoped board 10 edits. It does not grant final canvas approval.
 
@@ -66,6 +66,10 @@ Stakes 1–5 (how visible, how costly to change after approval) × edge 0–1 (t
 | CW14 the artifact host paints after `load`; CW15 the loop guard; CW21 explicit row names | facts | recorded, nothing to decide |
 
 Asked and answered: (none yet under ADR-023). Taken-recommendation tally: —.
+
+## Status 2026-10-16 00:50
+
+**ADR-023 in force** (relayed 23:30). **CDH-0017 (Cowork) done 00:50, PASS** (AUDIT-CDH-0017, commit `2e14d66`): the open list scored (table above); checks run — CW17 the host boards' focused rows (a `.mut` class, `#7a8d9b` on each board's tint, 5.1–5.4:1), CW18 board 6's muted token `#a3b0b8` under its filter (4.76:1), CW22 24 px filter buttons; decided and built — bubbles hang below the crew (CW16), the HUD shows a halt's key (CW19), the deck framed lower (76 px under the HUD), 400 px calm columns; decided and kept — ten items, listed for the approval screen where ≥ 0.5. Three items go to Michou in one brief. The lessons file is `docs/readers/cockpit-design-lessons.md` (schema v1.4 keeps notes out of this folder, CW24); the queue prompt reads it first. Review copy version 29, KGME Station version 6. Queue: CDH-0016 then CDH-0018 are `ready`. `origin/design` is behind until Michou pushes.
 
 ## Status 2026-10-15 23:55
 
@@ -112,7 +116,7 @@ Michou starts Codex with one fixed prompt, every time: `tools/review/codex-queue
 | 3 | CDH-0011 | The station (CDH-0009, `373de74`) and the tray's second cycle (CDH-0010, `4f3e06c`, AUDIT-CDH-0010); captures under `logs/scratch/design-review/cdh-0009/` and `cdh-0010/` | done 2026-10-14 | [Station and tray review](2026-10-13-station-and-tray-review.md) |
 | 4 | CDH-0013 | The station's second cycle and the tray's T1 (CDH-0012, `dd90ca6`, AUDIT-CDH-0012); captures under `logs/scratch/design-review/cdh-0012/` | done 2026-10-15 | [Station cycle review](2026-10-14-station-cycle-review.md) |
 | 5 | CDH-0016 | The station's third cycle and the rubric checks (CDH-0015 + CDH-0014, `d2f1d29`, AUDIT-CDH-0015 and AUDIT-CDH-0014); captures under `logs/scratch/design-review/cdh-0014/` and `cdh-0015/` | ready 2026-10-15 23:55 | [Rubric and cycle 3 review](2026-10-15-rubric-and-cycle-3-review.md) |
-| 6 | CDH-0018 | The open list's cycle (CDH-0017, sha from its report); captures under `logs/scratch/design-review/cdh-0017/` | waiting on CDH-0017 | [Open list review](2026-10-16-open-list-review.md) |
+| 6 | CDH-0018 | The open list's cycle (CDH-0017, `2e14d66`, AUDIT-CDH-0017); captures under `logs/scratch/design-review/cdh-0017/` | ready 2026-10-16 00:50 | [Open list review](2026-10-16-open-list-review.md) |
 
 ## Start here
 
