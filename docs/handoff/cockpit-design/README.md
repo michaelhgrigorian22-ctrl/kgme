@@ -34,6 +34,7 @@ This section uses its own `CDH-0001`, `CDH-0002` sequence, at Michou's request o
 | CDH-0016 | Codex, GPT-6 Astra (read-only review) | Review of CDH-0014 and CDH-0015 together at `d2f1d29`, the first under the cited rubric. Proposed; **`ready` in the Codex queue** since 2026-10-15 23:55. | [Rubric and cycle 3 review](2026-10-15-rubric-and-cycle-3-review.md) |
 | CDH-0017 | Cowork | The open list under ADR-023: checks run (CW17, CW18, CW22), judgement calls scored and decided (bubbles below the crew, the hull's key, the deck framed lower, the calm grid), three items left for one batched brief. Done 2026-10-16 00:50, PASS (AUDIT-CDH-0017; CW24 the lessons file lives under `docs/readers/` by schema v1.4, CW25 one bubble touched a chip's edge by a pixel); commit `2e14d66`. | [Open list](2026-10-16-open-list.md) |
 | CDH-0018 | Codex, GPT-6 Astra (read-only review) | Review of CDH-0017 at `2e14d66`. Proposed; **`ready` in the Codex queue** since 2026-10-16 00:50, behind CDH-0016. | [Open list review](2026-10-16-open-list-review.md) |
+| CDH-0019 | Codex, GPT-6 Astra (builder) | The standing mandate of the track's builder (Michou, 2026-10-16 14:24): merge `main` (HANDOFF-0049's tree) into `design`, take the queue, run the fix loop; the boundary of HANDOFF-0042's builder profile written out. Proposed; **`ready` in the Codex queue** since 2026-10-16 14:50, behind CDH-0018 by number but first by its own step 1. | [Codex builder](2026-10-16-codex-builder.md) |
 
 Both handoffs were explicitly adopted by Michou on 2026-10-09: "theyre good to go i just want to plug and play codex to start working and then just say the word to cowork to read the folder and move forward given the brief". Their files now carry `from: michou` and `status: open`. Codex mechanically recorded Michou's adoption; it did not adopt its own proposal. This approval covers the written local implementation and verification plans, including the scoped board 10 edits. It does not grant final canvas approval.
 
@@ -66,6 +67,10 @@ Stakes 1–5 (how visible, how costly to change after approval) × edge 0–1 (t
 | CW14 the artifact host paints after `load`; CW15 the loop guard; CW21 explicit row names | facts | recorded, nothing to decide |
 
 Asked and answered: (none yet under ADR-023). Taken-recommendation tally: —.
+
+## Status 2026-10-16 14:50
+
+**The home moved** (HANDOFF-0049 Part B, Michou, 2026-10-16): this worktree is `~/Projects/KGME/design`; `main` is `~/Projects/KGME/brain`; `~/Projects/KGME/work/` waits for HANDOFF-0048. `main` carries the relabelled tree (`tools/` → `control/`, handoffs by state, schema v1.5, coherence checks advisory until 2026-10-23) and ADR-023; `design` has not merged it yet (27 commits each way from `eb72f1d`). **Codex becomes the track's builder** (Michou, 14:24): CDH-0019 is its standing mandate and `ready` as queue row 7; its step 1 is the merge, rehearsed by Cowork in a clone (one content conflict, the reader; six relocations; 0 blocking after). The start prompt is `tools/review/codex-builder-prompt.md` (`control/review/` after the merge); it carries the introduction to the changes. Cowork now reviews Codex's builds natively and publishes the artifacts; Michou pushes and approves. The brief of 2026-10-16 00:50 (three items) is still open: his answers go on the "Asked and answered" line. `origin/design` is at `af20b61`.
 
 ## Status 2026-10-16 00:50
 
@@ -107,7 +112,7 @@ Working rules under ADR-023 (`git show main:CLAUDE.md`, "How decisions are made"
 
 ## Codex queue
 
-Michou starts Codex with one fixed prompt, every time: `tools/review/codex-queue-prompt.md`. Codex takes the first row below whose status is `ready`, records Michou's adoption in that handoff, executes it, writes its report, sets the row to `done`, **commits its three delivery files by pathspec** (Michou, 2026-10-14 00:41) and takes the next `ready` row, stopping when there is none. Cowork keeps this table: a row becomes `ready` when its dependency is `done` and the sha it reviews is committed on `design`. Nothing here pushes; `git push origin design` stays Michou's.
+Michou starts Codex with one fixed prompt, every time, from `~/Projects/KGME/design`: `control/review/codex-builder-prompt.md` (`tools/review/codex-builder-prompt.md` until CDH-0019's merge lands). From 2026-10-16 Codex is the track's builder under CDH-0019: it merges `main` once, then takes the first row below whose status is `ready`, records Michou's adoption in that handoff, executes it (a review or a build), writes its report, sets the row to `done`, **commits its delivery files by pathspec** (Michou, 2026-10-14 00:41) and takes the next `ready` row; with none left, it applies the newest review's blocking findings as a cycle and stops for Cowork's native review. Cowork keeps this table and writes the handoffs for new work: a row becomes `ready` when its dependency is `done` and the sha it needs is committed on `design`. Nothing here pushes; `git push origin design` stays Michou's.
 
 | # | ID | Reviews | Status | Document |
 | --- | --- | --- | --- | --- |
@@ -117,8 +122,11 @@ Michou starts Codex with one fixed prompt, every time: `tools/review/codex-queue
 | 4 | CDH-0013 | The station's second cycle and the tray's T1 (CDH-0012, `dd90ca6`, AUDIT-CDH-0012); captures under `logs/scratch/design-review/cdh-0012/` | done 2026-10-15 | [Station cycle review](2026-10-14-station-cycle-review.md) |
 | 5 | CDH-0016 | The station's third cycle and the rubric checks (CDH-0015 + CDH-0014, `d2f1d29`, AUDIT-CDH-0015 and AUDIT-CDH-0014); captures under `logs/scratch/design-review/cdh-0014/` and `cdh-0015/` | ready 2026-10-15 23:55 | [Rubric and cycle 3 review](2026-10-15-rubric-and-cycle-3-review.md) |
 | 6 | CDH-0018 | The open list's cycle (CDH-0017, `2e14d66`, AUDIT-CDH-0017); captures under `logs/scratch/design-review/cdh-0017/` | ready 2026-10-16 00:50 | [Open list review](2026-10-16-open-list-review.md) |
+| 7 | CDH-0019 | The builder's mandate: merge `main` at `5ff202c` into `design` first (the prompt's step 1), then rows 5 and 6, then the fix loop; stays open across cycles | ready 2026-10-16 14:50 | [Codex builder](2026-10-16-codex-builder.md) |
 
 ## Start here
+
+From 2026-10-16 the start is `control/review/codex-builder-prompt.md` under CDH-0019 (`tools/review/` until its merge lands); the two items below were the track's first start on 2026-10-09 and are kept for the record.
 
 1. **Codex on GPT-6 Astra:** When Michou points you at this folder to begin, read and execute CDH-0001. Briefly restate the plan and proceed; the plan and named edits are already approved. Do not stop for a second adoption, pixel-style decision, or approval of routine edits inside the named scope. Finish the local artwork, board 10 integration, checks, and implementation report. Show the resulting scoped diff in the delivery. Preserve all unrelated human work.
 2. **Cowork:** When Michou gives the word to verify, read and execute CDH-0002. First confirm that CDH-0001 is done, its implementation report exists, and its recorded file hashes match the delivered files. Then import the supplied files into your native design interface and perform the written verification without asking for the same plan approval again. If the implementation has not been delivered, report the specific missing prerequisite; do not improvise the artwork yourself.
@@ -128,7 +136,7 @@ For these 2 handoffs, local files, evidence, and reports constitute delivery. No
 
 ## Shared ownership and the decision being implemented
 
-This is a 4-person collaboration: Michou owns taste and approval; ChatGPT contributes visual studies and critique; Codex on GPT-6 Astra implements the artwork and animation; Cowork remains a design collaborator and verifies the result in its own canvas. Cowork's participation is not being replaced.
+This is a 4-person collaboration: Michou owns taste and approval; ChatGPT contributes visual studies and critique; Codex on GPT-6 Astra implements the artwork and animation; Cowork remains a design collaborator and verifies the result in its own canvas. Cowork's participation is not being replaced. From 2026-10-16 (CDH-0019) Codex is the track's builder and reviewer in one always-on session; Cowork reviews its builds natively, publishes the two artifacts from the committed files, and writes the handoffs for new work; Michou's roles are unchanged.
 
 Michou requested discernible illustrated characters instead of pixel figures, allowed the old sprite constraints to change to achieve that, supplied an anime chibi style reference, and approved the resulting 7-character concept sheet with "perfecttttt!!!!" before requesting these instructions. This is approval of the visual direction, not approval of the complete cockpit, production performance, a personal likeness, or HANDOFF-0037.
 

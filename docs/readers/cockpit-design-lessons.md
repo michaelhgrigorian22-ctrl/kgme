@@ -3,7 +3,7 @@ id: LESSONS-COCKPIT-DESIGN
 type: note
 status: active
 created: 2026-10-16T00:20:00-07:00
-modified: 2026-10-16T00:30:00-07:00
+modified: 2026-10-16T14:50:00-07:00
 author: cowork
 source: stated
 tier: 2
@@ -34,5 +34,6 @@ Measurement
 The loop
 - Codex commits its own three delivery files and takes the next ready row; Cowork applies blocking findings as the next cycle and Michou vetoes after the fact (2026-10-14 00:41). Under ADR-023, checks are run, not asked; judgement calls are scored (stakes × edge ≥ 1.5 asks, batched, with a recommendation) and the scores recorded in the README's open list.
 - Codex is not told to start until its queue row is `ready` with a committed sha; while it runs, nothing it will `git add` (its handoff, the README) is edited.
-- Git from the VM: `-c core.hooksPath=/dev/null -c gc.auto=0`; the VM cannot delete in the Mac's folders, so an auto-gc leaves `HEAD.lock` behind — move it aside under `.git`, never delete it.
+- Git from the VM: `GIT_DIR=$HOME/mnt/KGME/brain/.git/worktrees/Automate-design GIT_WORK_TREE=$HOME/mnt/KGME/design` (the home is `~/Projects/KGME` since HANDOFF-0049; the worktree's metadata keeps its old name), `-c core.hooksPath=/dev/null -c gc.auto=0`; the VM cannot delete in the Mac's folders, so an auto-gc leaves `HEAD.lock` behind — move it aside under `.git`, never delete it.
+- From 2026-10-16 (CDH-0019) Codex builds and reviews in one always-on session; Cowork reviews its builds natively and publishes the artifacts; new work still enters as a `ready` row written by Cowork or Michou, and the merge of `main` into `design` is a builder's task, rehearsed first in a clone.
 - The one quiet threshold reproduces the boards' drawn samples; a rule that contradicts a drawn sample is wrong, not the sample.
