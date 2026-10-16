@@ -24,6 +24,11 @@ roots = ["memory", "docs"]
 exempt = ["memory/templates", "memory/attachments", "docs/archive", "docs/charter.md", "docs/schema-v1.md"]
 skip_dirs = [".obsidian"]
 
+[brief]
+# `kgme brief` (HANDOFF-0034) reads every `due` instant in this zone: the day it falls on and
+# the time it shows (review cycle 1 F9). An IANA name, read with the standard `zoneinfo`.
+timezone = "America/Los_Angeles"
+
 [sync]
 # `kgme sync` (HANDOFF-0040) bounds every git command; a push that has not answered by then is
 # killed with its helpers and recorded as one `transient` outcome, so no trigger ever hangs.

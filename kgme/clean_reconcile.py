@@ -4,29 +4,27 @@ Purpose: ADR-013 §4 for the deleter (HANDOFF-0033). Every plan ends with one `c
 outcome; an intent without one belongs to a run that died. With its payload, each planned
 path is checked: one an outcome already names, by number, is settled; one absent without an
 outcome was deleted before its outcome was written and gets one now, with the size and hash
-the payload kept; one still present was not reached and is left for the next plan. Without
-a payload nothing can be told, and the plan is closed `transient`. A payload is evidence
-only when it is a regular file reached through no link and its bytes hash to the
-`payload_sha256` the intent recorded in the ledger, and its structure is the one
-`plan_record` writes; otherwise nothing is recorded from it, the plan is closed `blocking`,
-and the run stops (review cycle 5 F14). The run holds `kgme-clean.lock` while it reconciles,
-so an open intent belongs to a run that has ended (F15).
+the payload kept; one still present was not reached and is left for the next plan. Without a
+payload nothing can be told, and the plan is closed `transient`. A payload is evidence only
+when `ledger.read_payload`, shared with `kgme brief`, finds it a regular file reached
+through no link whose bytes hash to the `payload_sha256` the intent recorded, and its
+structure is the one `plan_record` writes; otherwise nothing is recorded from it, the plan
+is closed `blocking`, and the run stops (review cycle 5 F14). The run holds
+`kgme-clean.lock` while it reconciles, so an open intent belongs to a run that has ended
+(F15).
 Inputs: the checkout, its ledger streams, the run id.
 Outputs: how many plans were closed, and how many on evidence that could not be trusted.
 Side effects: `read_*` read the ledger and the payloads and stat planned paths;
 `write_reconciled_outcomes` appends outcomes to the checkout's own streams.
 """
 
-import hashlib
 import json
 import os
 import re
-import stat
 from pathlib import Path
 
 from kgme import events, ledger
 from kgme.clean import fit_summary, fit_text
-from kgme.clean_read import read_link_in_ancestry
 
 JOB = "clean"
 CLOSE = "closed: "
@@ -75,15 +73,18 @@ def write_reconciled_outcomes(base: Path, dirs: ledger.Dirs, run_id: str) -> tup
     for intent in opened:
         key, intent_id = intent["key"], intent["id"]
         recorded = read_numbers_recorded(dirs, intent_id)
-        payload = base / intent["payload_ref"] if intent["payload_ref"] else None
-        if payload is None or not payload.exists():
+        data, problem = ledger.read_payload(base, intent)
+        if data is None and not problem:
             summary = f"{CLOSE}reconciled on start: intent {intent_id} left no payload to check"
             write_recovery_outcome(dirs, run_id, key, intent_id, summary, "error", "transient")
             continue
-        record, problem = read_payload(base, payload, intent["payload_sha256"])
+        record, problem = read_plan(data) if data is not None else (None, problem)
         if record is None:
             untrusted += 1
-            summary = f"{CLOSE}reconciled on start: payload of {intent_id} {problem}"
+            summary = (
+                f"{CLOSE}reconciled on start: payload of {intent_id}: {problem}; "
+                "nothing recorded from it"
+            )
             write_recovery_outcome(dirs, run_id, key, intent_id, summary, "error", "blocking")
             continue
         unrecorded = present = 0
@@ -109,33 +110,15 @@ def write_reconciled_outcomes(base: Path, dirs: ledger.Dirs, run_id: str) -> tup
     return len(opened), untrusted
 
 
-def read_payload(base: Path, payload: Path, recorded_sha256: str | None) -> tuple[dict | None, str]:
-    """The plan a payload records, or None and why it is not evidence: a link on the way or
-    in its place, not a regular file, bytes that do not hash to what the intent recorded,
-    or a structure `plan_record` did not write."""
-    if read_link_in_ancestry(payload, base) is not None:
-        return None, "is reached through a symlink; nothing recorded from it"
-    try:
-        fd = os.open(payload, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
-    except OSError as error:
-        return None, f"could not be read: {error.strerror}; nothing recorded from it"
-    try:
-        if not stat.S_ISREG(os.fstat(fd).st_mode):
-            return None, "is not a regular file; nothing recorded from it"
-        chunks = []
-        while chunk := os.read(fd, 1 << 20):
-            chunks.append(chunk)
-    finally:
-        os.close(fd)
-    data = b"".join(chunks)
-    if hashlib.sha256(data).hexdigest() != recorded_sha256:
-        return None, "does not match the hash its intent recorded; nothing recorded from it"
+def read_plan(data: bytes) -> tuple[dict | None, str]:
+    """The plan in a payload's verified bytes (`ledger.read_payload`), or None and why the
+    bytes are not one: not JSON, or not the structure `plan_record` writes."""
     try:
         record = json.loads(data.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError):
-        return None, "is not the JSON a plan writes; nothing recorded from it"
+        return None, "is not the JSON a plan writes"
     if not well_formed(record):
-        return None, "is not the structure a plan writes; nothing recorded from it"
+        return None, "is not the structure a plan writes"
     return record, ""
 
 

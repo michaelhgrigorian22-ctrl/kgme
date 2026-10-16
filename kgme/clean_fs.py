@@ -18,7 +18,8 @@ Outputs: sha256 prefixes, or nothing; `Refused` with a reason when the path is n
 plan listed.
 Side effects: `read_digest` opens and reads a file; `read_final_check` stats a path;
 `run_unlink` and `run_rmdir` delete one entry; `read_bound_directory` opens a directory and
-`write_payload` creates directories and one file inside it (F8); `write_lock` creates and
+`write_payload` creates directories and one file inside it (F8); `read_regular_bytes` reads one
+file (used by `kgme brief`); `write_lock` creates and
 locks `kgme-clean.lock` in the git directory (F15). Descriptors other than the lock's are
 closed before each returns.
 """
@@ -176,6 +177,27 @@ def write_payload(root: Path, path: Path, text: str) -> None:
         os.close(fd)
     finally:
         os.close(dir_fd)
+
+
+def read_regular_bytes(root: Path, path: Path) -> bytes:
+    """The bytes of a regular file under `root`, reached through no link (none above it, and
+    it is none), opened without waiting; `Refused` otherwise. Shared with `kgme brief`."""
+    read_no_link_above(path, root)
+    try:
+        fd = os.open(path, READ_FLAGS)
+    except OSError as error:
+        if error.errno == errno.ELOOP:
+            raise Refused(f"{path.relative_to(root)} is a symlink") from error
+        raise Refused(f"{path.relative_to(root)} could not be read: {error.strerror}") from error
+    try:
+        if not stat.S_ISREG(os.fstat(fd).st_mode):
+            raise Refused(f"{path.relative_to(root)} is not a regular file")
+        chunks = []
+        while chunk := os.read(fd, 1 << 20):
+            chunks.append(chunk)
+        return b"".join(chunks)
+    finally:
+        os.close(fd)
 
 
 def read_git_dir(base: Path) -> Path:

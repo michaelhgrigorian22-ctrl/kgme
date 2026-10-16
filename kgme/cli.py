@@ -6,7 +6,8 @@ every note under the configured roots against the schema and exits 1 on a blocki
 `ledger` (HANDOFF-0026) reads both streams or appends one human-authored event. `review`
 (HANDOFF-0029) runs one cycle of the review loop, or records a ruling or an override. `sync`
 (HANDOFF-0040) commits `logs/ledger/` by pathspec if it changed and pushes if ahead. `clean`
-(HANDOFF-0033) deletes disposable output by named target, a dry run unless `--yes`.
+(HANDOFF-0033) deletes disposable output by named target, a dry run unless `--yes`. `brief`
+(HANDOFF-0034) writes the day's brief from the vault, Loop 0, no model call.
 Inputs: argv.
 Outputs: exit code; one line per finding or event, a summary, or a review's escalation packet.
 Side effects: `ledger note`, `review`, `review rule`, and `review override` append to the real
@@ -21,7 +22,6 @@ import sys
 
 CLASSES = ("blocking", "transient", "cosmetic", "advisory")
 NOT_BUILT = {
-    "brief": "HANDOFF-0034",
     "cockpit": "HANDOFF-0037",
 }
 
@@ -30,7 +30,13 @@ def build_parser() -> argparse.ArgumentParser:
     """Declare every subcommand so `kgme --help` is the map of Phase 1."""
     parser = argparse.ArgumentParser(prog="kgme", description="Kuang Grade Mark Eleven.")
     subcommands = parser.add_subparsers(dest="command", required=True)
-    subcommands.add_parser("brief", help="Loop 0: write today's brief from the vault")
+    brief_parser = subcommands.add_parser(
+        "brief", help="Loop 0: write the day's brief from the vault"
+    )
+    brief_parser.add_argument("--date", help="the day to brief, YYYY-MM-DD; default today")
+    brief_parser.add_argument(
+        "--dry-run", action="store_true", help="print the brief; write nothing"
+    )
     clean_parser = subcommands.add_parser(
         "clean", help="delete disposable outputs by named target; a dry run unless --yes"
     )
@@ -107,6 +113,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_sync(args)
     if args.command == "clean":
         return run_clean(args)
+    if args.command == "brief":
+        return run_brief(args)
     print(f"kgme {args.command}: not built ({NOT_BUILT[args.command]})", file=sys.stderr)
     return 2
 
@@ -188,6 +196,17 @@ def run_review(args: argparse.Namespace) -> int:
     return review_run.run_cycle(
         args.handoff, model, dispositions, patch, places, args.dry_run, arbiter=arbiter
     )
+
+
+def run_brief(args: argparse.Namespace) -> int:
+    """`kgme brief [--date D] [--dry-run]` (HANDOFF-0034), in `kgme.brief_io`, on this
+    repository's root; it takes no path, as `kgme clean` takes none (HANDOFF-0033 F9)."""
+    from datetime import datetime
+
+    from kgme import brief_io, config, paths
+
+    date = args.date or datetime.now().astimezone().date().isoformat()
+    return brief_io.run_brief(date, args.dry_run, paths.root(), config.read_config())
 
 
 def run_clean(args: argparse.Namespace) -> int:
