@@ -35,6 +35,7 @@ This section uses its own `CDH-0001`, `CDH-0002` sequence, at Michou's request o
 | CDH-0017 | Cowork | The open list under ADR-023: checks run (CW17, CW18, CW22), judgement calls scored and decided (bubbles below the crew, the hull's key, the deck framed lower, the calm grid), three items left for one batched brief. Done 2026-10-16 00:50, PASS (AUDIT-CDH-0017; CW24 the lessons file lives under `docs/readers/` by schema v1.4, CW25 one bubble touched a chip's edge by a pixel); commit `2e14d66`. | [Open list](2026-10-16-open-list.md) |
 | CDH-0018 | Codex, GPT-6 Astra (read-only review) | Review of CDH-0017 at `2e14d66`. Proposed; **`ready` in the Codex queue** since 2026-10-16 00:50, behind CDH-0016. | [Open list review](2026-10-16-open-list-review.md) |
 | CDH-0019 | Codex, GPT-6 Astra (builder) | The standing mandate of the track's builder (Michou, 2026-10-16 14:24): merge `main` (HANDOFF-0049's tree) into `design`, take the queue, run the fix loop; the boundary of HANDOFF-0042's builder profile written out. Proposed; **`ready` in the Codex queue** since 2026-10-16 14:50, behind CDH-0018 by number but first by its own step 1. | [Codex builder](2026-10-16-codex-builder.md) |
+| CDH-0020 | Codex, GPT-6 Astra (builder) | The HUD's active-runs summary wraps below 362 px (CW26, AUDIT-CDH-0019-CYCLE-1-REVIEW, 2 × 0.2 decided); verified with the real station from the local three.js copy. Proposed; **`ready` in the Codex queue** since 2026-10-21 16:30. | [HUD summary wrap](2026-10-21-hud-summary-wrap.md) |
 
 Both handoffs were explicitly adopted by Michou on 2026-10-09: "theyre good to go i just want to plug and play codex to start working and then just say the word to cowork to read the folder and move forward given the brief". Their files now carry `from: michou` and `status: open`. Codex mechanically recorded Michou's adoption; it did not adopt its own proposal. This approval covers the written local implementation and verification plans, including the scoped board 10 edits. It does not grant final canvas approval.
 
@@ -61,12 +62,17 @@ Stakes 1–5 (how visible, how costly to change after approval) × edge 0–1 (t
 | Codex taste 3: the calm grid at 2560 | 2 × 0.3 = 0.6 | decided and built (CDH-0017): 400 px preferred minimum columns; CDH-0019 cycle 1 caps the minimum to available width (2 × 0.1 = 0.2) |
 | The mood micro-label copy | 1 × 0.5 = 0.5 | decided: as drawn; approval screen |
 | CW20 the empty portrait column in calm | 1 × 0.2 = 0.2 | decided: keep, as the tray's F6 |
-| CW17 host boards' focused rows 4.43:1 | a check | CDH-0017 repaired time and job cells; CDH-0018 found the missed durations. CDH-0019 cycle 1 repairs Main and Wall durations to 5.1371:1 in the local CSS fixture; native review pending |
+| CW17 host boards' focused rows 4.43:1 | a check | CDH-0017 repaired time and job cells; CDH-0018 found the missed durations. CDH-0019 cycle 1 repairs Main and Wall durations to 5.1371:1 (computed); Cowork's native pass at version 30 confirms the lighter token painted (AUDIT-CDH-0019-CYCLE-1-REVIEW). Closed. |
+| CW26 the station HUD's active-runs summary past the viewport below 362 px (42 px at 320, 2 px at 360) | 2 × 0.2 = 0.4 | decided: wrap it under the phone media query, CDH-0020 (Codex) |
 | CW18 board 6's muted text under its filter 2.9:1 | a check | fixed (CDH-0017) |
 | CW22 board 3's filter buttons at 20 px | a check | fixed (CDH-0017) |
 | CW14 the artifact host paints after `load`; CW15 the loop guard; CW21 explicit row names | facts | recorded, nothing to decide |
 
 Asked and answered: (none yet under ADR-023). Taken-recommendation tally: —.
+
+## Status 2026-10-21 16:30
+
+**CDH-0019 cycle 1 reviewed by Cowork: PASS** (AUDIT-CDH-0019-CYCLE-1-REVIEW at `0618fa5`): AUDIT-CDH-0018 F1 closed (computed 5.137:1 by Codex; natively the focused duration cell paints lighter, review copy version 30) and F2 closed with the real station at seven widths (0 px overflow, 1 / 1 / 1 / 1 / 1 / 3 / 6 columns; KGME Station version 7 paints). One new advisory, **CW26** (the HUD's summary past the viewport below 362 px), scored 0.4 and decided: **CDH-0020 is `ready`** as queue row 8. The worktree now carries three@0.182.0 under `logs/scratch/vendor/` with `make-local.sh`, so Codex renders the real station standalone from now on; "unverified standalone" is no longer a stop. No blocking finding is open on the track. Still Michou's: the three scored questions of the 2026-10-16 brief (the station's look; joins or replaces board 9; a likeness), and the canvas approval (HANDOFF-0036). Branch state: `design` ahead of `origin/design`; the push is a backup. Chats: this Cowork session closes here; the next one starts from the Project doc `claude/kgme-design-start-here.md`.
 
 ## Status 2026-10-21 15:53
 
@@ -131,6 +137,7 @@ Michou starts Codex with one fixed prompt, every time, from `~/Projects/KGME/des
 | 5 | CDH-0016 | The station's third cycle and the rubric checks (CDH-0015 + CDH-0014, `d2f1d29`, AUDIT-CDH-0015 and AUDIT-CDH-0014); captures under `logs/scratch/design-review/cdh-0014/` and `cdh-0015/` | done 2026-10-21 | [Rubric and cycle 3 review](2026-10-15-rubric-and-cycle-3-review.md) |
 | 6 | CDH-0018 | The open list's cycle (CDH-0017, `2e14d66`, AUDIT-CDH-0017); captures under `logs/scratch/design-review/cdh-0017/` | done 2026-10-21 | [Open list review](2026-10-16-open-list-review.md) |
 | 7 | CDH-0019 | The builder's mandate: merge `main` at `5ff202c` into `design` first (the prompt's step 1), then rows 5 and 6, then the fix loop; stays open across cycles | open 2026-10-21 | [Codex builder](2026-10-16-codex-builder.md) |
+| 8 | CDH-0020 | CW26: the station HUD's summary wraps below 362 px; verify with `logs/scratch/vendor/make-local.sh` (the real page, local three.js) at 320, 360, 400, 1440 | ready 2026-10-21 16:30 | [HUD summary wrap](2026-10-21-hud-summary-wrap.md) |
 
 ## Start here
 
@@ -164,3 +171,5 @@ The earlier curved builder study in ChatGPT was exploratory and predates the app
 ## Delivery boundaries
 
 This adoption records authorization for the 2 local work packages. It does not claim that either has run, that Cowork has seen the new canvas, or that Michou has approved the completed cockpit. Existing unrelated staged and unstaged work must remain untouched. The reference copies and handoffs are ready on disk; execution begins when Michou points the respective agent here.
+
+**Merging and approval, from HANDOFF-0055 on** (Michou, 2026-10-21; nothing changes until 0055 lands): the two are separate. Design work merges into `main` by itself after a commit on either branch, provided it passes a trial `make check` and stays inside the design lanes — `docs/design/`, `docs/handoff/cockpit-design/`, `docs/audit/cockpit-design/`, `docs/readers/cockpit-design*.md`, `tests/test_design_*.py`. A change under `control/` (the review prompts, this track's builder prompt) never merges by itself: name it in the commit message and Michou merges it by hand. Michou's canvas approval becomes `kgme approve --what canvas --sha <commit>`, and HANDOFF-0037 builds only from that commit. Pushing `design` is a backup, not a step of the loop.
