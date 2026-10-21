@@ -2,11 +2,15 @@
 id: CDH-0018
 type: handoff
 created: 2026-10-16T00:08:00-07:00
-from: cowork
+from: michou
 to: codex
 model: gpt-6-astra
 tier: 2
-status: proposed
+status: done
+completed: 2026-10-21T01:32:35-07:00
+report: docs/audit/cockpit-design/cdh-0018-design-review.md
+adopted_by: michou
+adopted: 2026-10-21T01:26:15-07:00
 depends_on: [CDH-0017]
 design_track: HANDOFF-0036
 ---

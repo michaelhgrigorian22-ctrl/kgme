@@ -121,7 +121,7 @@ Michou starts Codex with one fixed prompt, every time, from `~/Projects/KGME/des
 | 3 | CDH-0011 | The station (CDH-0009, `373de74`) and the tray's second cycle (CDH-0010, `4f3e06c`, AUDIT-CDH-0010); captures under `logs/scratch/design-review/cdh-0009/` and `cdh-0010/` | done 2026-10-14 | [Station and tray review](2026-10-13-station-and-tray-review.md) |
 | 4 | CDH-0013 | The station's second cycle and the tray's T1 (CDH-0012, `dd90ca6`, AUDIT-CDH-0012); captures under `logs/scratch/design-review/cdh-0012/` | done 2026-10-15 | [Station cycle review](2026-10-14-station-cycle-review.md) |
 | 5 | CDH-0016 | The station's third cycle and the rubric checks (CDH-0015 + CDH-0014, `d2f1d29`, AUDIT-CDH-0015 and AUDIT-CDH-0014); captures under `logs/scratch/design-review/cdh-0014/` and `cdh-0015/` | done 2026-10-21 | [Rubric and cycle 3 review](2026-10-15-rubric-and-cycle-3-review.md) |
-| 6 | CDH-0018 | The open list's cycle (CDH-0017, `2e14d66`, AUDIT-CDH-0017); captures under `logs/scratch/design-review/cdh-0017/` | ready 2026-10-16 00:50 | [Open list review](2026-10-16-open-list-review.md) |
+| 6 | CDH-0018 | The open list's cycle (CDH-0017, `2e14d66`, AUDIT-CDH-0017); captures under `logs/scratch/design-review/cdh-0017/` | done 2026-10-21 | [Open list review](2026-10-16-open-list-review.md) |
 | 7 | CDH-0019 | The builder's mandate: merge `main` at `5ff202c` into `design` first (the prompt's step 1), then rows 5 and 6, then the fix loop; stays open across cycles | ready 2026-10-16 14:50 | [Codex builder](2026-10-16-codex-builder.md) |
 
 ## Start here
