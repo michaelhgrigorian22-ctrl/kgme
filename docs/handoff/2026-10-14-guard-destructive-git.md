@@ -2,10 +2,10 @@
 id: HANDOFF-0045
 type: handoff
 created: 2026-10-14T00:25:00-07:00
-from: cowork
+from: michou
 to: claude-code
 tier: 2
-status: proposed
+status: open
 depends_on: [HANDOFF-0032]
 plan_ref: PLAN-PHASE-1 step 7c
 ---
@@ -21,7 +21,7 @@ The guard denies `git push --force*` and `git push -f*` (`.claude/settings.json`
 3. **Per-entry fingerprints.** The canary's settings digest becomes a list: one sha256 per hook entry (matcher plus command) and per deny rule, carried in the canary intent's payload. The fast-tier test fails naming the entry that changed.
 4. **Canary rows.** Fast tier: each new deny matches its fixture command; a settings fixture with one altered hook command fails naming that hook. Agent tier: the model is refused on each denied command and the refusal is a `blocking` outcome in `logs/ledger-test/`; under `KGME_LOOP_HANDOFF=<toy>` a write to `docs/charter.md` is refused and a write to the toy's `Outputs` path is allowed.
 
-5. **The guard protects its own files** (added 2026-10-16, ADR-022 §4). `kgme.toml [hooks] human_paths` gains `control/hooks`, `control/policy`, `.claude` and `kgme.toml`; `.claude/settings.json` gains `Edit(/control/hooks/**)`, `Edit(/control/policy/**)`, `Edit(/.claude/**)`, `Edit(/kgme.toml)` in `deny`. Today `Edit(/control/**)` is allowed and none of the four is a human path, so in auto mode only the classifier stands between the builder and its own guard script, its profiles, and the file that holds the blocklist. Changes to these paths become diffs Michou applies, like every human path. Canary: an Edit to each is refused at the deny layer and at guard rule 4.
+5. **The guard protects its own files** (added 2026-10-16, ADR-022 §4). `kgme.toml [hooks] human_paths` gains `control`, `.claude` and `kgme.toml`; `.claude/settings.json` gains `Edit(/control/**)`, `Edit(/.claude/**)`, `Edit(/kgme.toml)` in `deny`, and the `Edit(/control/**)` allow is removed. Today `Edit(/control/**)` is allowed and none of the four is a human path, so in auto mode only the classifier stands between the builder and its own guard script, its profiles, and the file that holds the blocklist. Changes to these paths become diffs Michou applies, like every human path. Widened on adoption (2026-10-21, Cowork) from `control/hooks` and `control/policy` to all of `control/`: `control/git-hooks/post-commit` runs in Michou's terminal on every commit, outside the sandbox and with his push credentials, and `control/review/` holds the reviewer's prompt (and later the dreamer's), which a builder under review must not edit. `control/` changes rarely; the deny lands last in the build, after the guard's own edits. Canary: an Edit to each is refused at the deny layer and at guard rule 4.
 6. **Dead rules removed.** Claude Code checks file tools against `Edit(path)` and `Read(path)` only; the ten `Write(...)` denies and nine `Write(...)` allows in `.claude/settings.json` are never consulted and warn at startup. Remove them; the `Edit(...)` twins already carry the protection, which the canary confirms before and after.
 
 ## Outputs
