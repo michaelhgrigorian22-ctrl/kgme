@@ -3,7 +3,7 @@ id: READER-OBSIDIAN
 type: note
 status: active
 created: 2026-09-09T20:00:00-07:00
-modified: 2026-09-15T00:05:00-07:00
+modified: 2026-10-21T02:40:00-07:00
 author: cowork
 source: stated
 tier: 2
@@ -11,7 +11,7 @@ tier: 2
 
 # Reader — Obsidian in KGME
 
-*Part 1 (mental model) written 2026-09-09. Part 2 (setup on this machine) written 2026-09-15, after the machine audit (AUDIT-0001) and schema v1.2.*
+*Part 1 (mental model) written 2026-09-09. Part 2 (setup on this machine) written 2026-09-15, after the machine audit (AUDIT-0001) and schema v1.2; its vault folder moved to the repository on 2026-10-21 (HANDOFF-0051), and its daily-note habit is superseded by `kgme capture daily` and `kgme daily` (HANDOFF-0050). Part 3 (the atlas) written 2026-10-21 for HANDOFF-0051.*
 
 ## What it is
 Obsidian is a desktop editor that opens a folder of plain Markdown files and calls it a vault. It adds what a folder lacks: links between notes, backlinks (who points here), a graph of the whole, daily notes, and *properties* — the YAML frontmatter block at the top of each file, shown as a form. It does not store anything anywhere else. Close Obsidian and the vault is still a folder; open the same folder in VS Code and it is the same files.
@@ -40,19 +40,19 @@ It will feel empty, and slightly pedantic, because of the frontmatter. That is c
 
 Ten minutes, once. Your act, not an agent's (ADR-004): the vault is your folder. Do it in any evening before HANDOFF-0035 (seed the vault); earlier is better, because the daily-note habit and the ten friction entries that 0035 needs take days to accumulate, and Obsidian is the tool that habit lives in.
 
-**1. Open the right folder as the vault.** Launch Obsidian → *Open folder as vault* → choose `~/Projects/Automate/memory`. The vault is `memory/`, not the repo root: `.obsidian/` then lands at `memory/.obsidian/`, where `.gitignore` already expects it, and Obsidian never indexes `docs/`, `kgme/`, or `logs/`. Decline Sync and Publish when offered; git is the sync.
+**1. Open the right folder as the vault.** Launch Obsidian → *Open folder as vault* → choose `~/Projects/KGME/brain`, the repository itself (HANDOFF-0051; until then the vault was `memory/`). Its settings are already there, in `.obsidian/` at the top, tracked: they point new notes at `memory/notes`, attachments at `memory/attachments`, daily notes and templates at `memory/daily` and `memory/templates`, and exclude `.venv`, `logs/`, `kgme/`, `jobs/`, `control/`, `tests/`, `cockpit/`, and the caches, so Obsidian indexes the documents, the vault, and the atlas. Decline Sync and Publish when offered; git is the sync.
 
 **2. Settings → Files and links.**
-- *Default location for new notes:* in the folder specified below → `notes`.
+- *Default location for new notes:* in the folder specified below → `memory/notes`.
 - *Use [[Wikilinks]]:* on. *New link format:* shortest path when possible.
 - *Automatically update internal links:* on (renames are free; `id` never changes, so nothing breaks).
-- *Default location for new attachments:* in the folder specified below → `attachments` (excluded from validation by schema v1.2).
+- *Default location for new attachments:* in the folder specified below → `memory/attachments` (excluded from validation by schema v1.2).
 - *Deleted files:* confirm it reads "move to system trash" (the default). Never Obsidian's own `.trash`, which would create an untracked folder inside the vault.
 - *Detect all file extensions:* off.
 
 **3. Settings → Core plugins.** On: Files, Search, Quick switcher, Command palette, Backlinks, Outgoing links, Properties view, Page preview, Tags, Daily notes, Templates. Off: Sync, Publish, Slides, Canvas (for now), Unique note creator (the template already generates ids). Graph is optional and mostly decorative.
-- *Templates:* template folder `templates`; date format `YYYY-MM-DD`; time format `HH:mm:ss`. The shipped templates override these with explicit formats (`{{date:YYYY-MM-DDTHH:mm:ssZ}}` gives ISO 8601 with offset, exactly what the schema requires), so the defaults rarely matter.
-- *Daily notes:* new file location `daily`; date format `YYYY-MM-DD` (the filename is the local date, ADR-005); template file location `templates/daily` once HANDOFF-0034 ships it, with `reminder.md` and `task.md`. Until then the only template is `note.md`.
+- *Templates:* template folder `memory/templates`; date format `YYYY-MM-DD`; time format `HH:mm:ss`. The shipped templates override these with explicit formats (`{{date:YYYY-MM-DDTHH:mm:ssZ}}` gives ISO 8601 with offset, exactly what the schema requires), so the defaults rarely matter.
+- *Daily notes:* new file location `memory/daily`; date format `YYYY-MM-DD` (the filename is the local date, ADR-005); template file `memory/templates/daily.md`. Since HANDOFF-0050, `kgme daily` drafts the evening note and `kgme capture daily` adds your lines, so the core plugin is a way to open today's note, not to start it.
 - *Hotkeys:* give *Templates: Insert template* a key (⌘⇧T is free). Every new note is: quick switcher → new name → insert template → write below the line.
 
 **4. Settings → Editor.** *Properties in document:* visible. Leave *Strict line breaks* off. Everything else is taste.
@@ -61,8 +61,21 @@ Ten minutes, once. Your act, not an agent's (ADR-004): the vault is your folder.
 - Never edit `created`, `modified`, `due`, or `completed` through the property widget. Obsidian's date-time widget writes `YYYY-MM-DDTHH:mm` without the offset, and the validator will flag it as `blocking`. Edit those four in source mode (⌘E toggles) or leave them to the template.
 - `id` is text, not a number, and is never edited. If Obsidian ever offers to "fix" a property type, decline; the types file is committed so the answer sticks.
 
-**6. Commit what Obsidian created.** After the first open, `memory/.obsidian/` holds `app.json`, `appearance.json`, `core-plugins.json`, `daily-notes.json`, `templates.json`, `hotkeys.json`, and `types.json`; `workspace.json` and `cache/` are ignored. Commit the rest as `vault: Obsidian opened at memory/, core plugins and settings`. From then on the vault opens identically on any machine that clones the repo. Tell Claude Code you did it so its next commit doesn't sweep the files in with unrelated work.
+**6. Commit what Obsidian changes.** The settings in `.obsidian/` are tracked (`app.json`, `appearance.json`, `core-plugins.json`, `daily-notes.json`, `graph.json`, `hotkeys.json`, `templates.json`); `workspace.json` and `cache/` are ignored. If Obsidian adds a file there (`types.json` after the first property edit), commit it on its own. From then on the vault opens identically on any machine that clones the repo. The workspace file Obsidian kept under `memory/` before the move is untracked and can be deleted.
 
 **What not to do yet.** No community plugins in week one, Dataview included: each plugin is a decision (see the rules above) and belongs in the friction log first. No theme yet either; the cockpit's cyberpunk direction (0036) decides the palette and Obsidian follows it, not the other way around. No notes under `agent/` by hand: that folder is written by agents and read by you.
 
-**Check.** `kgme lint` (from HANDOFF-0031) exits 0 with the vault open in Obsidian. Until 0031 exists, the check is that `memory/.obsidian/` contains no file the `.gitignore` does not name and every note you create starts from the template.
+**Check.** `kgme lint` (from HANDOFF-0031) exits 0 with the vault open in Obsidian, and `git status` shows nothing in `.obsidian/` that the `.gitignore` does not name.
+
+## Part 3 — The atlas: the graph as a lens on KGME (HANDOFF-0051)
+
+Obsidian draws only links written inside Markdown notes, and KGME's documents name each other in backticks, which it does not read; code it cannot see at all. So `kgme atlas` writes `atlas/` at the repository's top: one short generated note per part of KGME, each linking its neighbours with `[[...]]`. The parts:
+- each top-level folder;
+- each module in `kgme/`, `jobs/`, and `control/`, linked to what it imports (read, never run), to the tests that import it, and to the ADRs its text cites;
+- each ADR, handoff, plan row, reader, and audit, linked by what each names: `depends_on`, `plan_ref`, `Outputs`, `report`, `supersedes`, and the ADRs cited.
+
+Each note opens with one line saying what the part is and a link to the real file. Its `kind` property (folder, module, test, job, handoff, adr, plan, reader, audit, skill, project) colours the saved graph view, which is filtered to `path:atlas`.
+
+You never edit it. It is regenerated in the background after every commit, by a line in the post-commit hook, and Obsidian redraws when the files change. It is ignored by git, since it can be regenerated from the tree at any commit, and `kgme clean atlas --yes` may empty it. Run `kgme atlas` by hand any time; a second run on the same tree writes nothing.
+
+**Other projects, later and only when you list them.** `kgme.toml` `[atlas] projects` names other folders by path. For each, the atlas reads its structure only: the top-level folder names, its `README.md`'s links, and the KGME parts that README names (`kgme brief`, `kgme/ledger.py`). It never reads another file's contents, and it refuses a project that holds Tier 1 data (ADR-002). Each project is one node, linked to the KGME parts it uses.

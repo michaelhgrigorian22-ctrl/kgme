@@ -1,0 +1,107 @@
+{
+  "collapse-filter": true,
+  "search": "path:atlas",
+  "showTags": false,
+  "showAttachments": false,
+  "hideUnresolved": false,
+  "showOrphans": true,
+  "collapse-color-groups": true,
+  "colorGroups": [
+    {
+      "query": "[kind:folder]",
+      "color": {
+        "a": 1,
+        "rgb": 9079434
+      }
+    },
+    {
+      "query": "[kind:module]",
+      "color": {
+        "a": 1,
+        "rgb": 3898840
+      }
+    },
+    {
+      "query": "[kind:test]",
+      "color": {
+        "a": 1,
+        "rgb": 8369126
+      }
+    },
+    {
+      "query": "[kind:job]",
+      "color": {
+        "a": 1,
+        "rgb": 3055247
+      }
+    },
+    {
+      "query": "[kind:file]",
+      "color": {
+        "a": 1,
+        "rgb": 11051678
+      }
+    },
+    {
+      "query": "[kind:handoff]",
+      "color": {
+        "a": 1,
+        "rgb": 14721595
+      }
+    },
+    {
+      "query": "[kind:adr]",
+      "color": {
+        "a": 1,
+        "rgb": 12603469
+      }
+    },
+    {
+      "query": "[kind:plan]",
+      "color": {
+        "a": 1,
+        "rgb": 11897558
+      }
+    },
+    {
+      "query": "[kind:reader]",
+      "color": {
+        "a": 1,
+        "rgb": 5942881
+      }
+    },
+    {
+      "query": "[kind:audit]",
+      "color": {
+        "a": 1,
+        "rgb": 14257247
+      }
+    },
+    {
+      "query": "[kind:skill]",
+      "color": {
+        "a": 1,
+        "rgb": 9202609
+      }
+    },
+    {
+      "query": "[kind:project]",
+      "color": {
+        "a": 1,
+        "rgb": 4210752
+      }
+    }
+  ],
+  "collapse-display": true,
+  "showArrow": false,
+  "textFadeMultiplier": 0,
+  "nodeSizeMultiplier": 1,
+  "lineSizeMultiplier": 1,
+  "collapse-forces": true,
+  "centerStrength": 0.518713248970312,
+  "repelStrength": 10,
+  "linkStrength": 1,
+  "linkDistance": 250,
+  "scale": 1.58414293005105,
+  "close": false
+}

@@ -58,6 +58,8 @@ ledger-test = ["logs/ledger-test", "logs/trace-test"]
 # The copies `kgme capture` keeps beside a file it adds a line to (HANDOFF-0050); each goes only
 # when its bytes are still what its capture recorded (kgme/clean_kept.py).
 kept = ["memory/**/.*.capture-*"]
+# The atlas, the Obsidian lens `kgme atlas` writes (HANDOFF-0051): regenerated on every commit.
+atlas = ["atlas"]
 
 [hooks]
 # Resolved-path blocklist for the pre-tool guard (HANDOFF-0028). Patterns, never contents.
@@ -101,3 +103,8 @@ cell_timeout = 150
 reviewer = "gpt-6-astra"
 reviewer_alternate = "gpt-5.6-sol"
 arbiter = "claude-opus-5-5"
+
+[atlas]
+# Other projects the atlas reads by structure only: folder names, README links, the KGME parts
+# the README names (HANDOFF-0051). A Tier 1 project is refused. Empty until Michou adds one.
+projects = []

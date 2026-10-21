@@ -234,11 +234,15 @@ def test_settings_name_the_session_end_hook_and_check_names_setup() -> None:
     assert "run: make setup" in makefile
 
 
-def run_post_commit(tmp_path: Path, branch: str) -> bool:
-    """The post-commit hook in a throwaway repository on `branch`, with a stand-in `uv` that
-    marks being started; whether it was started."""
+def run_post_commit(tmp_path: Path, branch: str, atlas: bool = False) -> set[str]:
+    """The post-commit hook in a throwaway repository on `branch` (holding `kgme/atlas.py`
+    when `atlas`), with a stand-in `uv` that logs each `kgme` subcommand it is asked to run;
+    the subcommands started."""
     repo = tmp_path / "repo"
-    repo.mkdir()
+    repo.mkdir(parents=True)
+    if atlas:
+        (repo / "kgme").mkdir()
+        (repo / "kgme" / "atlas.py").write_text("")
     subprocess.run(["git", "init", "-q", "-b", "main"], cwd=repo, check=True)
     subprocess.run(
         [
@@ -262,7 +266,11 @@ def run_post_commit(tmp_path: Path, branch: str) -> bool:
     (home / ".local" / "bin").mkdir(parents=True)
     mark = tmp_path / "uv-started"
     uv = home / ".local" / "bin" / "uv"
-    uv.write_text(f"#!/bin/sh\ntouch {mark}\n")
+    # the word after `kgme` is the subcommand: `uv run --frozen --project <repo> kgme <sub> ...`
+    uv.write_text(
+        f'#!/bin/sh\nnext=0\nfor a in "$@"; do [ "$next" = 1 ] && echo "$a" >> {mark}; '
+        f'next=0; [ "$a" = kgme ] && next=1; done\n'
+    )
     uv.chmod(0o755)
     env = {k: v for k, v in os.environ.items() if k != "KGME_SYNC_RUN"}
     env["HOME"] = str(home)
@@ -270,17 +278,32 @@ def run_post_commit(tmp_path: Path, branch: str) -> bool:
         ["sh", str(ROOT / "control" / "git-hooks" / "post-commit")], cwd=repo, env=env, check=True
     )
     deadline = time.monotonic() + 3
-    while time.monotonic() < deadline and not mark.exists():
+    expected = (1 if atlas else 0) + (1 if branch == "main" else 0)
+    while time.monotonic() < deadline and len(read_marks(mark)) < expected:
         time.sleep(0.1)
-    return mark.exists()
+    time.sleep(0.3)  # anything else the hook would start
+    return read_marks(mark)
+
+
+def read_marks(mark: Path) -> set[str]:
+    """Effect: the subcommands the stand-in `uv` logged."""
+    return set(mark.read_text().split()) if mark.exists() else set()
 
 
 @pytest.mark.blocking
 def test_the_post_commit_hook_does_nothing_off_main(tmp_path: Path) -> None:
     """HANDOFF-0049 F1 (Cowork's ruling): design pushes are Michou's; the hook pushes main only."""
-    assert run_post_commit(tmp_path, "design") is False
+    assert run_post_commit(tmp_path, "design") == set()
 
 
 @pytest.mark.blocking
 def test_the_post_commit_hook_syncs_on_main(tmp_path: Path) -> None:
-    assert run_post_commit(tmp_path, "main") is True
+    assert run_post_commit(tmp_path, "main") == {"sync"}
+
+
+@pytest.mark.blocking
+def test_c1_f3_the_atlas_is_regenerated_after_every_commit_on_any_branch(tmp_path: Path) -> None:
+    """HANDOFF-0051 review cycle 1 F3: the atlas is local and pushes nothing, so it runs on
+    every branch; only `main` syncs. A checkout without `kgme/atlas.py` skips it."""
+    assert run_post_commit(tmp_path / "d", "design", atlas=True) == {"atlas"}
+    assert run_post_commit(tmp_path / "m", "main", atlas=True) == {"sync", "atlas"}

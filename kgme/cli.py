@@ -59,6 +59,12 @@ def build_parser() -> argparse.ArgumentParser:
     daily_parser.add_argument(
         "--dry-run", action="store_true", help="print the draft; write nothing"
     )
+    atlas_parser = subcommands.add_parser(
+        "atlas", help="regenerate atlas/, the Obsidian lens on how KGME's parts connect"
+    )
+    atlas_parser.add_argument(
+        "--dry-run", action="store_true", help="count the nodes and notes; write nothing"
+    )
     clean_parser = subcommands.add_parser(
         "clean", help="delete disposable outputs by named target; a dry run unless --yes"
     )
@@ -141,6 +147,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_capture(args)
     if args.command == "daily":
         return run_daily(args)
+    if args.command == "atlas":
+        return run_atlas(args)
     print(f"kgme {args.command}: not built ({NOT_BUILT[args.command]})", file=sys.stderr)
     return 2
 
@@ -261,6 +269,13 @@ def run_daily(args: argparse.Namespace) -> int:
 
     date = args.date or datetime.now().astimezone().date().isoformat()
     return daily_io.run_daily(date, paths.root(), config.read_config(), None, args.dry_run)
+
+
+def run_atlas(args: argparse.Namespace) -> int:
+    """`kgme atlas [--dry-run]` (HANDOFF-0051), in `kgme.atlas_read`, on this checkout."""
+    from kgme import atlas_read, config, paths
+
+    return atlas_read.run_atlas(paths.root(), config.read_config(), args.dry_run)
 
 
 def run_clean(args: argparse.Namespace) -> int:

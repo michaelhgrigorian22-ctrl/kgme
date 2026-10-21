@@ -15,12 +15,21 @@ export GIT_TERMINAL_PROMPT
 # A ledger commit made by `kgme sync` carries KGME_SYNC_RUN: that run pushes, so this hook
 # does not, and a push is attempted once per run (review cycle 1, F1).
 if [ -n "$KGME_SYNC_RUN" ]; then exit 0; fi
-# Only main is pushed by a hook: the design branch, and any other, is Michou's to push
-# (HANDOFF-0049 review cycle 1 F1, Cowork's ruling).
-[ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" = "main" ] || exit 0
 repo="$(git rev-parse --show-toplevel)" || exit 0
 dir="$repo/logs/scratch"
 mkdir -p "$dir"
+# The atlas (HANDOFF-0051) after every commit, on any branch: it is local and pushes nothing.
+# A checkout whose code predates it (no kgme/atlas.py) skips it; a failure is its own
+# transient ledger note, never a failed commit (review cycle 1 F3).
+atlas() {
+  if [ -f "$repo/kgme/atlas.py" ]; then uv run --frozen --project "$repo" kgme atlas; fi
+}
+# Only main is pushed by a hook: the design branch, and any other, is Michou's to push
+# (HANDOFF-0049 review cycle 1 F1, Cowork's ruling). Off main, only the atlas runs.
+if [ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" != "main" ]; then
+  ( trap '' HUP; atlas ) >> "$dir/atlas.log" 2>&1 &
+  exit 0
+fi
 (
   trap '' HUP
   uv run --frozen --project "$repo" kgme sync --base "$repo"
@@ -29,5 +38,6 @@ mkdir -p "$dir"
     printf '{"ts":"%s","error":"post-commit: kgme sync exited %s"}\n' \
       "$(date +%Y-%m-%dT%H:%M:%S%z)" "$code" >> "$dir/hook-errors.jsonl"
   fi
+  atlas  # after the push
 ) >> "$dir/sync.log" 2>&1 &
 exit 0

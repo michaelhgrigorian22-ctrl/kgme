@@ -4,11 +4,12 @@
 # is never a target (ADR-012). A manifest narrows, never widens: the blocklist and Tier 1 roots
 # in kgme.toml are refused whatever is declared here. `memory/**/.*.capture-*` are the copies
 # `kgme capture` keeps (HANDOFF-0050), and `kgme/clean_kept.py` refuses any whose bytes are
-# not still the ones its capture recorded.
+# not still the ones its capture recorded. `atlas` is the regenerable lens `kgme atlas`
+# writes (HANDOFF-0051); its `[clean.targets]` entry arrives through Michou's kgme.toml diff.
 name = "clean"
 kind = "python-job"
 max_tier = 2
-read_paths = ["memory/agent", "logs/scratch", "logs/trace", "logs/ledger-test", "logs/trace-test", "logs/scratch-test", "**/__pycache__/**", ".ruff_cache", ".pytest_cache", ".venv", "memory/**/.*.capture-*", "kgme.toml"]
-write_paths = ["memory/agent", "logs/scratch", "logs/trace", "logs/ledger-test", "logs/trace-test", "logs/scratch-test", "**/__pycache__/**", ".ruff_cache", ".pytest_cache", ".venv", "memory/**/.*.capture-*"]
+read_paths = ["memory/agent", "logs/scratch", "logs/trace", "logs/ledger-test", "logs/trace-test", "logs/scratch-test", "**/__pycache__/**", ".ruff_cache", ".pytest_cache", ".venv", "memory/**/.*.capture-*", "atlas", "kgme.toml"]
+write_paths = ["memory/agent", "logs/scratch", "logs/trace", "logs/ledger-test", "logs/trace-test", "logs/scratch-test", "**/__pycache__/**", ".ruff_cache", ".pytest_cache", ".venv", "memory/**/.*.capture-*", "atlas"]
 tools = ["delete"]
 network_destinations = []
