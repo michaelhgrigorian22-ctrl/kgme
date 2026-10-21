@@ -38,3 +38,6 @@ About thirty minutes once, then two minutes a day for the week.
 
 ## Report
 No report. `status: done` when the acceptance test passes; the first real brief's ledger `outcome` id is the record.
+
+## Amendment (Cowork, 2026-10-16; Michou: "i think this is a good call")
+The targets stand; the method changes. Reminders, tasks and friction come from `kgme capture` on Michou's word, and daily notes are drafted by `kgme daily` and count once he has read them (HANDOFF-0050). Obsidian is not used to seed the vault; it becomes a lens (HANDOFF-0051). This handoff depends on HANDOFF-0050.

@@ -64,7 +64,7 @@ def test_new_ledger_lines_reads_a_diff_and_untracked_files() -> None:
 @pytest.mark.blocking
 def test_commit_with_the_hook_enabled_reaches_origin_by_itself(tmp_path: Path) -> None:
     repo, bare = write_seed(tmp_path)
-    run_git(["config", "core.hooksPath", "tools/git-hooks"], repo)
+    run_git(["config", "core.hooksPath", "control/git-hooks"], repo)
     (repo / "note.txt").write_text("hello\n")
     run_git(["add", "note.txt"], repo)
     started = time.monotonic()
@@ -196,12 +196,12 @@ def test_sync_io_cannot_spell_a_forced_push() -> None:
         text = (ROOT / "kgme" / name).read_text(encoding="utf-8")
         assert "force" not in text
         assert '"-f"' not in text and "--delete" not in text and "+refs" not in text
-    hook = (ROOT / "tools" / "git-hooks" / "post-commit").read_text(encoding="utf-8")
+    hook = (ROOT / "control" / "git-hooks" / "post-commit").read_text(encoding="utf-8")
     assert "kgme sync --base" in hook and "force" not in hook and "--push" not in hook
     assert 'if [ -n "$KGME_SYNC_RUN" ]; then exit 0; fi' in hook
     assert ') >> "$dir/sync.log" 2>&1 &' in hook
-    assert os.access(ROOT / "tools" / "git-hooks" / "post-commit", os.X_OK)
-    assert os.access(ROOT / "tools" / "hooks" / "session_end_sync.sh", os.X_OK)
+    assert os.access(ROOT / "control" / "git-hooks" / "post-commit", os.X_OK)
+    assert os.access(ROOT / "control" / "hooks" / "session_end_sync.sh", os.X_OK)
 
 
 @pytest.mark.blocking
@@ -209,7 +209,7 @@ def test_session_end_script_logs_a_failure_and_exits_zero(tmp_path: Path) -> Non
     project = tmp_path / "not-a-project"
     project.mkdir()
     done = subprocess.run(
-        [str(ROOT / "tools" / "hooks" / "session_end_sync.sh")],
+        [str(ROOT / "control" / "hooks" / "session_end_sync.sh")],
         cwd=project,
         capture_output=True,
         text=True,
@@ -228,7 +228,59 @@ def test_session_end_script_logs_a_failure_and_exits_zero(tmp_path: Path) -> Non
 def test_settings_name_the_session_end_hook_and_check_names_setup() -> None:
     settings = json.loads((ROOT / ".claude" / "settings.json").read_text(encoding="utf-8"))
     commands = [h["command"] for entry in settings["hooks"]["SessionEnd"] for h in entry["hooks"]]
-    assert commands == ['"$CLAUDE_PROJECT_DIR"/tools/hooks/session_end_sync.sh']
+    assert commands == ['"$CLAUDE_PROJECT_DIR"/control/hooks/session_end_sync.sh']
     makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
-    assert "core.hooksPath tools/git-hooks" in makefile
+    assert "core.hooksPath control/git-hooks" in makefile
     assert "run: make setup" in makefile
+
+
+def run_post_commit(tmp_path: Path, branch: str) -> bool:
+    """The post-commit hook in a throwaway repository on `branch`, with a stand-in `uv` that
+    marks being started; whether it was started."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q", "-b", "main"], cwd=repo, check=True)
+    subprocess.run(
+        [
+            "git",
+            "-c",
+            "user.name=t",
+            "-c",
+            "user.email=t@t",
+            "commit",
+            "-q",
+            "--allow-empty",
+            "-m",
+            "x",
+        ],
+        cwd=repo,
+        check=True,
+    )
+    if branch != "main":
+        subprocess.run(["git", "checkout", "-q", "-b", branch], cwd=repo, check=True)
+    home = tmp_path / "home"
+    (home / ".local" / "bin").mkdir(parents=True)
+    mark = tmp_path / "uv-started"
+    uv = home / ".local" / "bin" / "uv"
+    uv.write_text(f"#!/bin/sh\ntouch {mark}\n")
+    uv.chmod(0o755)
+    env = {k: v for k, v in os.environ.items() if k != "KGME_SYNC_RUN"}
+    env["HOME"] = str(home)
+    subprocess.run(
+        ["sh", str(ROOT / "control" / "git-hooks" / "post-commit")], cwd=repo, env=env, check=True
+    )
+    deadline = time.monotonic() + 3
+    while time.monotonic() < deadline and not mark.exists():
+        time.sleep(0.1)
+    return mark.exists()
+
+
+@pytest.mark.blocking
+def test_the_post_commit_hook_does_nothing_off_main(tmp_path: Path) -> None:
+    """HANDOFF-0049 F1 (Cowork's ruling): design pushes are Michou's; the hook pushes main only."""
+    assert run_post_commit(tmp_path, "design") is False
+
+
+@pytest.mark.blocking
+def test_the_post_commit_hook_syncs_on_main(tmp_path: Path) -> None:
+    assert run_post_commit(tmp_path, "main") is True

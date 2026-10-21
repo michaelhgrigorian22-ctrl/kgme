@@ -26,7 +26,7 @@ Phase 0 is everything that happens *before* the first capability is built: under
 
 **The briefing layer is the claude.ai Project.** Decision log, plans, later the charter — the context any Claude needs entering a session on any surface, including a phone. The repo's `docs/` is canonical; the Project mirrors status and pointers. A future KGME job publishes `docs/STATUS.md` to the Project; until then Cowork updates it by hand.
 
-**Handoff protocol** (ADR-011): Cowork writes `docs/handoff/YYYY-MM-DD-<topic>.md`; Michou opens Claude Code here and says *"Read docs/handoff/<file> and carry it out"*; Claude Code plans, gets approval, executes, writes its report to the named path, flips `status` to `done`; Cowork reads the report back. First handoff: `docs/handoff/2026-09-09-machine-audit.md`.
+**Handoff protocol** (ADR-011): Cowork writes `docs/handoff/YYYY-MM-DD-<topic>.md`; Michou opens Claude Code here and says *"Read docs/handoff/<file> and carry it out"*; Claude Code plans, gets approval, executes, writes its report to the named path, flips `status` to `done`; Cowork reads the report back. First handoff: `docs/handoff/done/2026-09-09-machine-audit.md`.
 
 ## 2. Sequence
 
@@ -67,7 +67,7 @@ Phase 0 is everything that happens *before* the first capability is built: under
 
 The audit's central point stands: infrastructure choices were running ahead of evidence of which recurring task deserves automation, and the friction log has one example entry. Phase 0 is therefore narrowed to the ground layer plus **one measured loop**, and everything else waits for demonstrated need.
 
-**Keep in Phase 0:** backup + restore test · GitHub account, `gh auth login`, private remote · firewall (global state only) · Homebrew and `gh` (amended proposals) · `finance-python` disposal (0018) · global-config pointer fixes · charter acceptance · ADR-012/013/014 acceptance · repo-scoped `.claude/settings.json` (ask-mode) · the validator (`tools/schema/lint.py`) · policy canary tests (`tests/policy/`) · friction log, two weeks.
+**Keep in Phase 0:** backup + restore test · GitHub account, `gh auth login`, private remote · firewall (global state only) · Homebrew and `gh` (amended proposals) · `finance-python` disposal (0018) · global-config pointer fixes · charter acceptance · ADR-012/013/014 acceptance · repo-scoped `.claude/settings.json` (ask-mode) · the validator (`control/schema/lint.py`) · policy canary tests (`tests/policy/`) · friction log, two weeks.
 
 **Loop 0 — `kgme brief` (manual, read-only, local).** Invoked by hand, no scheduler. Reads only `memory/` (open reminders and tasks, today's daily note, the friction log). Validates every note it reads against the schema. Writes one derived artefact, `memory/agent/brief/YYYY-MM-DD.md`, and two ledger events (`intent`, `outcome`) per ADR-013 §4. Acceptance checks, each a test: running twice on the same day replaces rather than duplicates; killing it mid-run leaves an intent without an outcome that the next run reconciles; a planted forbidden file in the read path is refused and the refusal is a ledger event; the artefact can be regenerated from the ledger plus `memory/`. No model call is required for the first version — the loop is about the machinery; the model joins when the brief needs prose.
 

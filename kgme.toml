@@ -12,7 +12,7 @@ payloads_dir = "logs/scratch/payloads"
 scratch_test_dir = "logs/scratch-test"  # hook tests write payloads and errors here, never to the live scratch
 audit_dir = "docs/audit"                # reports; kgme review writes AUDIT-NNNN-review-* here
 handoff_dir = "docs/handoff"            # adopted handoffs; kgme review finds a handoff by its id here
-review_prompt = "tools/review/prompt.md"
+review_prompt = "control/review/prompt.md"
 # Tier 1 is a separate repository elsewhere on disk (ADR-002). As of 2026-09-14 it does not
 # exist yet (Michou, HANDOFF-0025 review F2); when it does, its absolute path is added here,
 # path string only. The relative entry is the in-repo tripwire from .gitignore.
@@ -24,6 +24,16 @@ roots = ["memory", "docs"]
 exempt = ["memory/templates", "memory/attachments", "docs/archive", "docs/charter.md", "docs/schema-v1.md"]
 skip_dirs = [".obsidian"]
 
+[coherence]
+# `kgme lint`'s coherence checks (HANDOFF-0049) are `advisory` before this day and `blocking`
+# from it: promotion by date, not by hand (Cowork's ruling on review cycle 1 F5).
+blocking_from = "2026-10-23"
+
+[brief]
+# `kgme brief` (HANDOFF-0034) reads every `due` instant in this zone: the day it falls on and
+# the time it shows (review cycle 1 F9). An IANA name, read with the standard `zoneinfo`.
+timezone = "America/Los_Angeles"
+
 [sync]
 # `kgme sync` (HANDOFF-0040) bounds every git command; a push that has not answered by then is
 # killed with its helpers and recorded as one `transient` outcome, so no trigger ever hangs.
@@ -33,11 +43,21 @@ git_timeout_seconds = 60
 host = "127.0.0.1"
 port = 8642
 
-[clean]
-# Named targets for `kgme clean` (HANDOFF-0033). Roots are the only places it may delete.
-targets = { briefs = "memory/agent/brief", agent = "memory/agent", scratch = "logs/scratch", trace = "logs/trace", ledger-test = "logs/ledger-test" }
-cache_globs = ["**/__pycache__", ".ruff_cache", ".pytest_cache"]
-venv = ".venv"
+[clean.targets]
+# Named targets for `kgme clean` (HANDOFF-0033), the only places it may delete. An entry is a
+# root whose contents go (the root itself stays) or, with a `*`, a glob over the repository
+# whose matches go whole; `.git` and `.venv` are never entered by a glob. logs/ledger/ is
+# refused whatever is written here (ADR-012).
+briefs = ["memory/agent/brief"]
+agent = ["memory/agent"]
+scratch = ["logs/scratch"]
+trace = ["logs/trace"]
+caches = ["**/__pycache__", ".ruff_cache", ".pytest_cache"]
+venv = [".venv"]
+ledger-test = ["logs/ledger-test", "logs/trace-test"]
+# The copies `kgme capture` keeps beside a file it adds a line to (HANDOFF-0050); each goes only
+# when its bytes are still what its capture recorded (kgme/clean_kept.py).
+kept = ["memory/**/.*.capture-*"]
 
 [hooks]
 # Resolved-path blocklist for the pre-tool guard (HANDOFF-0028). Patterns, never contents.

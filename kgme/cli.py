@@ -5,13 +5,19 @@ Until a handoff lands, its subcommand says so and exits 2. `lint` (HANDOFF-0031)
 every note under the configured roots against the schema and exits 1 on a blocking finding.
 `ledger` (HANDOFF-0026) reads both streams or appends one human-authored event. `review`
 (HANDOFF-0029) runs one cycle of the review loop, or records a ruling or an override. `sync`
-(HANDOFF-0040) commits `logs/ledger/` by pathspec if it changed and pushes if ahead.
+(HANDOFF-0040) commits `logs/ledger/` by pathspec if it changed and pushes if ahead. `clean`
+(HANDOFF-0033) deletes disposable output by named target, a dry run unless `--yes`. `brief`
+(HANDOFF-0034) writes the day's brief from the vault, Loop 0, no model call. `capture`
+(HANDOFF-0050) puts Michou's words in the vault, one new note or one appended line; `daily`
+drafts the day's note from the ledger, once.
 Inputs: argv.
 Outputs: exit code; one line per finding or event, a summary, or a review's escalation packet.
 Side effects: `ledger note`, `review`, `review rule`, and `review override` append to the real
 ledger; `review` also runs `make check` and `codex exec`, writes the scratch patch, a payload,
 and an audit file under `docs/audit/`; `sync` runs `git commit` on the ledger and `git push`,
-and appends its push events. `lint`, `ledger read`, and `review --dry-run` only read.
+and appends its push events. `capture` writes one new note under `memory/notes/` or appends
+one line, and `daily` creates at most one note under `memory/daily/`, each with its ledger
+events. `lint`, `ledger read`, and `review --dry-run` only read.
 """
 
 import argparse
@@ -20,8 +26,6 @@ import sys
 
 CLASSES = ("blocking", "transient", "cosmetic", "advisory")
 NOT_BUILT = {
-    "brief": "HANDOFF-0034",
-    "clean": "HANDOFF-0033",
     "cockpit": "HANDOFF-0037",
 }
 
@@ -30,8 +34,41 @@ def build_parser() -> argparse.ArgumentParser:
     """Declare every subcommand so `kgme --help` is the map of Phase 1."""
     parser = argparse.ArgumentParser(prog="kgme", description="Kuang Grade Mark Eleven.")
     subcommands = parser.add_subparsers(dest="command", required=True)
-    subcommands.add_parser("brief", help="Loop 0: write today's brief from the vault")
-    subcommands.add_parser("clean", help="delete disposable outputs by named target")
+    brief_parser = subcommands.add_parser(
+        "brief", help="Loop 0: write the day's brief from the vault"
+    )
+    brief_parser.add_argument("--date", help="the day to brief, YYYY-MM-DD; default today")
+    brief_parser.add_argument(
+        "--dry-run", action="store_true", help="print the brief; write nothing"
+    )
+    capture_parser = subcommands.add_parser(
+        "capture", help="put Michou's words in the vault: remind, task, friction, note, daily"
+    )
+    capture_parser.add_argument("kind", choices=("remind", "task", "friction", "note", "daily"))
+    capture_parser.add_argument("words", help="his words, verbatim, one line")
+    capture_parser.add_argument(
+        "--due", help="remind and task: 'friday 9am', 'tomorrow', '2026-10-20 14:00'"
+    )
+    capture_parser.add_argument(
+        "--dry-run", action="store_true", help="print what would be written; write nothing"
+    )
+    daily_parser = subcommands.add_parser(
+        "daily", help="draft the day's note from the ledger, once; nothing if it exists"
+    )
+    daily_parser.add_argument("--date", help="the day to draft, YYYY-MM-DD; default today")
+    daily_parser.add_argument(
+        "--dry-run", action="store_true", help="print the draft; write nothing"
+    )
+    clean_parser = subcommands.add_parser(
+        "clean", help="delete disposable outputs by named target; a dry run unless --yes"
+    )
+    clean_parser.add_argument(
+        "target", nargs="?", help="briefs, agent, scratch, trace, caches, venv, ledger-test"
+    )
+    clean_parser.add_argument("--yes", action="store_true", help="delete what the plan lists")
+    clean_parser.add_argument(
+        "--dry-run", action="store_true", help="the default: print the plan, delete nothing"
+    )
     lint_parser = subcommands.add_parser("lint", help="validate every note under memory/ and docs/")
     lint_parser.add_argument(
         "--root", action="append", help="lint this root instead of kgme.toml's"
@@ -96,6 +133,14 @@ def main(argv: list[str] | None = None) -> int:
         return run_review(args)
     if args.command == "sync":
         return run_sync(args)
+    if args.command == "clean":
+        return run_clean(args)
+    if args.command == "brief":
+        return run_brief(args)
+    if args.command == "capture":
+        return run_capture(args)
+    if args.command == "daily":
+        return run_daily(args)
     print(f"kgme {args.command}: not built ({NOT_BUILT[args.command]})", file=sys.stderr)
     return 2
 
@@ -121,6 +166,15 @@ def run_lint(args: argparse.Namespace) -> int:
         print(f"kgme lint: {error}", file=sys.stderr)
         return 2
     findings = lint.lint_files(notes)
+    if not args.root and (base / "CLAUDE.md").is_file():
+        from datetime import date
+
+        from kgme import coherence  # the repository's own tree, not a fixture's (HANDOFF-0049)
+
+        cls = coherence.finding_class(
+            date.today(), settings.get("coherence", {}).get("blocking_from")
+        )
+        findings += coherence.check_tree(*vault.read_coherence_inputs(base), cls=cls)
     for finding in findings:
         if finding.cls != "cosmetic" or args.include_cosmetic:
             print(finding.line())
@@ -177,6 +231,51 @@ def run_review(args: argparse.Namespace) -> int:
     return review_run.run_cycle(
         args.handoff, model, dispositions, patch, places, args.dry_run, arbiter=arbiter
     )
+
+
+def run_brief(args: argparse.Namespace) -> int:
+    """`kgme brief [--date D] [--dry-run]` (HANDOFF-0034), in `kgme.brief_io`, on this
+    repository's root; it takes no path, as `kgme clean` takes none (HANDOFF-0033 F9)."""
+    from datetime import datetime
+
+    from kgme import brief_io, config, paths
+
+    date = args.date or datetime.now().astimezone().date().isoformat()
+    return brief_io.run_brief(date, args.dry_run, paths.root(), config.read_config())
+
+
+def run_capture(args: argparse.Namespace) -> int:
+    """`kgme capture KIND "WORDS" [--due WHEN]` (HANDOFF-0050), in `kgme.capture_io`."""
+    from kgme import capture_io, config, paths
+
+    return capture_io.run_capture(
+        args.kind, args.words, args.due, paths.root(), config.read_config(), None, args.dry_run
+    )
+
+
+def run_daily(args: argparse.Namespace) -> int:
+    """`kgme daily [--date D]` (HANDOFF-0050), in `kgme.daily_io`, on this checkout."""
+    from datetime import datetime
+
+    from kgme import config, daily_io, paths
+
+    date = args.date or datetime.now().astimezone().date().isoformat()
+    return daily_io.run_daily(date, paths.root(), config.read_config(), None, args.dry_run)
+
+
+def run_clean(args: argparse.Namespace) -> int:
+    """`kgme clean TARGET [--yes]` (HANDOFF-0033): the run in `kgme.clean_io`, on this checkout."""
+    from kgme import clean_io, config, paths
+
+    settings = config.read_config()
+    if not args.target:
+        targets = ", ".join(sorted(settings["clean"]["targets"]))
+        print(f"kgme clean: name a target: {targets}", file=sys.stderr)
+        return 2
+    if args.yes and args.dry_run:
+        print("kgme clean: --yes and --dry-run contradict; pass one", file=sys.stderr)
+        return 2
+    return clean_io.run_clean(args.target, args.yes, paths.root(), settings)
 
 
 def run_sync(args: argparse.Namespace) -> int:

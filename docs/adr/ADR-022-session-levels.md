@@ -1,0 +1,56 @@
+---
+id: ADR-022
+type: decision
+status: proposed
+created: 2026-10-16T00:30:00-07:00
+author: cowork
+source: stated
+tier: 2
+supersedes: null
+---
+
+# ADR-022 — Session levels: four allowances, each a launcher line; approval is always Michou's
+
+## Context
+Michou, 2026-10-15, proposed per-session permission profiles "so loops can be tightened or loosened deliberately." Michou, 2026-10-16, amended it: "There should be a mode that plans and executes and can disperse multiple agents in worktrees to build dynamic features. the thing it omits will be the final approval phase which should go through me," and "we can build those agents ourselves if need be to fit certain needs." Later the same day: "in the crew level the plan is iterated upon until it passes WITHOUT my intervention", and "KGME should have a streamlined worktree creation, quarantine, secruity scanning, and merging process so that agents can work freely and merges can be automatically sanity checked. this should happen seamlessly across models ultimately, so whichever architecture sets us up best for that outcome - which I assume would NOT be through claude's dedicated agentic worktrees."
+
+Facts this rests on, checked in the Claude Code documentation on 2026-10-16 (settings, permissions, sandboxing, goal, sub-agents, CLI reference):
+- `--settings <file>` applies above user, project and local settings and below managed settings, for one session. Permission lists merge across scopes; rules are evaluated deny, then ask, then allow, and a deny in any scope cannot be overridden.
+- `--setting-sources project,local` loads no user settings for that session, so the broad allows and the `auto` default in `~/.claude/settings.json` (AUDIT-0002 C4) do not reach it. Sign-in lives in `~/.claude.json`, not in settings, and is unaffected. `CLAUDE_CONFIG_DIR` is not needed.
+- `defaultMode` values `auto` and `bypassPermissions` do not take effect from project settings; `--permission-mode` sets them. `permissions.disableAutoMode` and `permissions.disableBypassPermissionsMode` set to `"disable"` work from any scope, `--settings` included.
+- File tools are checked against `Edit(path)` and `Read(path)` rules only; `Write(path)` rules are accepted and never consulted.
+- The sandbox is enforced by the operating system (Seatbelt on macOS) around Bash and every process it starts; `sandbox.filesystem.allowWrite` sets where it may write, network starts with no allowed domains, and `"allowUnsandboxedCommands": false` passed through `--settings` makes the sandbox admin-required, so repository files cannot loosen it. File tools, hooks and MCP servers run outside it.
+- A `PreToolUse` hook that exits 2 blocks the call before permission rules are evaluated, in every mode.
+- `/goal`'s evaluator is the small fast model reading the transcript; it runs no commands.
+- Project agents live in `.claude/agents/` with `tools`, `disallowedTools`, `model`, `permissionMode`, `isolation: worktree`, `maxTurns`, `skills`, `hooks`; `claude --agent <name>` runs a session as that agent. A subagent under a parent in `auto`, `acceptEdits` or `bypassPermissions` runs in the parent's mode whatever its own file says.
+- Headless runs have hard stops: `--permission-prompts none`, `--max-turns`, `--max-budget-usd`.
+
+## Decision
+1. **A level is a launcher line, not a settings file.** `kgme session <level> [--handoff ID]` runs `claude --setting-sources project,local --settings tools/policy/sessions/<level>.json --permission-mode <mode>` plus the level's flags, with `--model` from `kgme.toml [models]`. At start it appends one ledger `note`: the level, the sha256 of the settings file, the flags, `claude --version`, the model id. Plain `claude` is unchanged and is not a level.
+2. **Four levels.**
+   - `tight`: plan mode; auto and bypass disabled; no Edit allows. For reading, planning and review.
+   - `work`: auto mode; the sandbox on and admin-required, writes to the repository and the temp directory; the guard as today. The interactive builder. Runs in the main checkout until the ledger root is pinned (HANDOFF-0047).
+   - `crew`: Michou's mode of 2026-10-16. It plans, executes, dispatches builders in worktrees, integrates, and stops at approval. It starts from an adopted handoff (Michou's act) and ends with Michou's `approval` event naming the integration commit. The plan is iterated between the planner and a reviewer until it passes, and each task is iterated between its builder and a reviewer until it passes; disputes go to the arbiter; no step in between is put to Michou. What reaches him before approval is an ADR-016 halt only (one root cause blocking two consecutive cycles with nobody watching, three surviving a fix cycle, a budget spent, a builder dead), which stops that plan or task and escalates: a halt is a stop, not an approval. The planner runs at `work`; builders run at `loose`; parallelism is capped in `kgme.toml [crew]` (default 3). The engine is KGME's own and serves every model (§8).
+   - `loose`: unattended and headless. `-p` only; `dontAsk` with a pinned allow list, which is a true allowlist because user settings are not loaded; `--permission-prompts none`, `--max-turns`, `--max-budget-usd`; sandbox writes limited to the task's `Outputs`, `tests/` and `logs/scratch/`; no network beyond the model API; the dead-man switch of HANDOFF-0043. `crew` builders use it on this machine during a crew Michou started; scheduled jobs use it only on a separate macOS user or the second host (Phase 3).
+3. **Approval is never a level.** Merge to `main` is Michou's approval event at every level, `crew` included.
+4. **Who changes a level.** `tools/policy/sessions/`, `tools/policy/profiles/`, `tools/hooks/`, `.claude/` (settings and agents) and `kgme.toml` are human paths (HANDOFF-0045 §5). Widening a level is a weekly-review ruling that Michou applies; any agent may propose a narrowing as a diff.
+5. **Roles are skills; agents are thin.** The planner, builder and integrator are written as skills (`skills/kgme-planner/SKILL.md`, `skills/kgme-builder/SKILL.md`, `skills/kgme-integrator/SKILL.md`, in the SKILL.md format several harnesses read), so one role runs on any model. Each harness gets a thin wrapper that loads the skill and nothing else of substance: `.claude/agents/kgme-*.md` for Claude Code, a prompt and profile for Codex, the router's job manifest for local models. Specialists (a cockpit front-end builder, a test writer) arrive the same way. The repository is the source. `kgme skills install` links each skill into the global directory Michou named on 2026-10-16, `~/.claude/skills/` (Claude Code's user skills, read in every project), and into `~/.agents/skills/`, where Codex reads user skills and follows symlinks; the repository's own `.claude/skills/` and `.agents/skills/` get the same links, so a session that loads project settings only still finds them. A link, never a copy, so no installed copy can drift; where a harness will not follow a link, the installer copies and `kgme lint` compares the copy's hash with the repository's. Skills, agent files and the install map are human paths. Model ids come from `kgme.toml [models]`, never from a skill or an agent file.
+6. **Completion is decided by the gate and the reviewer's verdict in the ledger**, never by `/goal`'s evaluator. `/goal` stays an interactive convenience.
+7. **Every level is proved by canary cells**: `tight` refuses an edit; `work` refuses a Bash write outside the repository and an unlisted network host; `loose` refuses a write outside the task's `Outputs`, any network call beyond the API, and an unlisted tool; `crew` holds two builders to their own `Outputs` and writes every tool call of both into the one ledger.
+
+8. **KGME owns the workspace; harnesses are interchangeable workers.**
+   - **Create.** `kgme workspace` makes each task's git worktree under `kgme.toml [crew] root` (outside the repository and outside any harness's private folder), on `crew/<handoff>/<task>` from the integration branch's head, with a `task.json` naming its `Outputs`, acceptance check, harness, model and level. The ledger stays the main checkout's (HANDOFF-0047).
+   - **Run.** A harness adapter starts the builder in that worktree, turns its event stream into ledger events where the harness has no hooks, and can kill its process group. The first adapters are Claude Code and Codex; a local-model adapter follows router v0. An adapter builds at `loose` only after it passes the level's canary cells.
+   - **Gate every merge the same way for every model.** Before a task branch merges into the integration branch: changed paths are a subset of the task's `Outputs`; no human path, blocklisted path, symlink or binary; a pinned secret scanner finds nothing; no zero-width or bidirectional control characters; any dependency change has a toolbox row (ADR-020); `make check` and the task's acceptance check pass; and a model from a different vendor than the builder's reviews the diff. In-flight enforcement (Claude Code's hooks and sandbox, Codex's sandbox) is defence in depth; this gate is the check that holds identically whichever model built the diff.
+   - **Quarantine.** A task that fails the gate's mechanical checks, stalls, or halts is quarantined: its process group killed, its branch renamed `quarantine/<run>/<task>`, its worktree moved under the quarantine root and made read-only, a `blocking` outcome written. Nothing from it merges. Michou alone releases or discards it.
+   - Claude Code's `isolation: worktree` subagents are not the crew's engine (Michou, 2026-10-16): they tie the crew to one harness, put worktrees in that harness's folder, and leave merge checks inside a model's session. A builder may still use read-only subagents inside its own worktree.
+
+## Alternatives considered
+- `CLAUDE_CONFIG_DIR` per level: rejected; it means a second sign-in and a split session history, and `--setting-sources` gives the same isolation from user settings.
+- Narrow `~/.claude/settings.json` first: not required for KGME once user settings are excluded per session; it stays a weekly-review item for Michou's other projects.
+- `/goal` as the loop's verifier: rejected; a model reading a transcript is weaker than `make check` plus the reviewer's verdict.
+- Claude Code's native worktree subagents as the crew's engine: rejected (Michou, 2026-10-16) in favour of KGME-owned worktrees, adapters and one merge gate, the arrangement that carries over to every model.
+- Michou approving the plan before dispatch: rejected by Michou; the plan is iterated with a reviewer until it passes, and only a halt reaches him.
+
+## Consequences
+Before `crew`: the ledger root is pinned to the main checkout so worktrees never fork it, concurrent appenders are tested (both HANDOFF-0047), and the guard protects its own files (HANDOFF-0045 §5). Order: 0034 → 0045 → 0047 → 0042 and 0037 → 0043 → 0048. `crew` also needs Codex's builder profile (HANDOFF-0042) and the toolbox (HANDOFF-0044) for the secret scanner and the vendored skills. HANDOFF-0043 launches its builder at `loose` and records the level.

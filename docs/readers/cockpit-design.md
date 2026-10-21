@@ -44,6 +44,7 @@ CDH-0001 implemented the reusable cast; CDH-0002 found the native iframe failure
 - Sprite motion: all dense run portraits and the 49-cell matrix stay static; only 1 selected visible detail may animate. Hidden, offscreen, calm and actual reduced-motion states remove animation work. Calm removes decoration without losing actor, lifecycle, class or event facts or changing row geometry. Modes are not failure classes; fixture controls cannot override reduced motion or bind application keys.
 - Sprite evidence: the 24 × 24 source grid, 6 flat fills, 2 hard-swapped frames and 3 KB cap are retired for CDH-0001. The provisional target is 512 KiB raw for all 7 SVG assets plus shared animation code. Report bytes per actor and total, SVG element counts, simultaneous active animations, and 30-second target-Mac captures with 50 static portraits and 1 selected detail, with motion and calm baselines. Record environment, frame intervals, long tasks and interaction observations; label missing measurements unverified. A small file is not proof of runtime performance.
 - Wishlist's empty sections stay empty for v0.
+- **Superseded 2026-10-09, design session (CDH-0001):** the sprite direction moved from 24 × 24 pixel art to original vector characters, 240 × 280 source, six material roles, cel-shaded, static in the matrices and animated only in the selected detail; see `docs/design/cockpit-v0/chibi/README.md`. The actor mapping, the two-palette rule, the class-colour accent and the noise rule are unchanged. The design track's own handoffs are `CDH-NNNN` under `docs/handoff/cockpit-design/` (HANDOFF-0042 registers them).
 
 ## Open (Michou has not ruled)
 - Acceptance of the canvas as a whole (HANDOFF-0036's acceptance test: identify the timeline, a run, a failure class and the keyboard focus within ten minutes using only the keyboard map).
@@ -69,10 +70,10 @@ What a design review is for, and the class each finding carries:
 
 What is not a finding: that the files exceed ADR-015's 300-line guide (artboards are drawings, exempt by HANDOFF-0036); that the `.dc.html` syntax (`<x-dc>`, `<sc-for>`, `{holes}`, `DCLogic`) is unfamiliar, it is the editor's format; that sample data is sample data.
 
-The prompt that says all this to the reviewer is `tools/review/design-prompt.md`. First pass, from the repository root, Michou's terminal:
+The prompt that says all this to the reviewer is `control/review/design-prompt.md`. First pass, from the repository root, Michou's terminal:
 
 ```
-codex exec -s read-only -m gpt-6-astra "$(cat tools/review/design-prompt.md)" > logs/scratch/design-review-cycle-1.md
+codex exec -s read-only -m gpt-6-astra "$(cat control/review/design-prompt.md)" > logs/scratch/design-review-cycle-1.md
 ```
 
 Then Claude Code, on Michou's word, turns the scratch file into `docs/audit/AUDIT-NNNN-design-review-cockpit-v0-cycle-N.md` with report frontmatter, and records the cycle as a ledger note on `design:HANDOFF-0036`.

@@ -1,6 +1,6 @@
 """Helpers shared by the sync tests (`tests/test_sync.py`, `tests/test_sync_guards.py`).
 
-Purpose: seed a repository holding the working tree's `kgme/`, `tools/`, `kgme.toml`,
+Purpose: seed a repository holding the working tree's `kgme/`, `control/`, `kgme.toml`,
 `pyproject.toml`, `uv.lock`, and `.gitignore` with a bare `origin` under `tmp_path`, so the
 staged code is what the hook runs, through `uv` offline; run git and `kgme sync` against it;
 read its ledger; wait for the backgrounded hook.
@@ -21,7 +21,7 @@ from kgme import cli, config, events, ledger, paths, sync_io
 
 ROOT = paths.root()
 SETTINGS = config.read_config()
-COPIED = ("kgme", "tools", "kgme.toml", "pyproject.toml", "uv.lock", ".gitignore")
+COPIED = ("kgme", "control", "kgme.toml", "pyproject.toml", "uv.lock", ".gitignore")
 # `VIRTUAL_ENV` is scrubbed: pytest runs under `uv run`, and a child `uv run --project` with no
 # project under it falls back to the active environment, which is this repository's.
 ENV = {

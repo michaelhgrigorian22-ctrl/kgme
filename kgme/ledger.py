@@ -4,17 +4,24 @@ Purpose: `append` is the only code in KGME that opens a ledger or trace file for
 It validates, redacts, re-validates, sizes, routes, and appends under a lock, and it fails
 loudly on a short write. `read_page` merges the streams and flags orphans; `read` is the
 plain list. `open_intents` finds intents no outcome has closed, for reconciliation on start
-(ADR-013 §4).
+(ADR-013 §4); `read_ok_intents` those an `ok` outcome answered. `read_payload` is the one place a
+job's reconciliation reads an intent's payload: evidence only when it is a regular file
+reached through no link whose bytes hash to the `payload_sha256` the intent recorded in this
+ledger (HANDOFF-0033 F14, HANDOFF-0034 F2; shared by `kgme clean` and `kgme brief`).
 Inputs: event dicts from `kgme.events`; a `Dirs` naming where the two streams live.
 Outputs: event ids; lists of event dicts; a `Page` with its orphans.
 Side effects: `append` creates the stream directory if missing and appends one line with
 `O_APPEND`, `flock`, a single `os.write`, and `fsync`. `read_default_dirs` and
-`read_test_dirs` read `kgme.toml`. `read_page` opens stream files read-only.
+`read_test_dirs` read `kgme.toml`. `read_page` opens stream files read-only; `read_payload`
+opens one payload read-only, without following a link or waiting.
 """
 
+import errno
 import fcntl
+import hashlib
 import json
 import os
+import stat
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -44,6 +51,16 @@ def read_default_dirs(settings: dict | None = None) -> Dirs:
     return Dirs(
         ledger=paths.ledger_dir(settings),
         trace=paths.trace_dir(settings),
+        read_only_tools=tuple(settings["hooks"]["read_only_tools"]),
+    )
+
+
+def read_base_dirs(settings: dict, base: Path) -> Dirs:
+    """The streams of the checkout at `base`, for a job told which checkout to act on
+    (HANDOFF-0033): a test's temporary root gets its own ledger, never this one's."""
+    return Dirs(
+        ledger=paths.ledger_dir(settings, base),
+        trace=paths.trace_dir(settings, base),
         read_only_tools=tuple(settings["hooks"]["read_only_tools"]),
     )
 
@@ -167,3 +184,53 @@ def open_intents(job: str, dirs: Dirs | None = None) -> list[dict]:
         for event in everything
         if event["kind"] == "intent" and event["job"] == job and event["id"] not in closed
     ]
+
+
+def read_ok_intents(job: str, dirs: Dirs | None = None) -> list[dict]:
+    """Intents for `job` that an `ok` outcome answered: the work they announced was done, or
+    was found done on reconciliation. An intent that died before its work is not among them."""
+    everything = read(dirs)
+    answered = {
+        event["ref"]
+        for event in everything
+        if event["kind"] == "outcome" and event["status"] == "ok" and event["ref"]
+    }
+    return [
+        event
+        for event in everything
+        if event["kind"] == "intent" and event["job"] == job and event["id"] in answered
+    ]
+
+
+def read_payload(base: Path, intent: dict) -> tuple[bytes | None, str]:
+    """The bytes of an intent's payload and an empty string when they are the evidence it
+    recorded; None and an empty string when it named none or the file is gone; None and why
+    it is not evidence otherwise: a link above it or in its place, not a regular file,
+    unreadable, or bytes that do not hash to the intent's `payload_sha256`."""
+    ref = intent.get("payload_ref")
+    if not ref:
+        return None, ""
+    payload = base / ref
+    if not os.path.lexists(payload):
+        return None, ""
+    for ancestor in [*reversed(payload.parents), payload]:
+        if base in ancestor.parents and ancestor.is_symlink():
+            return None, f"{ref} is reached through a symlink"
+    try:
+        fd = os.open(payload, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    except OSError as error:
+        if error.errno == errno.ELOOP:
+            return None, f"{ref} is a symlink"
+        return None, f"{ref} could not be read: {error.strerror}"
+    try:
+        if not stat.S_ISREG(os.fstat(fd).st_mode):
+            return None, f"{ref} is not a regular file"
+        chunks = []
+        while chunk := os.read(fd, 1 << 20):
+            chunks.append(chunk)
+    finally:
+        os.close(fd)
+    data = b"".join(chunks)
+    if hashlib.sha256(data).hexdigest() != intent.get("payload_sha256"):
+        return None, f"{ref} does not match the hash its intent recorded"
+    return data, ""

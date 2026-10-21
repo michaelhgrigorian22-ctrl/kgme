@@ -1,6 +1,6 @@
 """`kgme review`, the parser: a reviewer's markdown into classed findings and a verdict.
 
-Purpose: read the reviewer's reply the way the prompt defines it (`tools/review/prompt.md`):
+Purpose: read the reviewer's reply the way the prompt defines it (`control/review/prompt.md`):
 a `## Findings` table, a `## Verdict` line, `## Notes`. Sections are found by whole header
 lines, so a header quoted inside a table cell opens nothing. Rows and the verdict are read
 only inside their own sections.

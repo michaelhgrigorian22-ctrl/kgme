@@ -117,10 +117,17 @@ def run_reviewer(
     return done.returncode, text, done.stderr
 
 
+NOT_ADOPTED = ("proposed", "archive")
+
+
 def read_handoff_path(handoff_dir: Path, handoff_id: str) -> Path | None:
-    """The adopted handoff file whose frontmatter carries `id: <handoff_id>`, else None."""
+    """The adopted handoff file whose frontmatter carries `id: <handoff_id>`, else None: open
+    at the top of `docs/handoff/` or finished under `done/` (HANDOFF-0049), never a proposal
+    or an archived one."""
     pattern = re.compile(rf"^id:\s*{re.escape(handoff_id)}\s*$", re.MULTILINE)
-    for path in sorted(handoff_dir.glob("*.md")):
+    for path in sorted(handoff_dir.rglob("*.md")):
+        if path.relative_to(handoff_dir).parts[0] in NOT_ADOPTED:
+            continue
         if pattern.search(read_text(path)):
             return path
     return None

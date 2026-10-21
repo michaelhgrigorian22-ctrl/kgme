@@ -1,7 +1,7 @@
 """Worker manifests: what a worker may read, write, call, and reach (ADR-013 §1, HANDOFF-0032).
 
 Purpose: one declaration per worker, `manifest.toml` beside the job or under
-`tools/policy/profiles/`, and one pure check a Python job calls before every effect. A manifest
+`control/policy/profiles/`, and one pure check a Python job calls before every effect. A manifest
 narrows and never widens: the guard's blocklist and the Tier 1 roots from `kgme.toml` are
 refused whatever a manifest declares, and no manifest in this repository declares Tier 1.
 Inputs: manifest text; an operation (`read`, `write`, `delete`, `network`, `tool`) and its

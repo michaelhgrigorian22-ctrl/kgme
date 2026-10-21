@@ -3,7 +3,7 @@ id: STATUS
 type: note
 status: active
 created: 2026-09-10T09:50:00-07:00
-modified: 2026-10-09T22:36:00-07:00
+modified: 2026-10-21T01:05:00-07:00
 author: cowork
 source: stated
 tier: 2
@@ -11,10 +11,10 @@ tier: 2
 
 # KGME — current status (ADR-014)
 
-The one place that says what is true *now*. Historical records are never edited; this file is. Last updated 2026-10-09 22:36 PDT by Claude Code (HANDOFF-0040 done, AUDIT-0034).
+The one place that says what is true *now*. Historical records are never edited; this file is. Last updated 2026-10-21 01:05 PDT by Cowork (HANDOFF-0050 done, `375c75f`, AUDIT-0065 PASS at cycle 7; 0045 and 0051 adopted; HANDOFF-0049 done, `f60f4b6`, AUDIT-0057 PASS at cycle 3; HANDOFF-0034 done 2026-10-15, `7cf034b`, AUDIT-0053; HANDOFF-0033 done 2026-10-14, AUDIT-0050).
 
 ## Phase
-**Phase 0 — Prepare: complete as of 2026-09-11**, except the housekeeping list below. **Phase 1 — Loop 0 and the cockpit: open as of 2026-09-14.** Plan amended that evening after a four-model deliberation (AUDIT-0011); build order at `plans/phase-1-loop-0.md`. Done: HANDOFF-0025 packaging (AUDIT-0012), 0026 ledger (AUDIT-0013), 0027 permissions and 0028 hook pair (AUDIT-0014), 0029 `kgme review` (AUDIT-0016, reviewed by itself over five cycles), 0030 schema v1.3 and 0031 validator (AUDIT-0022), 0032 canary tests and worker manifests (AUDIT-0026, seven cycles, two overrides), 0040 `kgme sync` (AUDIT-0034, six cycles, one override: every commit is pushed by the backgrounded post-commit hook and the ledger is committed by `kgme sync`, one mode, one lock); ADR-019 accepted. Adopted 2026-10-08 and built, awaiting their reviews: 0033 `kgme clean`, then 0034 `kgme brief` v1; their reviews run through `kgme review`. The cockpit design track (0036) runs in parallel under Cowork, Codex, and Michou; 0037 waits for its approval. Nothing runs unattended; the hooks run on every Claude Code tool call in the repository.
+**Phase 0 — Prepare: complete as of 2026-09-11**, except the housekeeping list below. **Phase 1 — Loop 0 and the cockpit: open as of 2026-09-14.** Plan amended that evening after a four-model deliberation (AUDIT-0011); build order at `plans/phase-1-loop-0.md`. Done: HANDOFF-0025 packaging (AUDIT-0012), 0026 ledger (AUDIT-0013), 0027 permissions and 0028 hook pair (AUDIT-0014), 0029 `kgme review` (AUDIT-0016, reviewed by itself over five cycles), 0030 schema v1.3 and 0031 validator (AUDIT-0022), 0032 canary tests and worker manifests (AUDIT-0026, seven cycles, two overrides), 0040 `kgme sync` (AUDIT-0034, six cycles, one override: every commit is pushed by the backgrounded post-commit hook and the ledger is committed by `kgme sync`, one mode, one lock); ADR-019 accepted. 0033 `kgme clean` done 2026-10-14 (AUDIT-0050, eight cycles, two halts closed by Michou's overrides of 2026-10-13: the hold-and-restore design rejected and rebuilt by pathname with one final check per deletion; his ruling of 2026-10-14 puts a local process swapping repository directories during a clean run outside the threat model; report `audit/2026-10-08-loop-0.md`). 0034 `kgme brief` v1 done 2026-10-15 (AUDIT-0053, three cycles; Cowork's ruling as arbiter on F1 and F6 executed: one gated reader for every brief read and one failure boundary per run; payload verification shared with `kgme clean` as `ledger.read_payload`; due instants read in `kgme.toml` `[brief] timezone`). Loop 0's pair is built; the week of hand runs starts on this commit, and the first real brief waits for the seeded vault (0035). The cockpit design track (0036) runs in parallel under Cowork, Codex, and Michou; 0037 waits for its approval. Nothing runs unattended; the hooks run on every Claude Code tool call in the repository. **Loop 0 built 2026-10-15** (`kgme brief` v1, HANDOFF-0034, `7cf034b`): the week of hand runs starts on that commit. **The constitution changed 2026-10-16:** `CLAUDE.md` "How decisions are made" (ADR-023 accepted) governs every session. **0050 capture and daily done 2026-10-21** (`375c75f`, AUDIT-0065, seven cycles): `kgme capture` writes Michou's words verbatim, `kgme daily` drafts the evening note; rulings executed: every write is whole (F10), and capture deletes nothing, the swapped-out copy kept beside its file until `kgme clean kept` finds it unchanged (F13, F15, two arbiters concurring). 0035 is unblocked.
 
 ## Gates before anything is scheduled (ADR-013 §6)
 | Gate | State | Record |
@@ -39,27 +39,32 @@ Unit reduced to its 80 human files (6.3 MB) at `~/Projects/Finance/ARCHIVE PITCH
 | Sleep policy | A / B / C after two weeks of observation | proposal 0012 |
 | Tier 1 access boundary | **Decided 2026-09-14:** `age` at rest now; separate macOS user evaluated and ruled on at Phase 1 exit | HANDOFF-0038 |
 | Egress control tool | **Decided 2026-09-14:** LuLu, installed at the end of Phase 1 | HANDOFF-0038 |
-| First three workers | daily brief and coursework→calendar named; third waits for ten real friction entries (2026-09-14) | HANDOFF-0039 |
+| First three workers | daily brief and coursework→calendar named; the third waits for ten real friction entries (8 of 10 on 2026-10-16, captured from Michou's own words; capture by talking built 2026-10-21, HANDOFF-0050) | HANDOFF-0039 |
+| Ollama cloud models | **Decided 2026-10-21:** code only. A cloud model (first: DeepSeek-V4.1-Flash for cheap debugging) may see `kgme/`, `jobs/`, `tests/`, `control/`, `docs/`; never `memory/`, `logs/` or Tier 1. Local models wait for the mini (Phase 3). | HANDOFF-0053 |
 | Weekly review slot | **Decided 2026-09-14:** Sunday 18:00 PT | first held at Phase 1 exit (0039) |
 | Working copy of finance-python | stays for now; delete later or not at all | — |
 | `kgme` shell alias | **Done 2026-09-14:** `kgh` jumps to the repo; `kgme` is a shell function over `uv run --frozen --project` | HANDOFF-0025 |
-| Review gate | **Built 2026-09-17:** `kgme review` runs the loop from the ledger; halt when one root cause stands blocking three consecutive cycles or three survive a fix cycle; `kgme review rule` records the arbiter, `kgme review override` records Michou. First halt, override, and arbitration all happened on its own review | AUDIT-0016, `docs/readers/review-loop.md` |
+| Review gate | **Built 2026-09-17; amended 2026-10-16 (ADR-023 accepted):** `kgme review` runs the loop from the ledger; a disputed or persistent blocking finding goes to the arbiter and the ruling is executed; a loop stops on measured non-convergence, a budget or a ruling outside the mandate. The coded three-cycle halt in `kgme/review.py` remains until HANDOFF-0043 replaces it; `kgme review rule` records rulings, `kgme review override` records Michou. | HANDOFF-0029, HANDOFF-0043 |
 | Schema v1.2 | **Decided 2026-09-14:** validator covers `memory/` and `docs/`; repair by schema rule for append-only types, never by editing an ADR | HANDOFF-0030 |
 
 ## Proposals still open (`docs/handoff/proposed/`)
-0011 path renaming — folded into the migration plan · 0012 `pmset` — deferred to end of observation window · **0025–0039 Phase 1 sequence (2026-09-14)**, adopted one by one in order; 0030 is for Cowork, 0035 for Michou, 0036 for Cowork and Michou. All others superseded, abandoned, or done.
+0011 path renaming — folded into the migration plan · 0012 `pmset` — deferred to end of observation window · **0025–0039 Phase 1 sequence (2026-09-14)**, adopted one by one in order; 0042–0048, 0052 (kept copies named in the brief, 2026-10-21), 0053 (the cheap lane, 2026-10-21); 0030 is for Cowork, 0035 for Michou, 0036 for Cowork and Michou. All others superseded, abandoned, or done.
+
+**Next, in order (2026-10-21):** (1) 0045 guard, adopted 2026-10-21: destructive git, Outputs scoping, per-entry fingerprints, and all of `control/` with `.claude` and `kgme.toml` made human paths. (2) 0051 the atlas, adopted 2026-10-21, built after 0045 (its hook line and `[atlas]` table become diffs Michou applies). (3) 0047 session levels (ADR-022 proposed). (3a) 0053 the cheap lane, right after 0047. (4) 0042 design-track registration. (5) 0037 cockpit v0, after the canvas is approved (0036). (6) 0043 `kgme review --loop` (amendment 12: every arbiter's ruling on record). (7) 0048 `kgme crew`. Then 0035 (seeded through capture, now unblocked), 0052, 0038, 0044, 0039 exit audit. Later: 0046 `kgme dream` (after 0043 and the Phase 3 heartbeat). Proposed decisions waiting for Michou: ADR-021 (Tier 1 disclosure by request; amends ADR-002), ADR-022 (session levels). Accepted 2026-10-16: ADR-023 outcome-governed loops. Reviews behind these: `memory/agent/2026-10-13-external-repos-review.md` (four repos) and the ui-ux-pro-max rubric (design track).
 
 ## Housekeeping (non-blocking)
 - VS Code → Open Recent → clear the three dead `finance-python` entries (UI only).
 - `brew doctor`: Command Line Tools 26.3 via System Settings → Software Update.
 - Duplicate Claude Code install: `which -a claude`, remove the stale 2.1.111.
-- Warp new-tab directory → `$KGME_HOME` (`~/.warp/tab_configs/startup_config.toml`).
+- Warp new-tab directory → `~/Projects/KGME/brain` after the move (`~/.warp/tab_configs/startup_config.toml`).
+- Follow-up, cosmetic: `tests/test_brief_review.py` is 406 lines against ADR-015's ~300 (AUDIT-0053 F13); split by concern in a later diff, not the reviewed one.
 - Delete the restore-test file left in `~/Downloads`; delete `~/Downloads/kgme-restore-test/` if present.
-- Friction log: first real entries. Cockpit wishlist: keep adding.
+- Friction log: 8 of 10 (2026-10-16). Cockpit wishlist: keep adding, by `kgme capture`.
+- `kgme clean kept --yes` by hand now and then, until 0052 puts kept copies in the brief; a refusal names a copy holding a save to merge.
 - `docs/roadmap.md` (Cowork, 2026-09-12) was untracked until the 2026-09-14 commit; now in git.
 
 ## Corrections to date
-Eight entries in `corrections.md`, all Cowork's, all caught before harm: timezone; report frontmatter; id collision; Finance scope error; "copied library" inference; ledger contradiction; sudo-in-handoff; Time-Machine gate on a Backblaze machine (0024).
+Eight entries in `corrections.md` by Cowork, all caught before harm: timezone; report frontmatter; id collision; Finance scope error; "copied library" inference; ledger contradiction; sudo-in-handoff; Time-Machine gate on a Backblaze machine (0024). One by Claude Code (2026-10-21): a 0050 review report claimed every earlier finding resolved when F10 was not.
 
 ## Deferred on purpose
-Ollama models and embeddings · Playwright / browser worker · Telegram · Groq · path renaming outside Automate · scheduling of any job · live ingestion of vendor streams, in-app approvals, `/btw` lane, dispatch, VS Code follow (Phase 2) — until Loop 0 passes or the friction log demands them.
+Local Ollama models and embeddings (cloud models for code: 0053) · Playwright / browser worker · Telegram · Groq · path renaming outside Automate · scheduling of any job · live ingestion of vendor streams, in-app approvals, `/btw` lane, dispatch, VS Code follow (Phase 2) — until Loop 0 passes or the friction log demands them.

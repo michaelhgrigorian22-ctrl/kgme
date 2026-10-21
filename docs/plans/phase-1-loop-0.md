@@ -3,7 +3,7 @@ id: PLAN-PHASE-1
 type: note
 status: active
 created: 2026-09-11T23:50:00-07:00
-modified: 2026-10-08T19:30:00-07:00
+modified: 2026-10-16T14:20:00-07:00
 author: cowork
 source: stated
 tier: 2
@@ -25,15 +25,24 @@ Phase 0 built the ground: backup proven, repo off-machine, toolchain pinned, cha
 | 3 | **Hook pair.** Pre-tool guard blocks by resolved path and fails closed; post-tool hook writes the `outcome` with `ref` to the guard's `intent`; every tool recorded; raw input to gitignored scratch, redacted summary to the ledger | 0028 | 1, 2 | The hooks half of the original step 1; the ledger's first client |
 | 4 | **`kgme review`.** The review protocol as a ledgered command with loop state read from the ledger; blocking findings iterate between models, bounded per ADR-016, escalate to Michou at the bound | 0029 | 3 | Codex has no hook layer; its reviews must leave a trace |
 | 5 | **Schema v1.2 and the `docs/` repair.** Append-only types drop `modified`; `note` admitted under `docs/`, `docs/plans/`, `memory/inbox/`; charter exempted by path; templates excluded; no ADR edited | 0030 | — | Without it the validator fails on KGME's own documents on day one |
-| 6 | **Validator.** `kgme/lint.py`, `kgme/vault.py`, `tools/schema/lint.py`; covers `memory/` and `docs/`; findings carry ADR-016 classes; `make check` runs it | 0031 | 0, 5 | The reference example of the ten-minute standard |
+| 6 | **Validator.** `kgme/lint.py`, `kgme/vault.py`, `control/schema/lint.py`; covers `memory/` and `docs/`; findings carry ADR-016 classes; `make check` runs it | 0031 | 0, 5 | The reference example of the ten-minute standard |
 | 7 | **Canary tests and worker manifests.** Fast tier in `make check`; agent tier in `make canary-agents`; every cell a ledger event labelled by enforcement layer | 0032 | 1, 3, 6 | Gate "canary tests" on STATUS |
 | 7b | **`kgme sync`: push on every commit, ledger committed at session end.** Post-commit hook pushes; `SessionEnd` hook commits `logs/ledger/` by pathspec and pushes; never force, never blocking, offline is `transient` | 0040 | 0, 1 | Added 2026-10-08: the remote sat two commits behind for weeks; Gate 1 is only met while pushes happen |
+| 7c | **Guard: destructive git denied by rule; Outputs scoping in loop mode; per-entry fingerprints.** Deny `reset --hard`, `clean -f`, `branch -D`, `checkout .`, `restore .`, `stash drop`; loop runs write only inside their handoff's `Outputs`; canary digest names the hook that changed | 0045 | 7 | A mechanical rule for a mechanical violation; 0043 needs it before it runs unwatched |
+| 7d | **Session levels.** `kgme session` with levels `tight`, `work`, `loose` as launcher lines (`--setting-sources project,local`, `--settings`, `--permission-mode`), sandbox admin-required, one ledger whatever the checkout, concurrent appends tested, canary cells per level | 0047 | 7c | ADR-022; every worktree mode needs one ledger |
 | 8 | **`kgme clean`.** Named targets only, allowlisted roots, one event per deletion; bare `rm -rf` stays denied | 0033 | 1 | Loop 0's reconstruction test deletes with it |
 | 9 | **Loop 0 — `kgme brief` v1.** Manual, read-only, local, no model call; four acceptance tests with classes; `--dry-run`; reminder, task, daily templates shipped | 0034 | 1, 6, 8 | The loop |
-| 10 | **Seed the vault.** Michou's own act: real reminders, tasks, daily notes, ten friction entries | 0035 | 9 | The vault is empty; an empty brief measures nothing |
+| 9a | **One home.** `~/Projects/KGME/` holding `brain/` (main), `design/` (worktree) and `work/` (crew); tools/ renamed `control/`; handoffs by state (`done/`, `archive/`); a front-door README; maps redrawn; report links fixed; coherence checks in `kgme lint`; the move run by Michou with a prepared script | 0049 | 9 | Michou, 2026-10-16: no visible clutter, intuitive paths, one home for brain, design and work |
+| 9b | **Design-track registration.** `kgme lint` validates git-known files (`--all` for the tree); schema v1.5 track folders; `codex-builder` profile; binaries out of tree | 0042 | 9, 0041 | The worktree is the separation today; this makes it the repo's |
+| 9c | **Capture by talking, daily notes drafted.** `kgme capture` files reminders, tasks, friction and notes in Michou's words on his say-so in any session; `kgme daily` drafts the day's note from the ledger; nothing typed in Obsidian | 0050 | 9, 9a | The vault had nothing new from Michou in a month; Loop 0 reads it |
+| 9d | **The atlas.** Generated notes per folder, module, handoff, ADR, reader and audit, linked by real dependencies; the repository as the Obsidian vault; regenerated after every commit; other projects later, opt-in, structure only | 0051 | 9a | Michou, 2026-10-16: Obsidian as a lens only |
+| 10 | **Seed the vault.** real reminders, tasks, daily notes, ten friction entries, through capture by talking (amended 2026-10-16) | 0035 | 9, 9c | The vault is empty; an empty brief measures nothing |
 | 11 | **Cockpit design canvas.** From the wishlist; five states; keyboard map; Phase 2 controls drawn greyed. Approved by Michou before any cockpit code | 0036 | — | Parallel track from day one; taste, not code |
 | 12 | **Cockpit v0.** Stdlib server on `127.0.0.1`, one page, the timeline over the ledger, installed to the Dock. Read-only; nothing else | 0037 | 1, 11 | The first pixel |
+| 12b | **`kgme review --loop`.** Build → gate → review → dispose → arbitrate → close with nobody in it; merge manual; two-cycle halt unattended; dead-man switch; compaction logged; grilled before adoption (amended 2026-10-14) | 0043 | 9, 9b, 12, 7c | The loop Michou asked for, bounded by ADR-016 and a kill path |
+| 12c | **`kgme crew`.** KGME-owned worktrees outside any harness, Claude Code and Codex adapters, the plan iterated with a reviewer until it passes, each task built and reviewed by different vendors, one merge gate (paths, secrets, hidden characters, dependencies, gate, acceptance), quarantine, stop at Michou's approval | 0048 | 12b, 7d, 9b, 13b | Michou's mode of 2026-10-16: everything but the final approval, across models |
 | 13 | **LuLu, `age`, the separate-user evaluation.** Egress rule for the Python profile; Tier 1 at rest; the evaluation ADR-013 asked for | 0038 | 7 | ADR-013 §2's two Phase 1 requirements, discharged at the end so they never block code |
+| 13b | **The toolbox.** ADR-020; `docs/toolbox.md` with first rows (four vendored skills, the brief's data sources with egress hosts); lint checks. The scout half waits for 13 (LuLu) as its own handoff | 0044 | 9 | A dependency as a cheap, visible act |
 | 14 | **Exit audit.** Evidence from the ledger; STATUS to Phase 2; first weekly review | 0039 | 9, 10, 12, 13 | Exit on evidence |
 
 Steps 0 and 1 ship together; 2 and 3 together; 8 and 9 together. Step 11 has no dependency and opens now.
@@ -55,7 +64,7 @@ Steps 0 and 1 ship together; 2 and 3 together; 8 and 9 together. Step 11 has no 
 - The first weekly review held at Sunday 18:00 PT.
 
 ## Deferred until Phase 1 exits
-Scheduling · Ollama models and embeddings · browser worker · Telegram · Groq · live ingestion of vendor event streams · in-app approvals · the `/btw` lane · dispatch from the cockpit · VS Code follow · migration plan for `Finance/`, `School/`, `Personal/` · Loop 0 v2 with a model for prose.
+Scheduling · Ollama models and embeddings · browser worker · Telegram · Groq · live ingestion of vendor event streams · in-app approvals · the `/btw` lane · dispatch from the cockpit · VS Code follow · migration plan for `Finance/`, `School/`, `Personal/` · Loop 0 v2 with a model for prose. · `kgme dream` (0046: the week's ledger read out of band, instincts proposed; after 0043 and the heartbeat) · the scout half of 0044 (after 0038) · ADR-021's gate in the router (Sentinel) · confidential-inference providers as a Tier 1 path (a later ADR).
 
 ## Record: the original eight steps (2026-09-11), superseded above
 1. Repo-scoped permissions and hooks. 2. Ledger. 3. Validator. 4. Canary tests. 5. Loop 0 `kgme brief`. 6. `kgme clean`. 7. Cockpit design. 8. Cockpit v0 with ingestion, approvals, side lane, dispatch, VS Code follow. The deliberation found step 1 unbuildable before step 2, no packaging step, step 8's tail belonging to Phase 2, and the two ADR-013 requirements missing; AUDIT-0011 has the full record.
