@@ -13,6 +13,8 @@ memory/.obsidian/workspace.json
 memory/.obsidian/workspace-mobile.json
 memory/.obsidian/cache/
 memory/attachments/*.tmp
+# copies kgme capture keeps beside a file it adds a line to, removed by `kgme clean kept`
+memory/**/.*.capture-*
 __pycache__/
 .venv/
 *.pyc

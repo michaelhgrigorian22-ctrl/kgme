@@ -27,7 +27,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-from kgme import clean_fs, clean_read, clean_reconcile, events, ledger, paths, policy
+from kgme import clean_fs, clean_kept, clean_read, clean_reconcile, events, ledger, paths, policy
 from kgme.clean import (
     CleanPlan,
     Entry,
@@ -257,6 +257,8 @@ def run_locked(target: str, delete: bool, base: Path, settings: dict) -> int:
             sorted((*plan.refused, *_refused_entries(errors)), key=lambda r: r.entry.path)
         )
         plan = CleanPlan(plan.target, plan.files, plan.dirs, refused, plan.kept)
+    if target == "kept":
+        plan = clean_kept.read_checked(plan, base, dirs)
     print("\n".join(plan_lines(plan, base)))
     key = f"clean:{target}:{events.now_iso()[:16]}"
     mode = "delete" if delete else "dry run"

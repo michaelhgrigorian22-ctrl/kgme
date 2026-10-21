@@ -1,0 +1,14 @@
+# Worker manifest for kgme daily (ADR-013 §1, HANDOFF-0050). Checked by kgme/policy.py before
+# every read, the one git call, and the write. Paths are repository-relative. A manifest narrows,
+# never widens: the blocklist and Tier 1 roots in kgme.toml are refused whatever is declared here.
+name = "daily"
+kind = "python-job"
+max_tier = 2
+# What the draft is built from: the vault's open items and friction log, the handoffs and the
+# day's reports. The day's ledger events are read through kgme/ledger.py, the trusted reader.
+read_paths = ["memory/notes", "memory/agent", "memory/daily", "memory/inbox", "memory/templates", "docs/handoff", "docs/audit", "kgme.toml"]
+# One new file, memory/daily/<date>.md, created only when it does not exist (O_EXCL).
+write_paths = ["memory/daily"]
+# `git` is one read-only `git log` of the day, bounded by [sync] git_timeout_seconds.
+tools = ["read", "write", "git"]
+network_destinations = []

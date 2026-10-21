@@ -15,6 +15,7 @@
 | `caches` | `**/__pycache__`, `.ruff_cache`, `.pytest_cache` | each match whole; a glob never enters `.git` or `.venv` |
 | `venv` | `.venv` | the environment's contents; `uv sync --frozen` rebuilds it |
 | `ledger-test` | `logs/ledger-test`, `logs/trace-test` | the test streams |
+| `kept` | `memory/**/.*.capture-*` | the copies `kgme capture` keeps beside a file it adds a line to (HANDOFF-0050), each only while it hashes to what its capture's `kept` ledger note recorded; any other is refused and named, and the plan deletes nothing (`kgme/clean_kept.py`) |
 
 **Outputs.** The plan on stdout, one line per path with its size. Exit 0 when done, 1 when the plan was refused or a deletion failed or an entry changed under it, 2 on an unknown target.
 

@@ -81,10 +81,11 @@ def sha256_text(text: str) -> str:
 
 
 def read_input_paths(base: Path, date: str) -> tuple[list[Path], list[str]]:
-    """Every `.md` under the input roots except the briefs, then the day's daily note and the
-    friction log when present, sorted so two runs read in the same order; with them, a
-    refusal line for every directory the walk could not read, since a brief missing a
-    subtree is incomplete without saying so (review cycle 2 F11)."""
+    """Every `.md` under the input roots except the briefs, then the day's daily note (or,
+    until it exists, the previous evening's draft) and the friction log when present,
+    sorted so two runs read in the same order; with them, a refusal line for every
+    directory the walk could not read, since a brief missing a subtree is incomplete
+    without saying so (review cycle 2 F11)."""
     found: list[Path] = []
     refusals: list[str] = []
 
@@ -104,7 +105,9 @@ def read_input_paths(base: Path, date: str) -> tuple[list[Path], list[str]]:
                 if name.endswith(".md") and not rel.startswith(brief.BRIEF_DIR + "/"):
                     found.append(path)
     found.sort()
-    for rel in (f"{brief.DAILY_DIR}/{date}.md", brief.FRICTION_PATH):
+    today = f"{brief.DAILY_DIR}/{date}.md"
+    evening = f"{brief.DAILY_DIR}/{brief.day_before(date)}.md"
+    for rel in (today if (base / today).exists() else evening, brief.FRICTION_PATH):
         if (base / rel).exists():
             found.append(base / rel)
     return found, refusals

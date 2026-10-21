@@ -1,0 +1,21 @@
+# Worker manifest for kgme capture (ADR-013 §1, HANDOFF-0050). Checked by kgme/policy.py before
+# every read and write the job performs. Paths are repository-relative. A manifest narrows, never
+# widens: the blocklist and Tier 1 roots in kgme.toml are refused whatever is declared here.
+name = "capture"
+kind = "python-job"
+max_tier = 2
+# The templates a new note is rendered from; the notes, log, and daily note it may land in (read
+# so an open intent's bytes can be found on reconciliation).
+# The friction log's kept copies (`.friction-log.md.capture-<intent id>`, beside it) are read
+# and written as part of it; those of a daily note are under memory/daily already.
+read_paths = ["memory/templates", "memory/notes", "memory/inbox/friction-log.md", "memory/inbox/.friction-log.md.capture-*", "memory/daily", "kgme.toml"]
+# New files only under memory/notes; a line added to the friction log or the day's note. The
+# manifest cannot say "new" or "add a line"; kgme/capture_fs.py does: write_new publishes from an
+# O_EXCL temp by link, never replacing; write_replaced writes the file plus the line to an O_EXCL
+# temp named with the intent id, exchanges the two names in one step, undoes the exchange when
+# the displaced file is not what was read, and deletes nothing: the displaced copy stays for
+# `kgme clean kept`. tests/test_capture.py and tests/test_capture_review.py hold it to that. Ledger events go through
+# kgme/ledger.py, the trusted writer, and are not declared as job effects.
+write_paths = ["memory/notes", "memory/inbox/friction-log.md", "memory/inbox/.friction-log.md.capture-*", "memory/daily"]
+tools = ["read", "write"]
+network_destinations = []

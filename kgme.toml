@@ -55,6 +55,9 @@ trace = ["logs/trace"]
 caches = ["**/__pycache__", ".ruff_cache", ".pytest_cache"]
 venv = [".venv"]
 ledger-test = ["logs/ledger-test", "logs/trace-test"]
+# The copies `kgme capture` keeps beside a file it adds a line to (HANDOFF-0050); each goes only
+# when its bytes are still what its capture recorded (kgme/clean_kept.py).
+kept = ["memory/**/.*.capture-*"]
 
 [hooks]
 # Resolved-path blocklist for the pre-tool guard (HANDOFF-0028). Patterns, never contents.

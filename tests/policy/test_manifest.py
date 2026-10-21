@@ -20,6 +20,8 @@ ROOT = Path(__file__).resolve().parents[2]
 JOBS = {
     "brief": ROOT / "jobs" / "brief" / "manifest.toml",
     "clean": ROOT / "jobs" / "clean" / "manifest.toml",
+    "capture": ROOT / "jobs" / "capture" / "manifest.toml",
+    "daily": ROOT / "jobs" / "daily" / "manifest.toml",
     "cockpit": ROOT / "cockpit" / "manifest.toml",
 }
 PROFILES = {
@@ -65,7 +67,13 @@ def test_every_manifest_parses_and_names_its_worker() -> None:
         assert manifest.kind == ("agent-profile" if name in PROFILES else JOBS_KIND[name])
 
 
-JOBS_KIND = {"brief": "python-job", "clean": "python-job", "cockpit": "app"}
+JOBS_KIND = {
+    "brief": "python-job",
+    "clean": "python-job",
+    "capture": "python-job",
+    "daily": "python-job",
+    "cockpit": "app",
+}
 
 
 @pytest.mark.blocking
@@ -107,6 +115,24 @@ def test_job_manifests_allow_their_own_work(planted) -> None:
     assert not check(planted, clean, "delete", "logs/ledger/2026-09.jsonl").allowed
     assert not check(planted, clean, "delete", "kgme/paths.py").allowed
     assert not check(planted, clean, "delete", "docs/x.md").allowed
+    capture = policy.read_manifest(JOBS["capture"])
+    assert check(planted, capture, "read", "memory/templates/reminder.md").allowed
+    assert check(planted, capture, "write", "memory/notes/pay-the-renewal.md").allowed
+    assert check(planted, capture, "write", "memory/inbox/friction-log.md").allowed
+    assert check(planted, capture, "write", "memory/daily/2026-10-16.md").allowed
+    assert not check(planted, capture, "write", "memory/inbox/other.md").allowed
+    assert not check(planted, capture, "write", "memory/agent/x.md").allowed
+    assert not check(planted, capture, "write", "memory/templates/reminder.md").allowed
+    assert not check(planted, capture, "read", "docs/handoff/x.md").allowed
+    assert not check(planted, capture, "tool", "git").allowed
+    daily = policy.read_manifest(JOBS["daily"])
+    assert check(planted, daily, "read", "docs/handoff/done/x.md").allowed
+    assert check(planted, daily, "read", "docs/audit/x.md").allowed
+    assert check(planted, daily, "write", "memory/daily/2026-10-16.md").allowed
+    assert check(planted, daily, "tool", "git").allowed
+    assert not check(planted, daily, "write", "memory/notes/x.md").allowed
+    assert not check(planted, daily, "write", "memory/inbox/friction-log.md").allowed
+    assert not check(planted, daily, "read", "docs/adr/x.md").allowed
     cockpit = policy.read_manifest(JOBS["cockpit"])
     assert check(planted, cockpit, "read", "logs/ledger/2026-09.jsonl").allowed
     assert not check(planted, cockpit, "write", "cockpit/x").allowed

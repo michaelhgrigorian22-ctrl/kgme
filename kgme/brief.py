@@ -1,11 +1,12 @@
 """`kgme brief` v1, the pure half: from validated inputs to the text of one day's brief.
 
-Purpose: Loop 0 (HANDOFF-0034), model-free. Given the notes read from the vault, select
-what the brief is about (open reminders, open and doing tasks, the day's daily note, the
-friction log), sort them deterministically (due, then priority, then id), and render the
-artefact: frontmatter per `docs/schema-v1.md` (`note`, `inferred`, `sources` naming every
-input) and the five sections `Due and overdue`, `Today`, `Open tasks`, `Friction since last
-brief`, `Inputs`. A missing daily note and an empty section are stated, never omitted.
+Purpose: Loop 0 (HANDOFF-0034), model-free. Given the notes read from the vault, select what
+the brief is about (open reminders, open and doing tasks, the day's daily note or, until it
+exists, the previous evening's drafted one, the friction log), sort them deterministically
+(due, then priority, then id), and render the artefact: frontmatter per `docs/schema-v1.md`
+(`note`, `inferred`, `sources` naming every input) and the five sections `Due and overdue`,
+`Today`, `Open tasks`, `Friction since last brief`, `Inputs`. A missing daily note and an
+empty section are stated, never omitted.
 Inputs: `Input` records (repo-relative path, id, text, sha256 of the file's bytes,
 frontmatter, body), the day, an `Identity` (id, created, modified) to keep across
 replacements, the previous brief's day, and the zone in which due instants are read
@@ -17,7 +18,7 @@ Side effects: none.
 import hashlib
 import re
 from dataclasses import dataclass
-from datetime import UTC, datetime, tzinfo
+from datetime import UTC, datetime, timedelta, tzinfo
 from datetime import date as calendar_date
 
 DAILY_DIR = "memory/daily"
@@ -87,6 +88,12 @@ def valid_date(text: str) -> bool:
         return False
 
 
+def day_before(date: str) -> str:
+    """The day before `date`: whose daily note, drafted that evening by `kgme daily`, the
+    morning brief reads when the day's own note does not exist yet (HANDOFF-0050 F6)."""
+    return (calendar_date.fromisoformat(date) - timedelta(days=1)).isoformat()
+
+
 def due_instant(due: object) -> datetime | None:
     """The instant a `due` value names, or None when there is none or it carries no offset."""
     if not isinstance(due, str):
@@ -110,7 +117,9 @@ def sort_key(item: Input) -> tuple[str, int, str]:
 def select(inputs: list[Input], date: str) -> Selection:
     """Items sorted; the day's daily note and the friction log by path; briefs never."""
     items = [i for i in inputs if not i.rel.startswith(BRIEF_DIR + "/") and is_item(i.data)]
-    daily = next((i for i in inputs if i.rel == f"{DAILY_DIR}/{date}.md"), None)
+    by_rel = {i.rel: i for i in inputs}
+    evening = by_rel.get(f"{DAILY_DIR}/{day_before(date)}.md")
+    daily = by_rel.get(f"{DAILY_DIR}/{date}.md") or evening
     friction = next((i for i in inputs if i.rel == FRICTION_PATH), None)
     return Selection(tuple(sorted(items, key=sort_key)), daily, friction)
 
@@ -184,7 +193,10 @@ def _due_section(items: tuple[Input, ...], date: str, zone: tzinfo) -> list[str]
 
 def _today_section(daily: Input | None, date: str) -> list[str]:
     if daily is None:
-        return [f"No daily note for {date} (expected {DAILY_DIR}/{date}.md)."]
+        return [
+            f"No daily note for {date} (expected {DAILY_DIR}/{date}.md), "
+            f"nor for {day_before(date)}."
+        ]
     lines = [f"From {daily.rel}:"]
     shown = 0
     for heading, content in sections(daily.body):

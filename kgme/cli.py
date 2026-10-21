@@ -7,13 +7,17 @@ every note under the configured roots against the schema and exits 1 on a blocki
 (HANDOFF-0029) runs one cycle of the review loop, or records a ruling or an override. `sync`
 (HANDOFF-0040) commits `logs/ledger/` by pathspec if it changed and pushes if ahead. `clean`
 (HANDOFF-0033) deletes disposable output by named target, a dry run unless `--yes`. `brief`
-(HANDOFF-0034) writes the day's brief from the vault, Loop 0, no model call.
+(HANDOFF-0034) writes the day's brief from the vault, Loop 0, no model call. `capture`
+(HANDOFF-0050) puts Michou's words in the vault, one new note or one appended line; `daily`
+drafts the day's note from the ledger, once.
 Inputs: argv.
 Outputs: exit code; one line per finding or event, a summary, or a review's escalation packet.
 Side effects: `ledger note`, `review`, `review rule`, and `review override` append to the real
 ledger; `review` also runs `make check` and `codex exec`, writes the scratch patch, a payload,
 and an audit file under `docs/audit/`; `sync` runs `git commit` on the ledger and `git push`,
-and appends its push events. `lint`, `ledger read`, and `review --dry-run` only read.
+and appends its push events. `capture` writes one new note under `memory/notes/` or appends
+one line, and `daily` creates at most one note under `memory/daily/`, each with its ledger
+events. `lint`, `ledger read`, and `review --dry-run` only read.
 """
 
 import argparse
@@ -36,6 +40,24 @@ def build_parser() -> argparse.ArgumentParser:
     brief_parser.add_argument("--date", help="the day to brief, YYYY-MM-DD; default today")
     brief_parser.add_argument(
         "--dry-run", action="store_true", help="print the brief; write nothing"
+    )
+    capture_parser = subcommands.add_parser(
+        "capture", help="put Michou's words in the vault: remind, task, friction, note, daily"
+    )
+    capture_parser.add_argument("kind", choices=("remind", "task", "friction", "note", "daily"))
+    capture_parser.add_argument("words", help="his words, verbatim, one line")
+    capture_parser.add_argument(
+        "--due", help="remind and task: 'friday 9am', 'tomorrow', '2026-10-20 14:00'"
+    )
+    capture_parser.add_argument(
+        "--dry-run", action="store_true", help="print what would be written; write nothing"
+    )
+    daily_parser = subcommands.add_parser(
+        "daily", help="draft the day's note from the ledger, once; nothing if it exists"
+    )
+    daily_parser.add_argument("--date", help="the day to draft, YYYY-MM-DD; default today")
+    daily_parser.add_argument(
+        "--dry-run", action="store_true", help="print the draft; write nothing"
     )
     clean_parser = subcommands.add_parser(
         "clean", help="delete disposable outputs by named target; a dry run unless --yes"
@@ -115,6 +137,10 @@ def main(argv: list[str] | None = None) -> int:
         return run_clean(args)
     if args.command == "brief":
         return run_brief(args)
+    if args.command == "capture":
+        return run_capture(args)
+    if args.command == "daily":
+        return run_daily(args)
     print(f"kgme {args.command}: not built ({NOT_BUILT[args.command]})", file=sys.stderr)
     return 2
 
@@ -216,6 +242,25 @@ def run_brief(args: argparse.Namespace) -> int:
 
     date = args.date or datetime.now().astimezone().date().isoformat()
     return brief_io.run_brief(date, args.dry_run, paths.root(), config.read_config())
+
+
+def run_capture(args: argparse.Namespace) -> int:
+    """`kgme capture KIND "WORDS" [--due WHEN]` (HANDOFF-0050), in `kgme.capture_io`."""
+    from kgme import capture_io, config, paths
+
+    return capture_io.run_capture(
+        args.kind, args.words, args.due, paths.root(), config.read_config(), None, args.dry_run
+    )
+
+
+def run_daily(args: argparse.Namespace) -> int:
+    """`kgme daily [--date D]` (HANDOFF-0050), in `kgme.daily_io`, on this checkout."""
+    from datetime import datetime
+
+    from kgme import config, daily_io, paths
+
+    date = args.date or datetime.now().astimezone().date().isoformat()
+    return daily_io.run_daily(date, paths.root(), config.read_config(), None, args.dry_run)
 
 
 def run_clean(args: argparse.Namespace) -> int:

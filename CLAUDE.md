@@ -38,6 +38,7 @@ Michou sets three things: the objective (an adopted handoff), the boundary (leve
 - **Stop when progress stops, not after a count:** a ruling executed twice with the same root cause returning, a diff you already tried, a failing-check count that has not fallen in three builds, or a budget reached. Then send one escalation packet. Strike counts are shown, never a reason to stop on their own.
 - **Build for addenda:** split work along the code's own seams, so a result that is slightly off is fixed by a small follow-up, not a redo.
 - **Learn:** read the `lessons.md` of the skill you work under, and keep it short.
+- **Capture on his word (HANDOFF-0050):** when Michou states a reminder, a task, a friction or a note in a session, run `kgme capture <kind> "<his words>"` with his words verbatim and show him what it printed; never paraphrase into the vault.
 
 No score and no ruling ever crosses the boundary. The non-negotiables are its hardest form.
 
