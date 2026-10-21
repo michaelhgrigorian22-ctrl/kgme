@@ -76,4 +76,6 @@ def test_tray_portrait_crops_match_canonical_svgs() -> None:
         svg = (DESIGN / "chibi" / f"{actor}.svg").read_text()
         portrait = re.search(r'\bdata-portrait="([^"]+)"', svg)
         assert portrait is not None, f"{actor}: canonical SVG declares no data-portrait"
-        assert f"{actor}: '{portrait.group(1)}'" in tray, f"{actor}: tray crop differs from data-portrait"
+        assert f"{actor}: '{portrait.group(1)}'" in tray, (
+            f"{actor}: tray crop differs from data-portrait"
+        )
