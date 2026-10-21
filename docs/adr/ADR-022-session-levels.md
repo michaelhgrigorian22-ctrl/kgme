@@ -47,6 +47,8 @@ Facts this rests on, checked in the Claude Code documentation on 2026-10-16 (set
    - **Quarantine.** A task that fails the gate's mechanical checks, stalls, or halts is quarantined: its process group killed, its branch renamed `quarantine/<run>/<task>`, its worktree moved under the quarantine root and made read-only, a `blocking` outcome written. Nothing from it merges. Michou alone releases or discards it.
    - Claude Code's `isolation: worktree` subagents are not the crew's engine (Michou, 2026-10-16): they tie the crew to one harness, put worktrees in that harness's folder, and leave merge checks inside a model's session. A builder may still use read-only subagents inside its own worktree.
 
+**Addendum, 2026-10-21 (Michou, with HANDOFF-0055).** Merge and approval are separate acts for the design track: its documents and prototypes, which KGME never executes, merge into `main` as soon as they are green, and Michou's approval of the design is a ledger `approval` event naming a commit (`kgme approve`). Code merged from a crew or a loop still lands on Michou's approval, as item 3 says.
+
 ## Alternatives considered
 - `CLAUDE_CONFIG_DIR` per level: rejected; it means a second sign-in and a split session history, and `--setting-sources` gives the same isolation from user settings.
 - Narrow `~/.claude/settings.json` first: not required for KGME once user settings are excluded per session; it stays a weekly-review item for Michou's other projects.

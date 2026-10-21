@@ -21,6 +21,8 @@ ADR-017 and the roadmap: design is taste, not code, can start any time, and must
 3. Phase 2 controls (`/btw` lane, model selector, approvals, dispatch) drawn greyed and labelled "Phase 2" so the boundary is visible, not implied.
 4. Michou's acceptance recorded as an `approval` event in the ledger (by `kgme ledger note --kind approval`, from 0026) naming the canvas file hash.
 
+**Amendment (2026-10-21, HANDOFF-0055).** The design lands on `main` continuously as it goes green; item 4's approval names the commit Michou approves, recorded with `kgme approve --what canvas --sha <commit>`, and that event closes this handoff.
+
 ## Outputs
 The canvas (published artifact or `docs/readers/cockpit-design.md` with images under `memory/attachments/cockpit/`), Michou's `approval` event.
 
