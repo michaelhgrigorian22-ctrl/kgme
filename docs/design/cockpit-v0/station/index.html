@@ -96,7 +96,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--cyan);outl
 /* the wall: what c drops to */
 #wall{position:fixed;inset:0;z-index:5;background:var(--ground);padding:var(--hudtop,130px) 36px var(--hudbottom,70px);overflow:auto;display:flex;flex-direction:column;gap:14px}
 #wall[hidden]{display:none}
-#wall .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:14px}
+#wall .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(400px,100%),1fr));gap:14px}
 #wall .room{background:var(--surface);border:1px solid var(--rule);padding:12px;display:flex;flex-direction:column;gap:6px;min-width:0}
 #wall .room h2{margin:0;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);font-weight:500;display:flex;justify-content:space-between;gap:10px}
 #wall .room h2 span{color:var(--dim);letter-spacing:.08em}

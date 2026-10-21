@@ -58,15 +58,23 @@ Stakes 1–5 (how visible, how costly to change after approval) × edge 0–1 (t
 | CW13 board 9's header was over-full before the tray | 2 × 0.3 = 0.6 | decided: accept; approval screen |
 | CW16 / Codex taste 2: bubbles cover a room's chip | 2 × 0.3 = 0.6 | decided and built (CDH-0017): bubbles beside the crew |
 | CW19 a halt's long summary wraps the HUD to three rows | 2 × 0.3 = 0.6 | decided and built (CDH-0017): the HUD shows `HALT · <key>`, the wall the sentence |
-| Codex taste 3: the calm grid at 2560 | 2 × 0.3 = 0.6 | decided and built (CDH-0017): 400 px minimum columns |
+| Codex taste 3: the calm grid at 2560 | 2 × 0.3 = 0.6 | decided and built (CDH-0017): 400 px preferred minimum columns; CDH-0019 cycle 1 caps the minimum to available width (2 × 0.1 = 0.2) |
 | The mood micro-label copy | 1 × 0.5 = 0.5 | decided: as drawn; approval screen |
 | CW20 the empty portrait column in calm | 1 × 0.2 = 0.2 | decided: keep, as the tray's F6 |
-| CW17 host boards' focused rows 4.43:1 | a check | fixed (CDH-0017) |
+| CW17 host boards' focused rows 4.43:1 | a check | CDH-0017 repaired time and job cells; CDH-0018 found the missed durations. CDH-0019 cycle 1 repairs Main and Wall durations to 5.1371:1 in the local CSS fixture; native review pending |
 | CW18 board 6's muted text under its filter 2.9:1 | a check | fixed (CDH-0017) |
 | CW22 board 3's filter buttons at 20 px | a check | fixed (CDH-0017) |
 | CW14 the artifact host paints after `load`; CW15 the loop guard; CW21 explicit row names | facts | recorded, nothing to decide |
 
 Asked and answered: (none yet under ADR-023). Taken-recommendation tally: —.
+
+## Status 2026-10-21 15:53
+
+CDH-0019 cycle 1 repairs AUDIT-CDH-0018 F1 in Main and Wall by letting duration cells inherit the focused muted token. F2's advisory calm-grid cap is built at 2 × 0.1 = 0.2. Local headless Chrome 155 measures 5.1371:1 for both repaired cells and no grid-induced horizontal overflow in the isolated fixture at 320, 360, 400, 720, 721, 1440 and 2560 px; the four wider layouts retain their previous tracks. The station functions pass the Node checks. The full station is **unverified standalone** because the local three.js copy is absent; native pixels, clicks and focus await Cowork.
+
+The reviewed source SHA is `2e14d66`; this cycle's source base is `479816c` (CDH-0018's review commit). The handoff author corrected its five historical or patterned references in `ebcb847`, including the already-recorded adoption; Codex has not edited its body. This cycle delivers [the implementation report](../../audit/cockpit-design/cdh-0019-cycle-1.md), the three design files and the lessons update in one commit. The final make check passes 360 tests (10 deselected), with 0 blocking lint findings; the report identifies every delivered file by SHA-256. CDH-0019 remains open; no queue row remains ready, and Cowork reviews this Codex build. Michou's three existing scored questions remain unanswered.
+
+The merge is `67bfebb`, with `make check` passing 360 tests. The gitignored, labelled `logs/scratch/review.patch` placeholder and runtime `logs/trace/` directory satisfy the current coherence check; the runtime-output dependency defect is routed to the substantive session. Repoint `kgq` to `control/review/codex-builder-prompt.md`.
 
 ## Status 2026-10-16 14:50
 
@@ -122,7 +130,7 @@ Michou starts Codex with one fixed prompt, every time, from `~/Projects/KGME/des
 | 4 | CDH-0013 | The station's second cycle and the tray's T1 (CDH-0012, `dd90ca6`, AUDIT-CDH-0012); captures under `logs/scratch/design-review/cdh-0012/` | done 2026-10-15 | [Station cycle review](2026-10-14-station-cycle-review.md) |
 | 5 | CDH-0016 | The station's third cycle and the rubric checks (CDH-0015 + CDH-0014, `d2f1d29`, AUDIT-CDH-0015 and AUDIT-CDH-0014); captures under `logs/scratch/design-review/cdh-0014/` and `cdh-0015/` | done 2026-10-21 | [Rubric and cycle 3 review](2026-10-15-rubric-and-cycle-3-review.md) |
 | 6 | CDH-0018 | The open list's cycle (CDH-0017, `2e14d66`, AUDIT-CDH-0017); captures under `logs/scratch/design-review/cdh-0017/` | done 2026-10-21 | [Open list review](2026-10-16-open-list-review.md) |
-| 7 | CDH-0019 | The builder's mandate: merge `main` at `5ff202c` into `design` first (the prompt's step 1), then rows 5 and 6, then the fix loop; stays open across cycles | ready 2026-10-16 14:50 | [Codex builder](2026-10-16-codex-builder.md) |
+| 7 | CDH-0019 | The builder's mandate: merge `main` at `5ff202c` into `design` first (the prompt's step 1), then rows 5 and 6, then the fix loop; stays open across cycles | open 2026-10-21 | [Codex builder](2026-10-16-codex-builder.md) |
 
 ## Start here
 
