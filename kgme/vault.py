@@ -7,17 +7,21 @@ Outputs: `(repo-relative path, text)` pairs, roots in the given order, sorted wi
 Side effects: reads files. Writes nothing. A root that is not a directory raises
 `FileNotFoundError`: a mistyped root must not lint nothing and report success.
 `read_coherence_inputs` also reads what `kgme.coherence` checks: the handoffs, the live
-documents, every path in the working tree, and, kept apart, the file list of the `design`
-branch through one `git ls-tree` (HANDOFF-0049).
+documents, every path in the index (tracked and staged, with the folders above them, through
+one `git ls-files`), kept apart the file list of the `design` branch (the local branch, else
+`origin/design`, through one `git ls-tree`; HANDOFF-0049), and the `kgme.toml`
+`[clean.targets]` entries, whose paths are regenerated and so absent by design. Every input
+is a function of the commit, so `main`, the design worktree, a fresh clone, and a crew
+workspace agree (HANDOFF-0054): nothing this machine's runs created counts.
 """
 
-import os
 import subprocess
 from pathlib import Path
 
+from kgme import config
 from kgme.frontmatter import parse_frontmatter
 
-SKIP_WALK = (".git", ".venv", ".pytest_cache", ".ruff_cache", "__pycache__", "node_modules")
+DESIGN_REFS = ("design", "origin/design")
 LIVE_SINGLE = ("CLAUDE.md", "README.md", "docs/README.md", "docs/STATUS.md")
 LIVE_FOLDERS = ("docs/readers", "docs/plans")
 
@@ -58,35 +62,51 @@ def read_notes(
     return notes
 
 
-def read_existing_paths(base: Path) -> frozenset[str]:
-    """Every repository-relative file and directory in this checkout's working tree."""
+def with_folders(names: list[str]) -> frozenset[str]:
+    """Pure: the names, and every folder above each."""
     found: set[str] = set()
-    for dirpath, dirnames, filenames in os.walk(base):
-        dirnames[:] = [d for d in dirnames if d not in SKIP_WALK]
-        here = Path(dirpath).relative_to(base).as_posix()
-        if here != ".":
-            found.add(here)
-        for name in filenames:
-            found.add(name if here == "." else f"{here}/{name}")
+    for name in names:
+        parts = name.split("/")
+        found.update("/".join(parts[: i + 1]) for i in range(len(parts)))
     return frozenset(found)
+
+
+def read_existing_paths(base: Path) -> frozenset[str]:
+    """Every repository-relative path in the index, tracked or staged, with the folders above
+    them: the commit's paths, never the working tree's. A file only this machine has, untracked
+    or ignored, and a folder that holds no tracked file, are absent (HANDOFF-0054).
+    `CalledProcessError` when `base` is not a git checkout."""
+    listed = subprocess.run(
+        ["git", "ls-files", "-z", "--cached"], cwd=base, capture_output=True, check=True
+    )
+    names = listed.stdout.decode("utf-8", "surrogateescape").split("\0")
+    return with_folders([name for name in names if name])
 
 
 def read_design_paths(base: Path) -> frozenset[str]:
     """Every file and directory on the `design` branch, kept apart from this checkout's, so a
     path the design track holds resolves only where a document points into its folders
-    (review cycle 1 F3); empty when there is no such branch."""
-    listed = subprocess.run(
-        ["git", "ls-tree", "-r", "--name-only", "design"],
-        cwd=base,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    found: set[str] = set()
-    for name in listed.stdout.splitlines() if listed.returncode == 0 else []:
-        parts = name.split("/")
-        found.update("/".join(parts[: i + 1]) for i in range(len(parts)))
-    return frozenset(found)
+    (review cycle 1 F3 of HANDOFF-0049). The local branch when there is one, which may be
+    ahead, else `origin/design`, which a fresh clone has (HANDOFF-0054); empty when neither
+    exists."""
+    for ref in DESIGN_REFS:
+        listed = subprocess.run(
+            ["git", "ls-tree", "-r", "--name-only", ref],
+            cwd=base,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if listed.returncode == 0:
+            return with_folders(listed.stdout.splitlines())
+    return frozenset()
+
+
+def read_regenerable(base: Path) -> tuple[str, ...]:
+    """The `kgme.toml` `[clean.targets]` entries of `base`, each a root or a glob: the places
+    that are regenerated and may be emptied, so absent by design. Read, never copied."""
+    targets = config.read_config(base / "kgme.toml").get("clean", {}).get("targets", {})
+    return tuple(entry for entries in targets.values() for entry in entries)
 
 
 def read_handoffs(base: Path) -> list[tuple[str, dict, str]]:
@@ -106,10 +126,18 @@ def read_handoffs(base: Path) -> list[tuple[str, dict, str]]:
 
 def read_coherence_inputs(
     base: Path,
-) -> tuple[list[tuple[str, dict, str]], list[tuple[str, str]], frozenset[str], str, frozenset[str]]:
+) -> tuple[
+    list[tuple[str, dict, str]],
+    list[tuple[str, str]],
+    frozenset[str],
+    str,
+    frozenset[str],
+    tuple[str, ...],
+]:
     """The handoffs, the live documents (`CLAUDE.md`, the two READMEs, `STATUS.md`, the
-    readers, the plans, the open handoffs), this checkout's paths, `CLAUDE.md`'s text, and
-    the `design` branch's paths, in the order `kgme.coherence.check_tree` takes them."""
+    readers, the plans, the open handoffs), the index's paths, `CLAUDE.md`'s text, the
+    `design` branch's paths, and the clean targets, in the order
+    `kgme.coherence.check_tree` takes them."""
     handoffs = read_handoffs(base)
     rels = [rel for rel in LIVE_SINGLE if (base / rel).is_file()]
     for folder in LIVE_FOLDERS:
@@ -117,4 +145,5 @@ def read_coherence_inputs(
     rels += [rel for rel, data, _ in handoffs if data.get("status") == "open"]
     documents = [(rel, (base / rel).read_text(encoding="utf-8")) for rel in rels]
     claude = (base / "CLAUDE.md").read_text(encoding="utf-8")
-    return handoffs, documents, read_existing_paths(base), claude, read_design_paths(base)
+    existing, design = read_existing_paths(base), read_design_paths(base)
+    return handoffs, documents, existing, claude, design, read_regenerable(base)

@@ -8,7 +8,10 @@ marked later. On the real tree, nothing outside the open handoffs is incoherent,
 finished handoff's report exists, and `kgme review` still finds HANDOFF-0034 under `done/`.
 Inputs: literal fixtures; the repository's own tree for the last tests.
 Outputs: pytest assertions.
-Side effects: reads the repository's files and runs one `git ls-tree`; writes nothing.
+Side effects: reads the repository's files and runs `git ls-files` and `git ls-tree` on it;
+the HANDOFF-0054 tests also create repositories under `tmp_path`, commit fixtures there,
+clone this repository there with no hard links, stage into the clone what this checkout has
+staged, and fetch its design ref. Nothing in this repository is written.
 
 The Tier 1 path is assembled at run time: the live guard scans the text of a test file named
 on a command line, and refuses the run for the literal (lesson of 2026-09-15).
@@ -214,3 +217,126 @@ def test_names_outside_the_declared_roots_are_not_this_repositorys() -> None:
     )
     assert path_findings("README.md", external, {"docs", "kgme"}) == []
     assert path_findings("docs/readers/obsidian.md", "`templates/daily`", {"docs"}) == []
+
+
+# HANDOFF-0054: the check resolves against the commit, not the machine
+
+
+def run_git(repo: Path, *argv: str) -> None:
+    """Effect: one git command in `repo`, quiet, with a fixed identity."""
+    import subprocess
+
+    subprocess.run(
+        ["git", "-c", "user.name=t", "-c", "user.email=t@localhost", *argv],
+        cwd=repo, check=True, capture_output=True,
+    )  # fmt: skip
+
+
+def read_git(repo: Path, *argv: str) -> bytes:
+    """Effect: one git command's output in `repo`."""
+    import subprocess
+
+    return subprocess.run(["git", *argv], cwd=repo, check=True, capture_output=True).stdout
+
+
+def write_staged_into(clone: Path) -> None:
+    """Effect: what this checkout has staged, blob by blob from its index, staged in `clone`,
+    so the clone holds what the next commit will: nothing outside git enters."""
+    added = read_git(
+        ROOT, "diff", "--cached", "--no-renames", "--name-only", "-z", "--diff-filter=ACM"
+    )
+    gone = read_git(
+        ROOT, "diff", "--cached", "--no-renames", "--name-only", "-z", "--diff-filter=D"
+    )
+    for name in filter(None, added.decode().split("\0")):
+        target = clone / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(read_git(ROOT, "show", f":{name}"))
+        run_git(clone, "add", "--", name)
+    for name in filter(None, gone.decode().split("\0")):
+        run_git(clone, "rm", "-q", "--", name)
+
+
+@pytest.mark.blocking
+def test_the_whole_tree_is_coherent_in_a_fresh_clone(tmp_path: Path) -> None:
+    """The red command of HANDOFF-0054, in-process: the committed tree and the staged change,
+    cloned with no hard links, hold none of the paths this machine's runs created."""
+    clone = tmp_path / "clone"
+    run_git(tmp_path, "clone", "-q", "--no-hardlinks", str(ROOT), str(clone))
+    write_staged_into(clone)
+    for ref in vault.DESIGN_REFS:  # a clone of a clone has no `origin/design` of its own
+        if read_git(ROOT, "branch", "-a", "--list", ref, f"remotes/{ref}").strip():
+            run_git(clone, "fetch", "-q", str(ROOT), f"+{ref}:refs/remotes/origin/design")
+            break
+    found = coherence.check_tree(*vault.read_coherence_inputs(clone))
+    assert [f.line() for f in found] == []
+
+
+@pytest.mark.blocking
+def test_a_path_under_a_clean_target_resolves_with_its_root_absent() -> None:
+    text = (
+        "Read `logs/scratch/review.patch`, `logs/trace`, `kgme/__pycache__/x.pyc`, "
+        "and `logs/gone.md`."
+    )
+    found = coherence.check_paths(
+        [("docs/readers/x.md", text)],
+        frozenset({"docs", "kgme", "logs"}),
+        frozenset(),
+        declared=frozenset({"docs", "kgme", "logs"}),
+        regenerable=("logs/scratch", "logs/trace", "**/__pycache__"),
+    )
+    assert [f.message for f in found] == ["`logs/gone.md` does not resolve"]
+
+
+@pytest.mark.blocking
+def test_existing_paths_are_the_index_not_the_working_tree(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    (repo / "docs").mkdir(parents=True)
+    run_git(repo, "init", "-q", "-b", "main")
+    (repo / "docs" / "tracked.md").write_text("x\n")
+    run_git(repo, "add", "docs/tracked.md")
+    run_git(repo, "commit", "-q", "-m", "one")
+    (repo / "docs" / "staged.md").write_text("x\n")
+    run_git(repo, "add", "docs/staged.md")
+    (repo / "docs" / "untracked.md").write_text("x\n")
+    (repo / "attachments").mkdir()
+    (repo / "attachments" / ".DS_Store").write_text("x")
+    existing = vault.read_existing_paths(repo)
+    assert {"docs", "docs/tracked.md", "docs/staged.md"} <= existing
+    assert "docs/untracked.md" not in existing, "a file only this machine has does not resolve"
+    assert "attachments" not in existing, "a folder that holds no tracked file does not resolve"
+
+
+@pytest.mark.blocking
+def test_the_design_paths_fall_back_to_the_remote_branch(tmp_path: Path) -> None:
+    origin = tmp_path / "origin"
+    origin.mkdir()
+    run_git(origin, "init", "-q", "-b", "main")
+    (origin / "a.md").write_text("x\n")
+    run_git(origin, "add", "a.md")
+    run_git(origin, "commit", "-q", "-m", "main")
+    run_git(origin, "checkout", "-q", "-b", "design")
+    (origin / "docs" / "design").mkdir(parents=True)
+    (origin / "docs" / "design" / "only-here.md").write_text("x\n")
+    run_git(origin, "add", "docs")
+    run_git(origin, "commit", "-q", "-m", "design")
+    run_git(origin, "checkout", "-q", "main")
+    clone = tmp_path / "clone"
+    run_git(tmp_path, "clone", "-q", str(origin), str(clone))
+    assert "docs/design/only-here.md" in vault.read_design_paths(clone)
+
+
+# Review cycle 1 of HANDOFF-0054 (AUDIT-0070)
+
+
+@pytest.mark.blocking
+def test_c1_f1_a_document_relative_path_under_a_clean_target_resolves() -> None:
+    text = "See `generated/result.md` and `handwritten/note.md`."
+    found = coherence.check_paths(
+        [("docs/README.md", text)],
+        frozenset({"docs", "docs/generated", "docs/handwritten"}),
+        frozenset(),
+        declared=frozenset({"docs", "docs/generated", "docs/handwritten"}),
+        regenerable=("docs/generated",),
+    )
+    assert [f.message for f in found] == ["`handwritten/note.md` does not resolve"]

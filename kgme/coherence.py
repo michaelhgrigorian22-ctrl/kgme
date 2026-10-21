@@ -4,9 +4,12 @@ Purpose: four checks `kgme lint` runs over the whole repository, beside the sche
 A handoff's folder matches its `status` (`open` at the top of `docs/handoff/`, `done` under
 `done/`, `proposed` under `proposed/`, `abandoned` and `superseded` under `archive/`); a
 finished handoff's `report` exists; every backticked repository path in the live documents
-resolves in this checkout (a path inside the design track's own folders may resolve on the
-`design` branch instead), except the `Outputs` of open and proposed handoffs and the paths
-absent by design; and each top-level folder in `CLAUDE.md`'s map exists or is marked later.
+resolves in the commit, the index's paths and the folders above them (a path inside the
+design track's own folders may resolve on the `design` branch instead), except the `Outputs`
+of open and proposed handoffs, the paths at or under a `kgme.toml` `[clean.targets]` entry
+(regenerated, so absent by design), and the other paths absent by design; and each top-level
+folder in `CLAUDE.md`'s map exists or is marked later. What resolves is a function of the
+commit, never of what this machine's runs created (HANDOFF-0054).
 A token is recognised as this repository's path by declared root, never by existence (the
 arbiter's ruling on review cycle 2 F4): its first segment is a top-level folder the map in
 `CLAUDE.md` declares (marked later or not), the hidden `.claude`, or the retired `tools`;
@@ -15,14 +18,15 @@ root file. It is then resolved from the document's folder and from the root, and
 exemptions apply last (F3, F4). Findings are `advisory` until `kgme.toml` `[coherence]
 blocking_from`, then `blocking` (F5; schema v1.5).
 Inputs: the handoffs as `(repo-relative path, frontmatter, body)`, the live documents as
-`(repo-relative path, text)`, the paths that exist in this checkout, the text of
-`CLAUDE.md`, the paths on the `design` branch, the class and the day.
+`(repo-relative path, text)`, the index's paths, the text of `CLAUDE.md`, the paths on the
+`design` branch, the clean targets, the class and the day.
 Outputs: `Finding` records from `kgme.lint`.
 Side effects: none. Reading the tree is `kgme.vault.read_coherence_inputs`.
 """
 
 import datetime
 import re
+from pathlib import PurePosixPath
 
 from kgme.lint import Finding
 
@@ -155,16 +159,21 @@ def recognised(path: str, document: str, declared: frozenset[str]) -> bool:
     return first in top or (bool(folder) and f"{folder}/{first}" in declared)
 
 
+def candidates(path: str, document: str) -> list[str]:
+    """Pure: `path` from the root, and from the document's folder when it has one."""
+    folder = document.rsplit("/", 1)[0] if "/" in document else ""
+    return [path, f"{folder}/{path}"] if folder else [path]
+
+
 def resolves(path: str, document: str, existing: frozenset[str], design: frozenset[str]) -> bool:
     """`path` exists from the root or from the document's folder in this checkout, or, inside
     the design track's own folders only, on the `design` branch (F3)."""
-    folder = document.rsplit("/", 1)[0] if "/" in document else ""
-    candidates = [path, f"{folder}/{path}"] if folder else [path]
-    if any(candidate in existing for candidate in candidates):
+    candidates_ = candidates(path, document)
+    if any(candidate in existing for candidate in candidates_):
         return True
     return any(
         candidate in design and any(in_area(candidate, area) for area in DESIGN_AREAS)
-        for candidate in candidates
+        for candidate in candidates_
     )
 
 
@@ -193,6 +202,20 @@ def excused_paths(handoffs: list[tuple[str, dict, str]]) -> frozenset[str]:
     return frozenset(promised)
 
 
+def is_regenerable(path: str, entries: tuple[str, ...]) -> bool:
+    """Pure: `path` is at or under a clean target: a root, or a folder some leading part of
+    the path matches as a glob (`**/__pycache__`)."""
+    parts = path.split("/")
+    for entry in entries:
+        if "*" in entry:
+            prefixes = ("/".join(parts[: i + 1]) for i in range(len(parts)))
+            if any(PurePosixPath(prefix).full_match(entry) for prefix in prefixes):
+                return True
+        elif path == entry or path.startswith(entry + "/"):
+            return True
+    return False
+
+
 def check_paths(
     documents: list[tuple[str, str]],
     existing: frozenset[str],
@@ -201,12 +224,14 @@ def check_paths(
     cls: str = CLASS,
     later: frozenset[str] = frozenset(),
     declared: frozenset[str] = frozenset(),
+    regenerable: tuple[str, ...] = (),
 ) -> list[Finding]:
     """Every backticked path that is this repository's resolves. A token is recognised by
     declared root (`recognised`), never by what exists now, so a declared root that is gone
     is still checked and another project's or a remote's name is not; it is then resolved;
     the exemptions apply last: the `Outputs` open and proposed handoffs promise, roots the
-    map marks later, and the paths absent by design."""
+    map marks later, the paths at or under a clean target (regenerated, so absent by design,
+    HANDOFF-0054), and the other paths absent by design."""
     found: list[Finding] = []
     for rel, text in documents:
         seen: set[str] = set()
@@ -217,6 +242,10 @@ def check_paths(
             if resolves(path, rel, existing, design):
                 continue
             if path in excused or path.split("/", 1)[0] in later:
+                continue
+            # either reading of the token, from the root or the document's folder (review
+            # cycle 1 F1 of HANDOFF-0054)
+            if any(is_regenerable(c, regenerable) for c in candidates(path, rel)):
                 continue
             if any(path == a or path.startswith(a + "/") for a in ABSENT_BY_DESIGN):
                 continue
@@ -245,6 +274,7 @@ def check_tree(
     existing: frozenset[str],
     claude_text: str,
     design: frozenset[str] = frozenset(),
+    regenerable: tuple[str, ...] = (),
     cls: str = CLASS,
 ) -> list[Finding]:
     """All four checks, in the order the module docstring states, each finding of `cls`."""
@@ -258,6 +288,7 @@ def check_tree(
             cls,
             later_roots(claude_text),
             declared_folders(claude_text),
+            regenerable,
         ),
         *check_map(claude_text, existing, cls),
     ]
