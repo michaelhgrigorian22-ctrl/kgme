@@ -74,7 +74,7 @@ blocklist = [
 # Human-authored paths (ADR-004): file-writing tools (Write, Edit, MultiEdit, NotebookEdit) may not
 # name them; an approved diff is applied through Bash instead. A directory covers its subtree, a
 # glob covers one level. Guard rule 4 (HANDOFF-0032 follow-up, Michou 2026-09-23).
-human_paths = ["CLAUDE.md", "docs/*.md", "docs/adr", "docs/plans", "docs/readers", "docs/archive", "docs/handoff/*.md", "memory/notes", "memory/inbox", "memory/daily"]
+human_paths = ["CLAUDE.md", "docs/*.md", "docs/adr", "docs/plans", "docs/readers", "docs/archive", "docs/handoff/*.md", "memory/notes", "memory/inbox", "memory/daily", "control", ".claude", "kgme.toml"]
 # Hook pairs for these tools go to logs/trace/; every other tool goes to logs/ledger/ (ADR-019 §2).
 read_only_tools = ["Read", "Grep", "Glob", "LS", "TodoRead"]
 # File tools (Read, Edit, Write, Glob, Grep, ...) may name paths outside the repository only under

@@ -31,6 +31,15 @@ def run_id() -> str:
 
 
 @pytest.fixture(scope="session")
+def fingerprints() -> canary.Fingerprints:
+    """One sha256 per entry of `.claude/settings.json`, carried in each new cell's intent
+    payload (HANDOFF-0045 §3), under `logs/scratch/payloads/test/` as ADR-019 §1 requires."""
+    return canary.Fingerprints(
+        canary.read_fingerprints(), paths.payloads_dir(config.read_config()) / "test"
+    )
+
+
+@pytest.fixture(scope="session")
 def settings_sha() -> str:
     """The digest of `~/.claude/settings.json` this run saw, read once and written into every
     intent (Michou, 2026-09-23): drift outside the repository shows in the ledger."""

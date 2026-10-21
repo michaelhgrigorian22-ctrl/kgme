@@ -5,7 +5,9 @@ created: 2026-10-14T00:25:00-07:00
 from: michou
 to: claude-code
 tier: 2
-status: open
+status: done
+completed: 2026-10-21T01:55:00-07:00
+report: docs/audit/2026-10-21-guard-destructive-git.md
 depends_on: [HANDOFF-0032]
 plan_ref: PLAN-PHASE-1 step 7c
 ---

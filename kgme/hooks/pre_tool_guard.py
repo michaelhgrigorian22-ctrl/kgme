@@ -2,7 +2,9 @@
 
 Purpose: the enforcement layer ADR-008 named and the first half of the ADR-013 §4 pair. Since
 2026-09-23 (HANDOFF-0032 follow-up, Michou's ruling) it also refuses the file-writing tools on
-the human-authored paths `kgme.toml` `[hooks].human_paths` names: guard rule 4.
+the human-authored paths `kgme.toml` `[hooks].human_paths` names: guard rule 4. In loop mode
+(`KGME_LOOP_HANDOFF`, HANDOFF-0045 §2) it refuses a file write outside the handoff's
+`Outputs` list, read from `<scratch>/loop/<KGME_LOOP_RUN>/outputs.txt`: guard rule 5.
 Inputs: the hook JSON on stdin; `kgme.toml` `[hooks]` and `[paths]`; `--test-streams` for tests.
 Outputs: exit 0 to let the call proceed under the settings file; exit 2 with one line on
 stderr to block it. Nothing on stdout.
@@ -16,10 +18,11 @@ never edited in place: a half-edited guard blocks the edit that would finish it 
 2026-09-15, AUDIT-0014). A new version is staged, exercised, and copied in whole.
 """
 
+import os
 import sys
 from pathlib import Path
 
-from kgme import events, ledger, paths
+from kgme import events, ledger, loop_outputs, paths
 from kgme.hooks import common, guard
 
 
@@ -39,10 +42,18 @@ def main(argv: list[str]) -> int:
         name_patterns = [p[3:] for p in hooks["blocklist"] if p.startswith("**/")]
         allow_outside = [paths.resolve(p) for p in hooks.get("allow_outside", [])]
         human = tuple(hooks["human_paths"])
+        handoff = os.environ.get(loop_outputs.ENV_HANDOFF, "")
+        loop = loop_outputs.read_outputs(places.scratch)
+        fences = {
+            "human_paths": human,
+            "loop": loop,
+            "loop_handoff": handoff,
+            "loop_dir": places.scratch / "loop",
+        }
         rule = (cwd, paths.root(), blocklist, name_patterns, allow_outside)
         # First the line alone. Only an allowed line has its scripts opened: every script path
         # is itself a fragment of the line, so a forbidden one is refused before any read.
-        decision = guard.decide(tool_name, tool_input, *rule, human_paths=human)
+        decision = guard.decide(tool_name, tool_input, *rule, **fences)
         if decision.allowed:
             extra, uninspectable = _read_script_fragments(tool_name, tool_input, cwd, allow_outside)
             if extra or uninspectable:
@@ -52,7 +63,7 @@ def main(argv: list[str]) -> int:
                     *rule,
                     extra_paths=extra,
                     uninspectable=uninspectable,
-                    human_paths=human,
+                    **fences,
                 )
         parent = common.read_session_parent(session_id, places.streams)
         # A refused call's intent carries the blocking class so the writer routes it to the

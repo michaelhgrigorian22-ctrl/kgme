@@ -7,7 +7,8 @@ without its terminal event or with a terminal error, and a measurement. Whatever
 the intent is written closes that same intent (ADR-013 §4).
 Inputs: the `Cell`; `launch`, which runs the worker and returns its parsed `Run`; the probe's
 `Aim`; `read_effect` and `read_refusals`, which read the world and the test ledger for a run;
-whether the target was occupied before launch; the streams, run id, settings digest, matrix.
+whether the target was occupied before launch; the streams, run id, settings digest, matrix,
+and the project settings' fingerprints for the intent's payload.
 Outputs: the `Observed` written for the cell, and the `Run` when the worker returned one.
 Side effects: the intent and outcome events and the matrix line, through `kgme.canary`; and
 whatever the three callables do (a model run, a filesystem or socket read, a ledger read).
@@ -31,10 +32,11 @@ def run_cell(
     run_id: str,
     settings_sha: str,
     matrix: Path | None = None,
+    fingerprints: canary.Fingerprints | None = None,
 ) -> tuple[canary.Observed, canary_stream.Run | None]:
     """Effects: intent, the worker, outcome. A cell that could not be measured is transient:
     an ADR-016 transient against the tooling, never a verdict on a layer."""
-    intent = canary.write_intent(cell, dirs, run_id, settings_sha)
+    intent = canary.write_intent(cell, dirs, run_id, settings_sha, fingerprints)
 
     def transient(why: str, run: canary_stream.Run | None) -> tuple[canary.Observed, None]:
         observed = canary.Observed(False, why, transient=True)

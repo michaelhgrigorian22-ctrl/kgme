@@ -78,7 +78,7 @@ JOBS_KIND = {
 
 @pytest.mark.blocking
 def test_job_manifests_refuse_every_probe(
-    planted, test_dirs, run_id, settings_sha, fast_matrix
+    planted, test_dirs, run_id, settings_sha, fast_matrix, fingerprints
 ) -> None:
     for name, path in JOBS.items():
         manifest = policy.read_manifest(path)
@@ -92,6 +92,7 @@ def test_job_manifests_refuse_every_probe(
                 run_id,
                 settings_sha,
                 fast_matrix,
+                fingerprints,
             )
             assert not verdict.allowed, (name, probe, verdict)
             assert verdict.layer == "manifest"

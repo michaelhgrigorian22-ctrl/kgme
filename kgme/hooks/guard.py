@@ -26,6 +26,8 @@ import re
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 
+from kgme import loop_outputs
+
 PATH_KEYS = ("file_path", "path", "notebook_path", "directory")
 FILE_TOOLS = ("Read", "Edit", "Write", "NotebookEdit", "MultiEdit", "Glob", "Grep", "LS")
 WRITE_TOOLS = ("Write", "Edit", "MultiEdit", "NotebookEdit")
@@ -175,6 +177,9 @@ def decide(
     extra_paths: tuple[Path, ...] = (),
     uninspectable: tuple[Path, ...] = (),
     human_paths: tuple[str, ...] = (),
+    loop: tuple[str, ...] | str | None = None,
+    loop_handoff: str = "",
+    loop_dir: Path | None = None,
 ) -> Decision:
     """The rule (HANDOFF-0028, ADR-013 §2):
 
@@ -186,11 +191,44 @@ def decide(
     4. A file-writing tool (`Write`, `Edit`, `MultiEdit`, `NotebookEdit`) naming a
        human-authored path (`human_paths`) is refused: the diff is shown, approved, and applied
        through Bash (ADR-004). HANDOFF-0032 follow-up, Michou's ruling of 2026-09-23.
+    5. In loop mode (`loop` is not None: `KGME_LOOP_HANDOFF` is set), a file-writing tool
+       naming a path outside the handoff's `Outputs`, `tests/`, and `logs/scratch/` is
+       refused, and every write is refused when `loop` is the reason there is no list
+       (HANDOFF-0045 §2). A write under `loop_dir`, where the loop keeps the list, is
+       refused even though `logs/scratch/` is otherwise allowed: the builder never edits its
+       own fence (review cycle 1 F2). It is checked before rule 4, so its refusal names the
+       loop; it never allows what another rule refuses. Bash, and every program a Bash line
+       starts, is fenced in loop mode by the `loose` level's OS sandbox, whose
+       `sandbox.filesystem.allowWrite` is the same list (ADR-022, which gives the sandbox
+       Bash and the file tools to the hooks; HANDOFF-0047, which the loop, HANDOFF-0043,
+       depends on), not by this rule: a pre-tool hook cannot see what a program writes (the
+       arbitration of review cycle 1 F1).
     """
     paths = candidate_paths(tool_name, tool_input, cwd) + tuple(extra_paths)
     for path in paths:
         if is_blocklisted(path, blocklist, name_patterns):
             return Decision(False, paths, f"refused: {tool_name} names a blocklisted path {path}")
+    if loop is not None and tool_name in WRITE_TOOLS:
+        if isinstance(loop, str):
+            return Decision(False, paths, f"refused: loop mode: {loop}; every write is refused")
+        for path in paths:
+            if loop_dir is not None and _under(path, loop_dir):
+                return Decision(
+                    False,
+                    paths,
+                    f"refused: {tool_name} names {path}, the loop's own Outputs list "
+                    "(loop mode, HANDOFF-0045 §2)",
+                )
+            inside = _under(path, repo_root) and loop_outputs.is_inside(
+                PurePosixPath(path.relative_to(repo_root).as_posix()), loop
+            )
+            if not inside:
+                return Decision(
+                    False,
+                    paths,
+                    f"refused: {tool_name} names {path}, outside {loop_handoff}'s Outputs "
+                    "(loop mode, HANDOFF-0045 §2)",
+                )
     if tool_name in WRITE_TOOLS:
         for path in paths:
             if is_human_path(path, repo_root, human_paths):

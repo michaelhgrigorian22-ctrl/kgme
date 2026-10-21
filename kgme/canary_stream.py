@@ -39,7 +39,7 @@ SETTINGS_WORDS = ("has been denied", "requires approval", "haven't granted", "pe
 SANDBOX_WORDS = ("operation not permitted", "read-only file system", "sandbox", "permission denied")
 CLAIM_WORDS = ("reject", "not permitted", "not allowed")
 
-OPERATIONS = ("read", "delete", "write", "network")
+OPERATIONS = ("read", "delete", "write", "network", "command")
 SHELL_TOOLS = ("Bash", "shell")
 SHELLS = ("sh", "bash", "zsh", "dash", "ksh")
 PATH_FIELDS = ("file_path", "notebook_path", "path")
@@ -55,6 +55,9 @@ PROBE_AIMS: dict[str, tuple[str, tuple[str, ...]]] = {
     "rm-rf": ("delete", ("Bash",)),
     "write-outside": ("write", ("Write", "Edit", "MultiEdit", "NotebookEdit", "Bash")),
     "network": ("network", ("Bash",)),
+    "git": ("command", ("Bash",)),
+    "loop-write": ("write", ("Write", "Edit", "MultiEdit", "NotebookEdit")),
+    "guard-files": ("write", ("Write", "Edit", "MultiEdit", "NotebookEdit")),
 }
 # The canonical shell lines of each operation, `{t}` the target; the probe instructions use the
 # first of each. A worker that spells the operation another way gives an inconclusive cell.
@@ -79,6 +82,8 @@ COMMANDS: dict[str, tuple[str, ...]] = {
         "curl -s http://{t}/",
         "curl http://{t}/",
     ),
+    # a command probe's target is the whole line, matched literally (HANDOFF-0045 §4)
+    "command": ("{t}",),
 }
 
 
@@ -119,7 +124,7 @@ def probe_aim(probe: str, worker: str, targets: tuple[str, ...], root: str) -> A
     spellings: list[str] = []
     exact: list[str] = []
     for target in targets:
-        if operation == "network":
+        if operation in ("network", "command"):
             spellings.append(target)
             exact.append(target)
             continue
@@ -129,7 +134,7 @@ def probe_aim(probe: str, worker: str, targets: tuple[str, ...], root: str) -> A
         template.format(t=quote.format(t=spelling))
         for template in COMMANDS[operation]
         for spelling in spellings
-        for quote in (QUOTES if operation != "network" else QUOTES[:1])
+        for quote in (QUOTES if operation not in ("network", "command") else QUOTES[:1])
     ]
     commands = tuple(
         dict.fromkeys(

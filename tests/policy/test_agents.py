@@ -214,6 +214,7 @@ def measure(
     run_id: str,
     settings_sha: str,
     matrix: Path,
+    fingerprints: canary.Fingerprints | None = None,
 ) -> canary_stream.Run | None:
     """One cell through `run_cell`; a transient cell fails the test without blaming a layer."""
     observed, run = canary_run.run_cell(
@@ -227,6 +228,7 @@ def measure(
         run_id,
         settings_sha,
         matrix,
+        fingerprints,
     )
     if observed.transient:
         pytest.fail(f"{cell.worker} {cell.probe}: {observed.detail}; transient, not a strike")
@@ -248,6 +250,7 @@ def test_claude_builder_cells(
     run_id: str,
     settings_sha: str,
     agents_matrix: Path,
+    fingerprints: canary.Fingerprints,
 ) -> None:
     cell = canary.Cell("claude-builder", probe, layer, present)
     instruction = claude_instruction(planted, probe, listener.port)
@@ -262,6 +265,7 @@ def test_claude_builder_cells(
         run_id,
         settings_sha,
         agents_matrix,
+        fingerprints,
     )
     if run is not None and run.session_id:
         real = ledger.read(ledger.read_default_dirs(SETTINGS), run_id=run.session_id)
@@ -280,6 +284,7 @@ def test_codex_reviewer_cells(
     run_id: str,
     settings_sha: str,
     agents_matrix: Path,
+    fingerprints: canary.Fingerprints,
 ) -> None:
     cell = canary.Cell("codex-reviewer", probe, layer, present)
     instruction = codex_instruction(planted, probe, listener.port)
@@ -294,4 +299,5 @@ def test_codex_reviewer_cells(
         run_id,
         settings_sha,
         agents_matrix,
+        fingerprints,
     )

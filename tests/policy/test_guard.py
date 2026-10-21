@@ -22,10 +22,11 @@ ROOT = Path(__file__).resolve().parents[2]
 WORKER = "claude-code"
 DENY_RM = ("Bash(rm -rf *)", "Bash(rm -fr *)", "Bash(rm -r *)")
 HUMAN_DOCS = ("Write(/docs/**)", "Edit(/docs/**)", "Write(/docs)", "Edit(/docs)", "Write", "Edit")
+# Claude Code checks every file-writing tool against `Edit(...)` rules; `Write(...)` rules are
+# never consulted (HANDOFF-0045 §6), so the protection is the `Edit` twin.
 DENY_HUMAN = (
-    "Write(/docs/*.md)",
     "Edit(/docs/*.md)",
-    "Write(/memory/notes/**)",
+    "Edit(/memory/notes/**)",
     "Edit(/CLAUDE.md)",
 )
 
@@ -43,7 +44,7 @@ def cell_events(test_dirs: ledger.Dirs, run_id: str, probe: str) -> list[dict]:
 
 @pytest.mark.blocking
 def test_env_and_tier1_reads_are_refused_by_the_hook_layer(
-    planted, test_dirs, run_id, settings_sha, fast_matrix
+    planted, test_dirs, run_id, settings_sha, fast_matrix, fingerprints
 ) -> None:
     attempts = {
         "env": [
@@ -65,6 +66,7 @@ def test_env_and_tier1_reads_are_refused_by_the_hook_layer(
             run_id,
             settings_sha,
             fast_matrix,
+            fingerprints,
         )
         assert refused, [d.reason for d in decisions]
         events = cell_events(test_dirs, run_id, probe)
@@ -81,7 +83,7 @@ def test_env_and_tier1_reads_are_refused_by_the_hook_layer(
 
 @pytest.mark.blocking
 def test_rm_rf_is_the_settings_layer_and_human_folder_writes_are_the_guard_and_settings(
-    planted, test_dirs, run_id, settings_sha, fast_matrix
+    planted, test_dirs, run_id, settings_sha, fast_matrix, fingerprints
 ) -> None:
     permissions = json.loads((ROOT / ".claude" / "settings.json").read_text())["permissions"]
     # the guard lets rm -rf through (no forbidden path); the settings deny list is its layer
@@ -106,6 +108,7 @@ def test_rm_rf_is_the_settings_layer_and_human_folder_writes_are_the_guard_and_s
         run_id,
         settings_sha,
         fast_matrix,
+        fingerprints,
     )
     canary.write_cell(
         canary.Cell(WORKER, "write-outside", "hook/settings"),
@@ -118,6 +121,7 @@ def test_rm_rf_is_the_settings_layer_and_human_folder_writes_are_the_guard_and_s
         run_id,
         settings_sha,
         fast_matrix,
+        fingerprints,
     )
     assert rm_declared and write_declared
     # a write outside the repository is the hook's, and refused there
@@ -130,7 +134,7 @@ def test_rm_rf_is_the_settings_layer_and_human_folder_writes_are_the_guard_and_s
 
 @pytest.mark.blocking
 def test_network_has_no_layer_yet_and_is_advisory(
-    planted, test_dirs, run_id, settings_sha, fast_matrix
+    planted, test_dirs, run_id, settings_sha, fast_matrix, fingerprints
 ) -> None:
     decision = decide(planted, "Bash", command="curl -s -m 3 http://127.0.0.1:9/")
     assert decision.allowed, "the hook is not this probe's layer and no egress rule exists yet"
@@ -145,6 +149,7 @@ def test_network_has_no_layer_yet_and_is_advisory(
         run_id,
         settings_sha,
         fast_matrix,
+        fingerprints,
     )
     events = cell_events(test_dirs, run_id, "network")
     assert events[1]["class"] == "advisory" and "layer missing" in events[1]["summary"]
