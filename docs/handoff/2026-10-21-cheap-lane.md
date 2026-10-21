@@ -2,15 +2,15 @@
 id: HANDOFF-0053
 type: handoff
 created: 2026-10-21T01:20:00-07:00
-from: cowork
+from: michou
 to: claude-code
 tier: 2
-status: proposed
+status: open
 depends_on: [HANDOFF-0045, HANDOFF-0047]
 plan_ref: PLAN-PHASE-1 step 7d
 ---
 
-# Handoff 0053 (proposed) — The cheap lane: Claude Code on an Ollama cloud model grinds a red command to green in a code-only export, and its fix comes back as a diff through the normal review
+# Handoff 0053 — The cheap lane: Claude Code on an Ollama cloud model grinds a red command to green in a code-only export, and its fix comes back as a diff through the normal review
 
 ## Why
 Michou, 2026-10-21: he wants to run "the new deepseek flash 4.1" through Ollama inside Claude Code "to cheapen some of the debugging we do". DeepSeek-V4.1-Flash is a large mixture-of-experts model; Ollama serves it only from its cloud (`deepseek-v4.1-flash:1017-cloud`), so it runs on neither the MacBook nor the planned 64 GB mini, and every token the session reads leaves the machine for Ollama's servers (US, sometimes Europe; Ollama's policy: prompts not logged, not trained on, zero retention required of its hosts). Ollama speaks the Anthropic Messages API (v0.14+), so Claude Code, its hooks and the guard run unchanged with only the model swapped. **Michou's ruling, 2026-10-21: code only.** The session may see code and documents (`kgme/`, `jobs/`, `tests/`, `control/`, `docs/`, the top-level files); never `memory/`, `logs/`, or a Tier 1 path. STATUS deferred Ollama "until Loop 0 passes or the friction log demands them"; this is Michou's demand, scoped to cloud models for code. Local models stay deferred to the mini (Phase 3).

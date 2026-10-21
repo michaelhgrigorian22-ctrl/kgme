@@ -1,7 +1,7 @@
 ---
 id: ADR-022
 type: decision
-status: proposed
+status: accepted
 created: 2026-10-16T00:30:00-07:00
 author: cowork
 source: stated
@@ -26,6 +26,8 @@ Facts this rests on, checked in the Claude Code documentation on 2026-10-16 (set
 - Headless runs have hard stops: `--permission-prompts none`, `--max-turns`, `--max-budget-usd`.
 
 ## Decision
+**Accepted by Michou, 2026-10-21**, with the adoption of HANDOFF-0047: "lets adopt 47 and 53 proposals". Each level and mode still lands through its own handoff (0047 `tight`, `work`, `loose`; 0048 `crew`; 0053 the cheap lane).
+
 1. **A level is a launcher line, not a settings file.** `kgme session <level> [--handoff ID]` runs `claude --setting-sources project,local --settings tools/policy/sessions/<level>.json --permission-mode <mode>` plus the level's flags, with `--model` from `kgme.toml [models]`. At start it appends one ledger `note`: the level, the sha256 of the settings file, the flags, `claude --version`, the model id. Plain `claude` is unchanged and is not a level.
 2. **Four levels.**
    - `tight`: plan mode; auto and bypass disabled; no Edit allows. For reading, planning and review.

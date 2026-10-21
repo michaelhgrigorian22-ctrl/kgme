@@ -2,21 +2,21 @@
 id: HANDOFF-0047
 type: handoff
 created: 2026-10-16T00:35:00-07:00
-from: cowork
+from: michou
 to: claude-code
 tier: 2
-status: proposed
+status: open
 depends_on: [HANDOFF-0045]
 plan_ref: PLAN-PHASE-1 step 7d
 ---
 
-# Handoff 0047 (proposed) — Session levels: the launcher, three settings files, the ledger pinned to the main checkout
+# Handoff 0047 — Session levels: the launcher, three settings files, the ledger pinned to the main checkout
 
 ## Why
 ADR-022 (proposed) makes a session's allowance a named level started by one command and recorded in the ledger. This handoff builds the levels that need no orchestration (`tight`, `work`, and the `loose` permission set) and the two prerequisites every worktree-based mode needs: one ledger regardless of checkout, and appends that stay whole when several sessions write at once. `crew` is HANDOFF-0048.
 
 ## What
-1. **Settings files** under `control/policy/sessions/` (human paths after HANDOFF-0045), each a plain JSON file the launcher passes with `--settings`:
+1. **Settings files**, one per level, in a `sessions` folder under `control/policy/` (human paths since HANDOFF-0045: each arrives as a diff Michou applies), each a plain JSON file the launcher passes with `--settings`:
    - `tight.json`: `permissions.disableAutoMode` and `permissions.disableBypassPermissionsMode` `"disable"`; no allow rules; the project deny list applies as always.
    - `work.json`: `sandbox.enabled` true, `sandbox.allowUnsandboxedCommands` false, `sandbox.failIfUnavailable` true, `sandbox.filesystem.allowWrite` the repository root and the temp directory; `permissions.disableBypassPermissionsMode` `"disable"`.
    - `loose.json`: as `work`, plus `sandbox.filesystem.allowWrite` replaced at launch by the task's `Outputs`, `tests/` and `logs/scratch/` (the launcher writes a per-run copy under `logs/scratch/sessions/<run>/` and hashes that); a pinned `permissions.allow` list (Read, Grep, Glob, Edit on the `Outputs` paths, `Bash(make check)`, `Bash(uv run --frozen pytest *)`, `Bash(git add *)`, `Bash(git commit *)`, `Bash(git diff *)`, `Bash(git status *)`); no network domains.
