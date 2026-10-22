@@ -141,6 +141,8 @@ Cycle 9 (AUDIT-0092): BLOCK on F16: the fallback was incomplete. One diagnostic 
 
 Cycle 10 (AUDIT-0093): PASS, nothing open blocking.
 
+**After cycle 10: Cowork's follow-up ruling.** `run_git` decodes git's output as text, so output that is not UTF-8 raises `UnicodeDecodeError`, a `ValueError`. That was outside the landing's boundary `(OSError, SubprocessError)` and escaped as `transient` after git had started on the checkout. The boundary in `write_landing` is now `Exception`. Red first (`logs/scratch/handoff-0055-followup/red.txt`): the fast-forward ran, then its output failed to decode, and the run wrote `transient`. Now: one blocking outcome, the kept ref intact, no sync. Committed after `b6a49db`, reviewed under HANDOFF-0055: cycle 11 (AUDIT-0094), PASS.
+
 ## Diffs (human paths): applied
 Michou applied and staged all four on 2026-10-21; they are in this commit.
 - **`kgme.toml` and `.claude/settings.json`:** the drafts below, as written.

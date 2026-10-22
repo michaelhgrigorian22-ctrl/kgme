@@ -275,7 +275,8 @@ def write_landing(main: Path, merged: str, trunk_sha: str, kept_ref: str) -> tup
             + ("; the index differs from HEAD (the trial's tree is staged)" if staged else "")
             + (f"; git exited {done.returncode}: {tail[0][:100]}" if done.returncode else "")
         )
-    except (OSError, subprocess.SubprocessError) as error:
+    except Exception as error:  # noqa: BLE001 - any failure once git has started (Cowork, cycle 10)
+        # `run_git` decodes git's output as text: output that is not UTF-8 is a ValueError
         return "", f"git failed or could not be checked: {type(error).__name__}: {error}", BLOCKED
     return "", state, BLOCKED
 

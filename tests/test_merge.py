@@ -806,3 +806,32 @@ def test_c9_f16_a_failed_diagnostic_after_a_wrong_branch_landing_is_still_blocki
     assert kept in closing[0]["summary"] and synced == []
     monkeypatch.setattr(merge, "read_sha", real_sha)
     assert merge.read_sha(repo, kept), "the recovery ref is intact"
+
+
+@pytest.mark.blocking
+def test_c10_git_output_that_is_not_utf8_after_the_landing_is_blocking(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """Cowork's ruling at cycle 10: `run_git` decodes git's output as text, so output that is
+    not UTF-8 raises `UnicodeDecodeError`, a `ValueError`; after git has started on the
+    checkout it is one blocking outcome, the kept ref intact, no sync."""
+    repo = write_repo(tmp_path)
+    sha = write_commit(repo, "design", {"docs/design/a.svg": "<svg/>\n"})
+    real = merge.run_git
+
+    def run_git_landing_then_undecodable(args, *rest, **more):
+        done = real(args, *rest, **more)
+        if "--ff-only" in args:
+            raise UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid start byte")
+        return done
+
+    monkeypatch.setattr(merge, "run_git", run_git_landing_then_undecodable)
+    synced = []
+    monkeypatch.setattr("kgme.sync_io.run_sync", lambda *a: synced.append(a))
+    assert merge.run_merge(repo, SETTINGS) == 1
+    closing = [e for e in read_merge_events(repo) if e["kind"] == "outcome"]
+    kept = f"{merge.BLOCKED_REFS}{sha[:12]}"
+    assert len(closing) == 1 and closing[0]["class"] == "blocking"
+    assert kept in closing[0]["summary"] and synced == []
+    monkeypatch.setattr(merge, "run_git", real)
+    assert merge.read_sha(repo, kept), "the recovery ref is intact"
