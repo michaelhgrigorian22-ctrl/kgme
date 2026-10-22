@@ -364,6 +364,13 @@ class Component extends DCLogic {
     const samples=this.systemSamples();
     const missing = [['harnesses','Harnesses / arbiter'],['hook latency','Hook latency'],['Claude Max','Claude Max quota / reset'],['Codex Plus','Codex Plus quota / reset']].filter(([key])=>!samples[sample].some(f=>f.label.startsWith(key))).map(([,label])=>({label,value:'Not supplied in this sample.'}));
     const systemRows=station?[]:[...samples[sample],...missing,...samples.Keys,{label:'Quota resets',value:sample==='Main'||sample==='Wall'?'Codex reset is shown with its quota; Claude Max reset not supplied.':'Reset times not supplied in this sample.'}];
+    // Missing metadata remains a named field; a partial drawing is not evidence of a value.
+    if (!station) {
+      const supplied = systemRows.map(f => f.label + ' ' + f.value).join(' ');
+      for (const [label, pattern] of [['Origin', /127\.0\.0\.1/], ['Ledger file', /logs\/ledger\//], ['Poll interval', /poll|retrying every/i], ['ADR provenance', /ADR-\d+/], ['Hook provenance', /hooks \d+/], ['Guard provenance', /guard rule/]]) {
+        if (!pattern.test(supplied)) systemRows.push({label, value:'Not supplied in this sample.'});
+      }
+    }
     return { noise: !(this.props.calm ?? false), surfaceName: surface === 'desk'?'Desk':surface === 'wall'?'Wall':'Station', isStation:station, hasSystem:!station, sampleName:names[sample], systemRows,
       surfaces:['desk','wall','station'].map(key=>({name:key,selected:key===surface,pick:()=>this.setState({surface:key})})),
       samples:surface==='desk'?Object.keys(names).filter(k=>k!=='Wall').map(key=>({name:names[key],selected:key===sample,pick:()=>this.setState({sample:key})})):[],

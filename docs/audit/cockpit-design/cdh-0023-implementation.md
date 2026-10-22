@@ -103,3 +103,13 @@ Captures and harnesses remain gitignored. Paths below are relative to logs/scrat
 | check-source.mjs | 9e4501b7868f0933c6abaf6eaf828f9c42c9db12065d1ad47a84f70f16df765b |
 | verify.mjs | d7ba943dffb522af4c0dbb7f8b4139ecf4182c96e88966bfaaa3d8d2708ba5f8 |
 | make-check.log | 126e90054b4df55a6edc9736d132c6104caf5eee83a4af8b3fa7b75491546172 |
+
+## Addendum 2026-10-22T11:17:42-07:00
+
+Closeout inspection found that partial board 7 samples omitted some System field headings when the source lacked those readings. The key map now gives explicit "Not supplied in this sample" rows for missing origin, ledger path, poll interval, ADR, hook and guard provenance. Existing values remain unchanged and appear once in their selected sample. All seven samples pass a Node field-coverage check; Station still points to its own a pane and carries no duplicate system rows. This applies the row's existing absent-reading decision (0.1), with no new judgement. The correction is a separate follow-up commit because the main header commit was already closed before this gap was found. The template and CSS do not change; native review remains pending.
+
+| File / evidence | SHA-256 |
+| --- | --- |
+| docs/design/cockpit-v0/Keys.dc.html | 1ff3d75f9c1c897cea212a638b38cee48bbe7ffb13346d83e255354342f0c5e5 |
+| logs/scratch/design-review/cdh-0023/system-addendum/check.mjs | c6e55275e3fab9bcdf1ec1e2b3259e423e1dc3eef4c3c3a6674400877ba8caff |
+| logs/scratch/design-review/cdh-0023/system-addendum/checks.json | 412fa7f2bcb8ff5d275276d517cf78dbda2025f5cd4ff7f76008e532c8c7280d |
