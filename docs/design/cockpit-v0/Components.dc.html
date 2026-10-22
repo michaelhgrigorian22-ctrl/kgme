@@ -35,6 +35,12 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .mini .m{position:absolute;top:4px;left:8px;font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:#6f8290}
 .mini .b{position:absolute;bottom:8px;left:8px;right:8px;height:34px;background:#11151c;border:1px solid #1e2a33}
 .callout{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#ffb02e}
+
+/* CDH-0025: count is height; marks and accessible names survive without colour. */
+.activity-chart{display:grid;grid-template-columns:repeat(var(--buckets),minmax(0,1fr));gap:1px;height:109px;padding-top:16px;box-sizing:border-box;border-bottom:1px solid #7a8d9b}
+.activity-column{position:relative;min-width:0;height:100%}.activity-bar{position:absolute;bottom:0;left:0;right:0;height:var(--height);background:var(--tint);box-shadow:inset 0 0 0 1px #39d0ff}
+.activity-mark{position:absolute;bottom:var(--height);right:0;color:#cfe6ef;background:#0a0c10;font-size:11px;line-height:13px;white-space:nowrap;z-index:1}.activity-mark:empty{display:none}
+.activity-column:hover{outline:1px solid #cfe6ef;outline-offset:0}.activity-summary{font-size:11px;line-height:1.45;color:#7a8d9b;margin:6px 0 0;overflow-wrap:anywhere}.activity-axis{display:flex;justify-content:space-between;gap:4px;margin-top:6px;color:#7a8d9b;font-size:9px}
 </style>
 </helmet>
 <div style="min-height:100vh;padding:36px;display:flex;flex-direction:column;gap:22px;background:#0a0c10">
@@ -132,8 +138,11 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
         <div><div class="lbl" style="margin-bottom:4px">≥ 80% · amber · Codex Plus 91%</div><div class="seg"><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i></i><i></i></div></div>
         <div><div class="lbl" style="margin-bottom:4px">cap reached · magenta · routing refuses</div><div class="seg"><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i><i class="cap"></i></div></div>
       </div>
-      <h2 class="h" style="margin-top:18px">Run grid · events per minute</h2>
-      <div style="display:flex;gap:4px;align-items:center"><i style="display:block;width:11px;height:11px;background:#141b22"></i><i style="display:block;width:11px;height:11px;background:#163241"></i><i style="display:block;width:11px;height:11px;background:#1b4a60"></i><i style="display:block;width:11px;height:11px;background:#217a97"></i><i style="display:block;width:11px;height:11px;background:#2aa6cc"></i><i style="display:block;width:11px;height:11px;background:#39d0ff"></i><i style="display:block;width:11px;height:11px;background:#ff3d7f;margin-left:8px"></i><span class="lbl" style="margin-left:8px">0 → 5+ per minute · magenta: a blocking event in that minute</span></div>
+      <h2 class="h" style="margin-top:18px">Activity columns · events per minute</h2>
+      <div class="activity-chart" style="--buckets:9;height:32px" role="list" aria-label="9 one-minute activity buckets, fixed scale zero to five events">
+        <sc-for list="{{cells}}" as="c" hint-placeholder-count="9"><div class="activity-column" role="listitem" aria-label="{{c.label}}" title="{{c.label}}" style="{{c.style}}"><span class="activity-bar" aria-hidden="true"></span><span class="activity-mark" aria-hidden="true">{{c.mark}}</span></div></sc-for>
+      </div>
+      <div class="activity-summary">Height 0–5; + = 5 or more. B = blocking; P = pending; ? = unknown count. Minute and exact count in labels.</div>
     </section>
 
     <section class="pnl brk" style="padding:16px">
@@ -173,7 +182,15 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1900}}'>
 class Component extends DCLogic {
-  renderVals() { return {}; }
+  renderVals() {
+    // Explicit specimen counts are separate from status; they are not source readings.
+    const samples = [{count:0},{count:1},{count:2},{count:3},{count:4},{count:5},{count:8,state:'blocking'},{count:2,state:'pending'},{count:null,state:'blocking'}];
+    return { cells: samples.map((c, i) => ({
+      label: 'Specimen 12:' + String(i).padStart(2,'0') + ': ' + (c.count === null ? 'count unavailable' : c.count + ' events') + (c.state ? ', ' + c.state : ''),
+      mark: (c.state === 'blocking' ? 'B' : c.state === 'pending' ? 'P' : '') + (c.count === null ? '?' : c.count >= 5 ? '+' : ''),
+      style: '--height:' + (c.count === null ? 0 : Math.min(c.count,5) / 5 * 100) + '%;--tint:' + (c.state === 'blocking' ? '#ff3d7f' : c.state === 'pending' ? '#ffb02e' : '#39d0ff')
+    })) };
+  }
 }
 </script>
 </body>

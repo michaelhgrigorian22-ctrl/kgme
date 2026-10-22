@@ -32,7 +32,6 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .grp{display:flex;gap:12px;align-items:baseline;padding:8px 10px 4px;border-bottom:1px solid #1e2a33;color:#39d0ff;font-size:11px}
 .kbd{display:inline-block;min-width:16px;padding:0 5px;border:1px solid #39d0ff;color:#39d0ff;font-size:10px;line-height:16px;text-align:center;border-radius:2px}
 .seg{display:flex;gap:2px}.seg i{display:block;width:7px;height:12px;background:#1e2a33}.seg i.on{background:#39d0ff}
-.cell{width:11px;height:11px;background:#141b22}
 .stale{filter:saturate(.12) brightness(.72)}
 /* CDH-0017 CW18: muted text under this filter reads #a3b0b8 (4.76:1 on the ground, 4.67:1 on the panel after the filter), the mounted tray's too */
 .stale .tr-root .tr-lbl,.stale .tr-root .tr-l1 .tr-run,.stale .tr-root .tr-l2,.stale .tr-root .tr-life .tr-quiet,.stale .tr-root .tr-muted,.stale .tr-root .tr-foot,.stale .tr-root .tr-empty{color:#a3b0b8}
@@ -41,8 +40,14 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .jit{animation:jit 7s steps(1,end) infinite}
 @keyframes jit{0%,96%{transform:none}97%{transform:translateX(3px)}98%{transform:translateX(-2px)}99%{transform:none}}
 @media (prefers-reduced-motion:reduce){.blink,.jit{animation:none}.static{opacity:.25}}
-.cell-value{display:block;background:#0a0c10;color:#cfe6ef;font-size:11px;line-height:11px;text-align:center;margin:0 1px}
 .quota-alert{display:flex;align-items:center;gap:8px;min-height:24px;font-size:11px}.quota-track{width:80px;height:7px;border:1px solid currentColor}.quota-track i{display:block;height:100%;background:currentColor}
+
+/* CDH-0025: count is height; marks and accessible names survive without colour. */
+.activity-chart{display:grid;grid-template-columns:repeat(var(--buckets),minmax(0,1fr));gap:1px;height:109px;padding-top:16px;box-sizing:border-box;border-bottom:1px solid #7a8d9b}
+.activity-column{position:relative;min-width:0;height:100%}.activity-bar{position:absolute;bottom:0;left:0;right:0;height:var(--height);background:var(--tint);box-shadow:inset 0 0 0 1px #39d0ff}
+.activity-mark{position:absolute;bottom:var(--height);right:0;color:#cfe6ef;background:#0a0c10;font-size:11px;line-height:13px;white-space:nowrap;z-index:1}.activity-mark:empty{display:none}
+.activity-column:hover{outline:1px solid #cfe6ef;outline-offset:0}.activity-summary{font-size:11px;line-height:1.45;color:#7a8d9b;margin:6px 0 0;overflow-wrap:anywhere}.activity-axis{display:flex;justify-content:space-between;gap:4px;margin-top:6px;color:#7a8d9b;font-size:9px}
+.stale .activity-summary,.stale .activity-axis{color:#a3b0b8}
 </style>
 </helmet>
 <div class="hud" style="--f:#4a5560;--fg:rgba(120,130,140,.14)">
@@ -72,8 +77,11 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   <aside style="flex:0 1 232px;min-width:200px;display:flex;flex-direction:column;gap:12px">
     <section class="pnl brk" style="padding:12px 12px 10px">
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px"><span class="lbl">runs · events per minute</span><span class="lbl">stale</span></div>
-      <div style="display:grid;grid-template-columns:repeat(12, minmax(0, 1fr));gap:3px"><sc-for list="{{cells}}" as="c" hint-placeholder-count="96"><div class="cell" style="{{c.style}}" aria-label="{{c.label}}"><span class="cell-value">{{c.value}}</span></div></sc-for></div>
-      <div style="font-size:11px;color:#7a8d9b;margin-top:6px">Values are events, in sample order.</div>
+      <div class="activity-chart" style="--buckets:60;height:90px" role="list" aria-label="60 one-minute activity buckets, fixed scale zero to five events">
+        <sc-for list="{{cells}}" as="c" hint-placeholder-count="60"><div class="activity-column" role="listitem" aria-label="{{c.label}}" title="{{c.label}}" style="{{c.style}}"><span class="activity-bar" aria-hidden="true"></span><span class="activity-mark" aria-hidden="true">{{c.mark}}</span></div></sc-for>
+      </div>
+      <div class="activity-axis"><span>{{activityStart}}</span><span>60 minutes · 1 min/bucket</span><span>{{activityEnd}}</span></div>
+      <p class="activity-summary">{{activitySummary}}</p>
     </section>
     <section class="pnl brk" style="padding:12px">
       <div class="lbl" style="margin-bottom:8px">ADR-016 strikes · review:HANDOFF-0040</div>
@@ -129,9 +137,26 @@ class Component extends DCLogic {
   }
   cells() {
     const v = [0,0,1,0,0,2,3,1,0,0,0,0, 0,1,2,2,1,0,0,0,1,3,4,2, 1,0,0,0,2,3,3,2,1,0,0,0, 0,0,1,2,4,4,3,1,0,0,1,1, 2,3,2,1,0,0,0,0,0,1,2,3, 4,4,3,2,1,1,0,0,0,0,0,0, 0,0,0,1,2,2,3,4,4,3,2,1, 0,0,1,1,0,0,0,2,3,4,4,2];
+    // 7 and 9 are the original state sentinels, not numeric counts.
+    // Keep an unknown count explicit until a source supplies it.
     const col = ['#141b22','#163241','#1b4a60','#217a97','#2aa6cc','#39d0ff'];
-    return v.map((n, i) => ({ value: n === 7 ? 'P' : n === 9 ? 'B' : String(n), label: 'Activity sample ' + (i + 1) + ': ' + (n === 7 ? 'pending' : n === 9 ? 'blocking' : n + ' events'), style: 'width:11px;height:11px;background:' + col[n] }));
+    return v.slice(-60).map((raw, i) => {
+      const state = raw === 7 ? 'pending' : raw === 9 ? 'blocking' : '';
+      const count = state ? null : raw, time = this.activityTime(1192 - 59 + i);
+      const mark = (state === 'blocking' ? 'B' : state === 'pending' ? 'P' : '') + (count === null ? '?' : count >= 5 ? '+' : '');
+      return { raw, count, state, time, mark,
+        label: time + (i === 59 ? ' (partial minute)' : '') + ': ' + (count === null ? 'count unavailable' : count + ' events') + (state ? ', ' + state : ''),
+        style: '--height:' + (count === null ? 0 : Math.min(count, 5) / 5 * 100) + '%;--tint:' + (state === 'blocking' ? '#ff3d7f' : state === 'pending' ? '#ffb02e' : col[Math.min(count, 5)]) };
+    });
   }
+  activityTime(minute) { return String(Math.floor(minute / 60) % 24).padStart(2, '0') + ':' + String(minute % 60).padStart(2, '0'); }
+  activitySummary() {
+    const cells = this.cells(), known = cells.filter(c => c.count !== null), missing = cells.length - known.length;
+    const peak = Math.max(...known.map(c => c.count)), total = known.reduce((sum, c) => sum + c.count, 0);
+    const at = state => cells.filter(c => c.state === state).map(c => c.time).join(', ');
+    return 'peak ' + peak + '/min' + (missing ? ' (known)' : '') + ' · ' + total + (missing ? ' known events' : ' events') + ' · blocking ' + (at('blocking') || 'none') + (at('pending') ? ' · pending ' + at('pending') : '') + (missing ? ' · ' + missing + ' bucket count unavailable' : '');
+  }
+
   trayRuns() {
     return [
       { actor: 'builder', mapping: 'claude-code.*', run: 'c70d687b…8447', lifecycle: 'waiting', elapsed: '12m 12s', event: 'Bash make canary-agents · no outcome yet', chip: 'pending' },
@@ -140,7 +165,7 @@ class Component extends DCLogic {
   }
   renderVals() {
     const calm = this.props.calm ?? false;
-    return { quotaAlerts: this.quotaAlerts(), noise: !calm, calm, cells: this.cells(), trayRuns: this.trayRuns() };
+    return { quotaAlerts: this.quotaAlerts(), noise: !calm, calm, cells: this.cells(), activitySummary: this.activitySummary(), activityStart: this.cells()[0].time, activityEnd: this.cells().at(-1).time, trayRuns: this.trayRuns() };
   }
 }
 </script>
