@@ -68,6 +68,7 @@ class Launch:
     argv: list[str]
     env: dict[str, str]
     settings: str
+    claude_md: str = ""  # the committed CLAUDE.md a `loose` run carries (F18)
 
 
 def read_claude_version() -> str:
@@ -102,14 +103,42 @@ def read_handoff(base: Path, settings: dict, handoff: str) -> str:
     return text
 
 
+def uv_env(workspace: Path) -> dict[str, str]:
+    """Pure: the environment a `loose` run's uv needs inside its sandbox: no sync (the
+    workspace is synced when it is made) and a cache under its `logs/scratch/`."""
+    return {"UV_NO_SYNC": "1", "UV_CACHE_DIR": str(workspace / "logs" / "scratch" / "uv-cache")}
+
+
+def read_committed_claude_md(main: Path) -> str:
+    """Effect: the main checkout's committed `CLAUDE.md` (`git show HEAD:CLAUDE.md`), which a
+    `loose` run carries because it loads no project settings and so no project rules (Cowork's
+    ruling on F18); `ValueError` when there is none."""
+    return read_committed(main, "CLAUDE.md")
+
+
+def read_committed(main: Path, name: str) -> str:
+    """Effect: `name` as the main checkout's `HEAD` holds it, or `ValueError` when it has none."""
+    done = subprocess.run(
+        ["git", "show", f"HEAD:{name}"], cwd=main, capture_output=True, text=True, check=False
+    )
+    if done.returncode != 0:
+        raise ValueError(f"{main} has no committed {name} for a level to carry")
+    return done.stdout
+
+
 def read_main_policy(main: Path) -> dict:
-    """Effect: the main checkout's project settings, the policy every level carries."""
-    return json.loads((main / ".claude" / "settings.json").read_text(encoding="utf-8"))
+    """Effect: the main checkout's committed project settings (`git show
+    HEAD:.claude/settings.json`), the policy every level carries: an uncommitted edit in the
+    main checkout cannot weaken a launch (review cycle 6 F19, the ADR-022 addendum)."""
+    return json.loads(read_committed(main, ".claude/settings.json"))
 
 
 def read_workspace(base: Path) -> Path:
     """Effect: the working directory a `loose` run may start from, or `ValueError`: a worktree
-    of this repository, outside the main checkout, that does not disable hooks (F1)."""
+    of this repository, outside the main checkout, whose `.claude/settings.json` is byte-identical
+    to the main checkout's committed one, with no `.claude/settings.local.json` holding allow
+    rules or disabling hooks at its root or the main checkout's (Cowork's ruling on F1,
+    2026-10-21, on top of the policy the run copy carries)."""
     main = ledger.read_main_checkout(base)
     here = Path.cwd().resolve()
     if here.is_relative_to(main):
@@ -123,15 +152,30 @@ def read_workspace(base: Path) -> Path:
         theirs = None
     if theirs != main:
         raise ValueError(f"loose runs only from a worktree of {main}; {here} is not one")
-    for name in ("settings.json", "settings.local.json"):
-        project = here / ".claude" / name
-        if project.is_file():
-            try:
-                data = json.loads(project.read_text(encoding="utf-8"))
-            except ValueError as error:
-                raise ValueError(f"{project} does not parse: {error}") from error
-            if isinstance(data, dict) and data.get("disableAllHooks"):
-                raise ValueError(f"{project} sets disableAllHooks; loose will not start there")
+    committed = subprocess.run(
+        ["git", "show", "HEAD:.claude/settings.json"], cwd=main, capture_output=True, check=False
+    )
+    project = here / ".claude" / "settings.json"
+    held = project.read_bytes() if project.is_file() and not project.is_symlink() else None
+    if committed.returncode != 0 or held != committed.stdout:
+        raise ValueError(
+            f"{project} is not byte-identical to {main}'s committed .claude/settings.json; "
+            "loose will not start (Cowork's ruling on F1)"
+        )
+    for root in (here, main):  # a worktree session reads the main root's local file too
+        local = root / ".claude" / "settings.local.json"
+        if not local.is_file():
+            continue
+        try:
+            data = json.loads(local.read_text(encoding="utf-8"))
+        except ValueError as error:
+            raise ValueError(f"{local} does not parse: {error}") from error
+        allowed = (data.get("permissions") or {}).get("allow") if isinstance(data, dict) else None
+        if allowed or (isinstance(data, dict) and data.get("disableAllHooks")):
+            raise ValueError(
+                f"{local} holds allow rules or disables hooks; --setting-sources project,local "
+                "loads it, so loose will not start"
+            )
     return here
 
 
@@ -162,6 +206,11 @@ def read_launch(
         text = read_handoff(base, settings, handoff)
         entries = tuple(loop_outputs.parse_outputs(text)) + loop_outputs.ALWAYS
         env = {loop_outputs.ENV_HANDOFF: handoff, loop_outputs.ENV_RUN: run}
+    if level == "loose":
+        # measured live (2026-10-21): uv opens its cache at start, and ~/.cache/uv is outside the
+        # sandbox's writes, so the pinned `uv run --frozen pytest` failed; the cache goes inside
+        # the fence and uv uses the workspace's synced environment as it is
+        env |= uv_env(workspace)
     tmp = Path(tempfile.gettempdir()).resolve()
     rendered = render(json.loads(template_text), workspace, tmp, entries)
     main = ledger.read_main_checkout(base)
@@ -170,7 +219,11 @@ def read_launch(
         rendered, policy_sha = carry_policy(rendered, read_main_policy(main), main)
     body = json.dumps(rendered, indent=2, sort_keys=True) + "\n"
     copy = paths.scratch_dir(settings, main) / "sessions" / run / f"{level}.json"
-    argv = build_argv(level, copy, model, caps, extra)
+    claude_md, claude_path = "", None
+    if level == "loose":
+        claude_md = read_committed_claude_md(main)
+        claude_path = copy.with_name("CLAUDE.md")
+    argv = build_argv(level, copy, model, caps, extra, claude_path)
     record = {
         "level": level,
         "handoff": handoff,
@@ -180,11 +233,14 @@ def read_launch(
         "settings": copy.relative_to(main).as_posix(),
         "settings_sha256": sha256_text(body),
         "policy_sha256": policy_sha,
+        "claude_md": claude_path.relative_to(main).as_posix() if claude_path else None,
+        "claude_md_sha256": sha256_text(claude_md) if claude_path else None,
+        "env": dict(sorted(env.items())),
         "argv": argv,
         "model": model,
         "claude_version": read_claude_version(),
     }
-    return Launch(argv, env, body), record
+    return Launch(argv, env, body, claude_md), record
 
 
 def write_start(
@@ -195,6 +251,8 @@ def write_start(
     cells, so they launch what the launcher launches (review cycle 1 F6)."""
     main = ledger.read_main_checkout(base)
     clean_fs.write_payload(main, main / record["settings"], launch.settings)
+    if record.get("claude_md"):
+        clean_fs.write_payload(main, main / record["claude_md"], launch.claude_md)
     env = dict(launch.env)
     if record["handoff"]:
         text = read_handoff(base, settings, record["handoff"])

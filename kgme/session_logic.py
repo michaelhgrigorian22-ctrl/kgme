@@ -75,14 +75,25 @@ def check_extra(extra: list[str]) -> None:
 
 
 def build_argv(
-    level: str, settings_file: Path, model: str, caps: dict, extra: list[str]
+    level: str,
+    settings_file: Path,
+    model: str,
+    caps: dict,
+    extra: list[str],
+    claude_md: Path | None = None,
 ) -> list[str]:
-    """Pure: the `claude` command line of `level`; `loose` adds the headless hard stops."""
-    argv = ["claude", "--setting-sources", "project,local", "--settings", str(settings_file)]
+    """Pure: the `claude` command line of `level`. `loose` loads no project settings
+    (`--setting-sources local`, ADR-022 addendum of 2026-10-21: the project's allows would merge
+    into its pinned list), takes the committed `CLAUDE.md` as `claude_md`, and adds the headless
+    hard stops; `tight` and `work` keep `project,local`."""
+    sources = "local" if level == "loose" else "project,local"
+    argv = ["claude", "--setting-sources", sources, "--settings", str(settings_file)]
     argv += ["--permission-mode", LEVELS[level], "--model", model]
     if level == "loose":
         argv += ["-p", "--permission-prompts", "none", "--max-turns", str(caps["max_turns"])]
         argv += ["--max-budget-usd", str(caps["max_budget_usd"])]
+    if claude_md is not None:
+        argv += ["--append-system-prompt-file", str(claude_md)]
     return argv + list(extra)
 
 

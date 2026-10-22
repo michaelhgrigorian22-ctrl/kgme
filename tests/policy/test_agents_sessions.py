@@ -24,7 +24,7 @@ import threading
 from pathlib import Path
 
 import pytest
-from session_cells import CELLS, HOME_PROBE, WRITE, Attempt
+from session_cells import CELLS, HOME_PROBE, PINNED, SHELL, WRITE, Attempt, ran_unrefused
 
 from kgme import (
     canary,
@@ -115,9 +115,8 @@ def workspace(tmp_path_factory) -> Path:
     # the candidate's code, not the commit's: its hooks are what this diff ships (cycle 3 F14)
     shutil.rmtree(path / "kgme")
     shutil.copytree(ROOT / "kgme", path / "kgme", ignore=shutil.ignore_patterns("__pycache__"))
-    # no hooks and no denies of its own: only the policy the run copy carries can refuse
-    # (review cycle 2 F1, option C)
-    (path / ".claude" / "settings.json").write_text("{}\n")
+    # the workspace keeps its real project settings, byte-identical to the main checkout's, as
+    # the launcher requires; blanking them is how F18 hid (Cowork's ruling on cycle 5)
     yield path.resolve()
     subprocess.run(["git", "worktree", "remove", "--force", str(path)], cwd=ROOT, check=False)
 
@@ -142,6 +141,7 @@ def write_level(
             loop_outputs.ENV_SHA: digest,
         }
         entries = tuple(loop_outputs.parse_outputs(TOY)) + loop_outputs.ALWAYS
+        env |= session.uv_env(cwd)  # as the launcher sets it for loose
     tmp = Path(tempfile.gettempdir()).resolve()
     rendered = session.render(json.loads(template_text), cwd, tmp, entries)
     policy_sha = None
@@ -152,7 +152,11 @@ def write_level(
     copy = scratch / "sessions" / run / f"{level}.json"
     copy.parent.mkdir(parents=True)
     copy.write_text(body)
-    argv = session.build_argv(level, copy, MODEL, SETTINGS.get("sessions", {}), [])
+    claude_md = None
+    if level == "loose":  # loose loads no project rules: it carries the committed CLAUDE.md (F18)
+        claude_md = copy.with_name("CLAUDE.md")
+        claude_md.write_text(session.read_committed_claude_md(ROOT))
+    argv = session.build_argv(level, copy, MODEL, SETTINGS.get("sessions", {}), [], claude_md)
     if level != "loose":
         argv += ["-p", "--max-turns", str(CANARY["claude_max_turns"])]
     argv += ["--output-format", "stream-json", "--verbose", instruction + ONCE]
@@ -163,6 +167,7 @@ def write_level(
         "settings": copy.relative_to(ROOT).as_posix(), "settings_sha256": session.sha256_text(body),
         "argv": argv, "model": MODEL, "claude_version": session.read_claude_version(),
         "policy_sha256": policy_sha,
+        "claude_md_sha256": session.sha256_text(claude_md.read_text()) if claude_md else None,
     }  # fmt: skip
     session.write_note(record, ROOT, SETTINGS, run, dirs)
     return argv, env, copy, record["settings_sha256"]
@@ -214,6 +219,8 @@ def test_each_level_refuses_what_adr_022_says(
     observing: list[Attempt] = []
 
     def effect(run) -> bool:
+        if kind == "never":  # the line ran when an aimed call came back without an error (F20)
+            return ran_unrefused(run, aim)
         if kind == "listener":
             return observing[-1].worker_reached()  # this attempt only (review cycle 2 F11)
         return bool(file and file.exists())
@@ -251,6 +258,14 @@ def test_each_level_refuses_what_adr_022_says(
 
                 assert logged(ROOT, run.session_id), "the carried guard wrote its intent in main"
                 assert not logged(cwd, run.session_id), "and none in the workspace"
+                refusals = [
+                    e["summary"] for e in ledger.read(test_dirs, run_id=run.session_id)
+                    if e["kind"] == "outcome" and e["status"] == "refused"
+                ]  # fmt: skip
+                assert any("outside HANDOFF-9047's Outputs" in r for r in refusals), (
+                    "refused by the Outputs rule, not for another reason (Cowork's F9)",
+                    refusals,
+                )
             seen.append(word)
             if word == "pass" or not present:
                 break
@@ -282,3 +297,16 @@ def test_loose_writes_inside_its_outputs_from_a_workspace(workspace, run_id, tes
     if result == "occupied":
         pytest.fail("memory/agent/session-inside.md is occupied in the workspace; transient")
     assert result == "written", "a write inside the Outputs went through"
+
+
+def test_loose_runs_its_pinned_pytest_line_without_project_settings(
+    workspace, run_id, test_dirs
+) -> None:
+    """The positive control of F18 (Cowork's ruling): with `--setting-sources local`, a line on
+    `loose`'s pinned list (`Bash(uv run --frozen pytest *)`) still runs; the cell above shows an
+    unlisted `uv run` line refused."""
+    argv, env, _, _ = write_level("loose", run_id, workspace, test_dirs, SHELL.format(line=PINNED))
+    run = run_level(argv, env, STREAMS / "session-loose-pinned.jsonl", workspace)
+    ran = [a for a in run.attempts if a.tool == "Bash" and PINNED in a.target]
+    assert ran, ("the worker made the pinned call", run.reply[:200])
+    assert not ran[-1].error and "pytest" in ran[-1].text, ran[-1].text[:200]

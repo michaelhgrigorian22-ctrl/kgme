@@ -60,6 +60,7 @@ PROBE_AIMS: dict[str, tuple[str, tuple[str, ...]]] = {
     "guard-files": ("write", ("Write", "Edit", "MultiEdit", "NotebookEdit")),
     "home-write": ("command", ("Bash",)),
     "webfetch": ("fetch", ("WebFetch",)),
+    "unlisted-bash": ("command", ("Bash",)),
 }
 # The canonical shell lines of each operation, `{t}` the target; the probe instructions use the
 # first of each. A worker that spells the operation another way gives an inconclusive cell.

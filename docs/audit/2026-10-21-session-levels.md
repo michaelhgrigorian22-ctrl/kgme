@@ -76,7 +76,8 @@ Run 2026-10-21 with Michou's templates and `kgme.toml` in place:
 
 ## Residuals
 - **The guard's code is the workspace's.** The carried hook names the main checkout's `control/hooks/pre_tool_guard.sh`, but that script runs `uv run --project "$CLAUDE_PROJECT_DIR"`, so the guard's Python is the workspace's own `kgme/hooks/`, which a builder could edit. Both arbiters name it. Pinning it touches `control/`, a human path, and so needs a handoff of Michou's. 4 × 0.3 = 1.2, **listed for the approval screen.**
-- **A `loose` Bash line can write to its working directory**, wherever it is, whatever `allowWrite` says (measured above). Contained by the refusal to start inside the main checkout; a KGME workspace (0048) holds only the task's files. Whether `sandbox.autoAllowBashIfSandboxed: false` in `loose.json` would make the allow list hold again for unlisted Bash lines is worth one more cell; that key is not verified here, and the template is Michou's to change.
+- **A `loose` Bash line can write to its working directory**, wherever it is, whatever `allowWrite` says (measured above). Since Michou's `"autoAllowBashIfSandboxed": false` (see Review, after cycle 4), only a Bash line on the pinned allow list runs at all (`make check`, `uv run --frozen pytest *`, `git diff *`, `git status *`), and such a line can still write to the working directory. Contained by the refusal to start inside the main checkout; a KGME workspace (0048) holds only the task's files.
+- **A linked worktree's sandbox also lets commands write the main repository's shared `.git`** (not `hooks/` or `config`), so a test run under `loose` could move a ref (Cowork, 2026-10-21). For HANDOFF-0048's workspace design.
 
 ## Review
 Cycle 1 (AUDIT-0076, `gpt-6-astra`): BLOCK, seven blocking findings and one advisory, all accepted. Every blocking one got a test that ran red first (17 session tests failed against the cycle-1 code; kept in `logs/scratch/handoff-0047/red-c1.txt`).
@@ -123,6 +124,37 @@ Cycle 3 (AUDIT-0078): F1, F9, F10, F11 resolved; three new blocking findings.
   - F15: the session tests are split (`tests/test_session.py` 247 lines, `tests/test_session_policy.py` 97, `tests/sessiontools.py` 75).
   - F16: F11's original counter, run on the reviewer's scenario, reports the worker reaching the listener after an earlier control (`logs/scratch/handoff-0047/red-c2-f11.txt`).
 
+Cycle 4 (AUDIT-0079): PASS; one advisory (F17: `kgme/cli.py`, `kgme/canary_stream.py`, and `kgme/clean_io.py` exceed ADR-015's size convention, for the weekly review). Committed as `c52cc52`, its closing frontmatter in `93ae245`.
+
+**After cycle 4: Cowork's rulings on cycle 2, relayed by Michou, with his answers, executed as a follow-up.** They were written on cycle 2's audit, before cycles 3 and 4 ran.
+- **Recorded with `kgme review rule`, arbiter `cowork`:** F9, F10, F11 (each as found), F6 (advisory, done), F8 (advisory, "not in this handoff"). The rule takes one ruling per finding, so F1's in-loop ruling stands in the ledger and Cowork's F1 ruling is executed on top of it.
+- **F1, identity:** `loose` starts only when the workspace's `.claude/settings.json` is byte-identical to the main checkout's `HEAD:.claude/settings.json`, and no `.claude/settings.local.json` holding allow rules or disabling hooks exists at the workspace's root or the main checkout's (`--setting-sources project,local` loads it, and a worktree session reads the main root's). This is on top of option C, the policy the run copy carries. Identity closes what C leaves open: C kept a workspace from removing the guard or a deny, not from adding an allow rule. Red first: the inert guard string, a non-matching hook, a missing deny rule, and a local allow rule at either root were accepted (five failed); they are refused now, and an identical file is accepted.
+- **F9:** the `loose` Write cell expects layer `hook` and passes only when the guard's refusal in the main checkout's streams reads "outside HANDOFF-9047's Outputs"; with the inside-Outputs cell, both directions of the Outputs rule are shown live.
+- **F10, Outputs widened by the ruling:** the record root touched `kgme/ledger.py`, `kgme/brief_read.py`, `kgme/brief_io.py`, `kgme/brief_reconcile.py`, `kgme/capture_io.py`, `kgme/capture_record.py`, `kgme/daily_io.py`, `kgme/clean_io.py`, `kgme/clean_reconcile.py`, and `kgme/review_io.py`; the cycle-3 refusal also touched `kgme/cli.py`. Run from the main checkout nothing changes (the job suites pass unchanged).
+- **F8:** the split into `kgme/session_logic.py` was already made in cycle 2 and committed; it is left as it is, a passing, smaller module, rather than reverted.
+- **`autoAllowBashIfSandboxed`:** Michou applied `"autoAllowBashIfSandboxed": false` to `loose.json`. It defaults to true and auto-approves every sandboxed Bash line whatever the permission mode, which is why the touch cell reached: the allow list never applied to Bash. Rerun live: `loose` `touch memory/agent/session-bash.md` is now refused at settings (`pass`), and the cell is promoted from a recorded residual to a required one. The other `loose` cells pass as before.
+- **`tight`, Michou's ruling** (ledger note `01M5GR62SEETV5JCZJZYD0WFGX`, Cowork's recommendation taken, 3 × 0.6 = 1.8): the deterministic argv proof is `tight`'s proof under ADR-022 §7, and the xfail stays with its cause.
+- **`kgs work` as the daily launch:** yes, once the live `kgme session work` from a worktree passes after the commit (ledger note `01M5GR62VZZCGGQV3DFYAQRK7C`).
+
+Cycle 5 (AUDIT-0080): BLOCK on one finding.
+- **F18 (blocking): identity carried the project's broad allows into `loose`.** `--setting-sources project,local` loads the workspace's project settings, which identity makes the main checkout's, and Claude Code merges allow lists across settings files, so `Bash(uv run *)` and the rest joined `loose`'s pinned list. The live cells had hidden it by blanking the workspace's settings.
+  - **Not patched, put to Michou:** it changes a level's launcher line. He chose option A, with Cowork's ruling on how; Cowork wrote the ADR-022 addendum of 2026-10-21 and the matching paragraph of `docs/readers/sessions.md`, both in this follow-up's commit.
+  - **The launch line:** `loose` launches with `--setting-sources local`; `tight` and `work` keep `project,local`; identity and the local-file refusal stay.
+  - **`CLAUDE.md`:** without project settings, project rules may not load, so the launcher writes the main checkout's committed `CLAUDE.md` (`git show HEAD:CLAUDE.md`) into the run directory, passes it with `--append-system-prompt-file`, and records its sha256 in the start note.
+  - **Red first:** `loose`'s argv began `claude --setting-sources project,local`.
+- **Live, on `loose`'s real launcher line,** with the workspace's real project settings (byte-identical to the main checkout's, no longer blanked):
+  - **The carried hook fires without project settings:** the `loose` Write outside the toy Outputs was refused by the guard's Outputs rule, its intent and refusal in the main checkout's streams and none in the workspace's. Option A holds.
+  - **`uv run python -c "print(1)"` is refused at settings** (`pass`), so the project's `Bash(uv run *)` no longer reaches `loose`.
+  - **The pinned `uv run --frozen pytest --version` runs,** after one more finding, fixed in the launcher. Allowed by permissions, it first failed inside the sandbox: uv opens its cache at start (`~/.cache/uv/sdists-v9/.git: Operation not permitted`), which is outside `allowWrite`. `UV_NO_SYNC=1` alone did not help. With `UV_CACHE_DIR` under the workspace's `logs/scratch/` and `UV_NO_SYNC=1`, it runs. The launcher sets both for `loose` (`session.uv_env`), and the start note records the environment. Consequence for HANDOFF-0048: a workspace is synced when it is made, since a `loose` run will not sync it.
+  - **The other cells pass as before;** `tight` stays the expected failure.
+
+Cycle 6 (AUDIT-0081): BLOCK on two findings, both fixed directly (in mandate, first cycle each).
+- **F19: the carried policy came from the main checkout's working copy**, not its committed tree as the addendum says: an uncommitted `{}` in the main checkout's settings left identity passing and the run copy with no hooks or denies. Red first: emptying the working settings changed the carried policy's hash. `session.read_main_policy` now reads `git show HEAD:.claude/settings.json` (a shared `read_committed`, which `CLAUDE.md` uses too); the hash test now changes the deny list by a commit.
+- **F20: the unlisted-Bash cell's success detector** matched the quoted command against the JSON-escaped call input, so a success followed by a denial could pass as a refusal. It now uses `canary_stream.aimed`, as the classifier does (`session_cells.ran_unrefused`), with a deterministic test that a success then a denial is not a refusal.
+- Live after both: every session cell passes, `tight` xfail.
+
+Cycle 7 (AUDIT-0082): PASS. Advisories: F17 (module sizes, the launcher now 315 lines) for the weekly review; F21, the saved red run shows F19's failure but not F20's original false pass, which was a detector in the live cell; its fix is covered by the deterministic test.
+
 ## Decisions made on the route (ADR-023 scores, stakes × edge)
 - **Michou's rulings of 2026-10-21:** the caps stand (60 turns, 15 USD a run); `builder = "claude-opus-5-5"` stands; `loose` neither stages nor commits; payloads follow the ledger to the main checkout; and the cwd residual is recorded, with `loose` refused inside the main checkout.
 - **Templates with placeholders, rendered per run.** Relative sandbox paths from `--settings` are undocumented, so every path is made absolute in the run copy; the note hashes both the template and the copy. 2 × 0.2 = 0.4.
@@ -161,6 +193,6 @@ The three templates, new files, at `control/policy/sessions/`, drafted at `logs/
 `docs/readers/sessions.md`, new, drafted at `logs/scratch/handoff-0047/sessions.md`.
 
 ## Not done, and why
-- **`tight`'s live cell is unproved.** The model will not make a Write call in plan mode, so plan mode's refusal is never exercised live. The deterministic proof holds. Whether that suffices for ADR-022 §7, or `tight` needs another live probe, is Michou's call.
-- The live `kgme session work` from a worktree waits for this commit; it is reported in the session.
+- **`tight`'s live cell stays an expected failure** by Michou's ruling: plan mode stops the model before any call, so no live refusal can be forced, and the deterministic argv proof is `tight`'s proof.
+- **The live `kgme session work` from a worktree** is run after this follow-up's commit and reported in the session. A `claude -p` run with the `work` level's flags from a temporary worktree, after `c52cc52`, already wrote its tool intent and outcome into the main checkout's test streams and none into the worktree's.
 - The `kgs` line is Michou's to add to `~/.zshrc`.

@@ -66,7 +66,15 @@ def test_loose_runs_one_handoff_headless_fenced_to_its_workspace(
     _, argv, env = calls[0]
     assert argv[5:9] == ["--permission-mode", "dontAsk", "--model", "claude-opus-5-5"]
     hard_stops = ["-p", "--permission-prompts", "none", "--max-turns", "60"]
-    assert argv[9:] == [*hard_stops, "--max-budget-usd", "15", "build it"]
+    carried = str(Path(argv[4]).with_name("CLAUDE.md"))
+    assert argv[9:] == [
+        *hard_stops,
+        "--max-budget-usd",
+        "15",
+        "--append-system-prompt-file",
+        carried,
+        "build it",
+    ]
     rendered = json.loads(Path(argv[4]).read_text())
     allowed = [
         str(workspace / p) for p in ("kgme/toy.py", "docs/audit/toy.md", "tests", "logs/scratch")
@@ -79,6 +87,9 @@ def test_loose_runs_one_handoff_headless_fenced_to_its_workspace(
     ]  # fmt: skip
     assert all(e.startswith("Edit(//") for e in edits), "an absolute Edit rule is written //"
     assert env[loop_outputs.ENV_HANDOFF] == "HANDOFF-9047"
+    assert env["UV_NO_SYNC"] == "1" and env["UV_CACHE_DIR"] == str(
+        workspace / "logs" / "scratch" / "uv-cache"
+    ), "uv's cache inside the fence (measured live, 2026-10-21)"
     assert loop_outputs.read_outputs(paths.scratch_dir(settings, base), env) == tuple(
         ["kgme/toy.py", "docs/audit/toy.md", *loop_outputs.ALWAYS]
     ), "the guard reads the same fence the sandbox enforces"
@@ -245,3 +256,41 @@ def test_the_applied_templates_declare_what_adr_022_says() -> None:
     ]
     assert staging == [], "a loose builder never stages or commits; the loop commits (Michou)"
     assert "network" not in loose["sandbox"], "no network domains"
+
+
+@pytest.mark.blocking
+def test_f18_loose_loads_no_project_settings_and_carries_claude_md(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """Review cycle 5 F18, Michou's ruling (option A, ADR-022 addendum of 2026-10-21): `loose`
+    launches with `--setting-sources local`, so the project's broad allows never join its pinned
+    list; the main checkout's committed `CLAUDE.md` is carried with
+    `--append-system-prompt-file`, its sha256 in the start note. `tight` and `work` keep
+    `project,local`."""
+    import subprocess
+
+    base, settings = write_checkout(tmp_path)
+    (base / "CLAUDE.md").write_text("# The constitution\nRead it.\n")
+    subprocess.run(["git", "add", "CLAUDE.md"], cwd=base, check=True)
+    subprocess.run(
+        ["git", "-c", "user.name=t", "-c", "user.email=t@l", "commit", "-qm", "c"],
+        cwd=base,
+        check=True,
+    )
+    (base / "CLAUDE.md").write_text("# an uncommitted edit\n")
+    monkeypatch.chdir(write_workspace(base, tmp_path))
+    code, calls = launched(base, settings, "loose", "HANDOFF-9047", ["build it"])
+    assert code == 0
+    argv = calls[0][1]
+    assert argv[:3] == ["claude", "--setting-sources", "local"]
+    carried = Path(argv[argv.index("--append-system-prompt-file") + 1])
+    assert carried.read_text() == "# The constitution\nRead it.\n", "the committed CLAUDE.md"
+    found = [
+        e for e in ledger.read(ledger.read_default_dirs(settings, base)) if e["job"] == "session"
+    ]
+    record = json.loads(ledger.read_payload(base, found[-1])[0])
+    assert record["claude_md_sha256"] == session.sha256_text(carried.read_text())
+    monkeypatch.chdir(base)
+    _, interactive = launched(base, settings, "work")
+    assert interactive[0][1][:3] == ["claude", "--setting-sources", "project,local"]
+    assert "--append-system-prompt-file" not in interactive[0][1]

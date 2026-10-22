@@ -44,6 +44,7 @@ def write_checkout(tmp_path: Path, handoffs: dict | None = None) -> tuple[Path, 
     source = APPLIED if (APPLIED / "loose.json").is_file() else DRAFTS
     for level in session.LEVELS:
         shutil.copy(source / f"{level}.json", base / session.TEMPLATES / f"{level}.json")
+    (base / "CLAUDE.md").write_text("# Fixture constitution\n")  # a loose run carries it (F18)
     (base / ".claude").mkdir()
     (base / ".claude" / "settings.json").write_text(json.dumps(GUARDED))
     for rel, text in (handoffs or {"docs/handoff/toy.md": TOY}).items():
