@@ -3,7 +3,7 @@ id: READER-COCKPIT-DESIGN
 type: note
 status: active
 created: 2026-10-09T21:50:00-07:00
-modified: 2026-10-11T15:45:22-07:00
+modified: 2026-10-22T00:05:00-07:00
 author: cowork
 source: stated
 tier: 2
@@ -44,6 +44,7 @@ CDH-0001 implemented the reusable cast; CDH-0002 found the native iframe failure
 - Sprite motion: all dense run portraits and the 49-cell matrix stay static; only 1 selected visible detail may animate. Hidden, offscreen, calm and actual reduced-motion states remove animation work. Calm removes decoration without losing actor, lifecycle, class or event facts or changing row geometry. Modes are not failure classes; fixture controls cannot override reduced motion or bind application keys.
 - Sprite evidence: the 24 × 24 source grid, 6 flat fills, 2 hard-swapped frames and 3 KB cap are retired for CDH-0001. The provisional target is 512 KiB raw for all 7 SVG assets plus shared animation code. Report bytes per actor and total, SVG element counts, simultaneous active animations, and 30-second target-Mac captures with 50 static portraits and 1 selected detail, with motion and calm baselines. Record environment, frame intervals, long tasks and interaction observations; label missing measurements unverified. A small file is not proof of runtime performance.
 - Wishlist's empty sections stay empty for v0.
+- **Less clutter (Michou, 2026-10-22, answering the brief's first question):** "i like the station and the whole vibe all together, but i think as we refine the UI in general across all areas maybe less clutter on the screen would be better". The direction, the darkness and the cast stay; every refinement, on every board and in the station, leaves less on screen at once. How the agents read it until he says otherwise: decoration and repeated hints go first (duplicate key hints, micro-labels, ornament that mirrors a fact already shown), and no fact is removed, since the one rule already says decoration carries no information. It tempers 2026-10-08's "almost too much": the brief stays "outrageous, but it retains all the darkness", carried by character and light rather than by count.
 - **Superseded 2026-10-09, design session (CDH-0001):** the sprite direction moved from 24 × 24 pixel art to original vector characters, 240 × 280 source, six material roles, cel-shaded, static in the matrices and animated only in the selected detail; see `docs/design/cockpit-v0/chibi/README.md`. The actor mapping, the two-palette rule, the class-colour accent and the noise rule are unchanged. The design track's own handoffs are `CDH-NNNN` under `docs/handoff/cockpit-design/` (HANDOFF-0042 registers them).
 
 ## Open (Michou has not ruled)

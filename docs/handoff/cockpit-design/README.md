@@ -46,7 +46,7 @@ Stakes 1–5 (how visible, how costly to change after approval) × edge 0–1 (t
 
 | item | stakes × edge | disposition |
 | --- | --- | --- |
-| The station's look as a whole | 4 × 0.7 = 2.8 | **asked** (brief of 2026-10-16); recommendation: keep the direction, iterate in cycles |
+| The station's look as a whole | 4 × 0.7 = 2.8 | **answered 2026-10-22, taken:** keep the direction and iterate in cycles, with less clutter on screen across every area as the UI is refined (the reader's Decided list) |
 | The station replaces or joins board 9's four-column wall when the cockpit is built | 4 × 0.6 = 2.4 | **asked**; recommendation: joins — `w` cycles desk → wall → station |
 | Whether "you" on the bridge should resemble Michou | 3 × 0.8 = 2.4 | **asked**; recommendation: no likeness, the chalk silhouette stays |
 | `Enter` in the tray sets the `r` filter (as drawn) or scrolls to the run | 3 × 0.4 = 1.2 | decided: as drawn; approval screen |
@@ -70,7 +70,11 @@ Stakes 1–5 (how visible, how costly to change after approval) × edge 0–1 (t
 | CW22 board 3's filter buttons at 20 px | a check | fixed (CDH-0017) |
 | CW14 the artifact host paints after `load`; CW15 the loop guard; CW21 explicit row names | facts | recorded, nothing to decide |
 
-Asked and answered: (none yet under ADR-023). Taken-recommendation tally: —.
+Asked and answered: 2026-10-22 00:00, the station's look as a whole: recommendation taken (keep the direction), with a standing addition, "i like the station and the whole vibe all together, but i think as we refine the UI in general across all areas maybe less clutter on the screen would be better" (recorded in `docs/readers/cockpit-design.md`, Decided). Still open: joins or replaces board 9; a likeness. Taken-recommendation tally: 1 of 1.
+
+## Status 2026-10-22 00:05
+
+**Michou answered the brief's first question** (the station's look as a whole): the recommendation is taken, with a standing direction, less clutter on screen across every area as the UI is refined. It is recorded on the "Asked and answered" line and in the reader's Decided list, which Codex and the review prompt read first. Two questions of the brief remain his: joins or replaces board 9, and a likeness. No row is `ready`.
 
 ## Status 2026-10-21 23:50
 
