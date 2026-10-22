@@ -284,7 +284,7 @@ def test_f18_loose_loads_no_project_settings_and_carries_claude_md(
     argv = calls[0][1]
     assert argv[:3] == ["claude", "--setting-sources", "local"]
     carried = Path(argv[argv.index("--append-system-prompt-file") + 1])
-    assert carried.read_text() == "# The constitution\nRead it.\n", "the committed CLAUDE.md"
+    assert carried.read_text().startswith("# The constitution\nRead it.\n"), "CLAUDE.md first"
     found = [
         e for e in ledger.read(ledger.read_default_dirs(settings, base)) if e["job"] == "session"
     ]
@@ -294,3 +294,63 @@ def test_f18_loose_loads_no_project_settings_and_carries_claude_md(
     _, interactive = launched(base, settings, "work")
     assert interactive[0][1][:3] == ["claude", "--setting-sources", "project,local"]
     assert "--append-system-prompt-file" not in interactive[0][1]
+
+
+@pytest.mark.blocking
+def test_0056_loose_carries_claude_md_then_the_skill_then_the_slice(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """HANDOFF-0056 §3: one carried file, `CLAUDE.md` first, then the committed `kgme-atlas`
+    skill, then the handoff's slice built from the workspace; the start note records the
+    slice's sha256, its token estimate, and how many nodes were cut."""
+    import subprocess
+
+    base, settings = write_checkout(tmp_path)
+    (base / "kgme").mkdir()
+    (base / "kgme" / "toy.py").write_text('"""The toy."""\n')
+    (base / "skills" / "kgme-atlas").mkdir(parents=True)
+    (base / session.SKILL).write_text("# kgme-atlas\nAsk for a slice.\n")
+    subprocess.run(["git", "add", "-A"], cwd=base, check=True)
+    subprocess.run(
+        ["git", "-c", "user.name=t", "-c", "user.email=t@l", "commit", "-qm", "s"],
+        cwd=base,
+        check=True,
+    )
+    monkeypatch.chdir(write_workspace(base, tmp_path))
+    code, calls = launched(base, settings, "loose", "HANDOFF-9047", ["build it"])
+    assert code == 0
+    argv = calls[0][1]
+    text = Path(argv[argv.index("--append-system-prompt-file") + 1]).read_text()
+    first, skill, slice_ = (
+        text.index("# Fixture constitution"),
+        text.index("# kgme-atlas"),
+        text.index("# Atlas slice"),
+    )
+    assert first < skill < slice_, "CLAUDE.md, then the skill, then the slice"
+    assert "kgme/toy.py" in text[slice_:], "the slice of the toy's Outputs"
+    found = [
+        e for e in ledger.read(ledger.read_default_dirs(settings, base)) if e["job"] == "session"
+    ]
+    record = json.loads(ledger.read_payload(base, found[-1])[0])
+    assert record["carried"] == ["CLAUDE.md", session.SKILL, "slice"]
+    assert record["slice_sha256"] == session.sha256_text(text[slice_:])
+    assert record["slice_tokens"] > 0 and record["slice_cut"] == 0
+
+
+@pytest.mark.blocking
+def test_0056_a_loose_dry_run_shows_the_carried_file_in_order(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    base, settings = write_checkout(tmp_path)
+    monkeypatch.chdir(write_workspace(base, tmp_path))
+    code = session.run_session(
+        "loose", "HANDOFF-9047", [], base, settings, dry_run=True, execute=lambda *a: None
+    )
+    assert code == 0
+    out = capsys.readouterr().out
+    carried = out.split("--- carried: CLAUDE.md, slice ---\n", 1)[1]
+    assert carried.index("# Fixture constitution") < carried.index("# Atlas slice: HANDOFF-9047")
+    note = [
+        e for e in ledger.read(ledger.read_default_dirs(settings, base)) if e["job"] == "session"
+    ]
+    assert "slice sha256=" in note[-1]["summary"]

@@ -116,6 +116,44 @@ def read_committed_claude_md(main: Path) -> str:
     return read_committed(main, "CLAUDE.md")
 
 
+SKILL = "skills/kgme-atlas/SKILL.md"
+
+
+def read_carried_prompt(
+    main: Path, workspace: Path, settings: dict, handoff: str
+) -> tuple[str, dict]:
+    """Effect: the one file a `loose` run passes with `--append-system-prompt-file`, in
+    order: the main checkout's committed `CLAUDE.md`, the committed `kgme-atlas` skill when
+    Michou has applied it, and the handoff's atlas slice built from the workspace
+    (HANDOFF-0056 §3); and what the start note records of the last two. A slice that cannot
+    be built is left out and its reason recorded: it is an aid, never a reason to refuse."""
+    from kgme import atlas_read
+
+    parts = [read_committed_claude_md(main)]
+    record: dict = {"carried": ["CLAUDE.md"]}
+    try:
+        skill = read_committed(main, SKILL)
+    except ValueError:
+        skill = ""
+    if skill:
+        parts.append(skill)
+        record["carried"].append(SKILL)
+        record["skill_sha256"] = sha256_text(skill)
+    try:
+        built = atlas_read.read_slice(workspace, settings, handoff, [], None)
+    except (OSError, ValueError, subprocess.CalledProcessError) as error:
+        record["slice_error"] = f"{type(error).__name__}: {error}"[:200]
+    else:
+        parts.append(built.text)
+        record["carried"].append("slice")
+        record |= {
+            "slice_sha256": sha256_text(built.text),
+            "slice_tokens": built.tokens,
+            "slice_cut": built.cut,
+        }
+    return "\n\n".join(p.rstrip("\n") for p in parts) + "\n", record
+
+
 def read_committed(main: Path, name: str) -> str:
     """Effect: `name` as the main checkout's `HEAD` holds it, or `ValueError` when it has none."""
     done = subprocess.run(
@@ -219,9 +257,9 @@ def read_launch(
         rendered, policy_sha = carry_policy(rendered, read_main_policy(main), main)
     body = json.dumps(rendered, indent=2, sort_keys=True) + "\n"
     copy = paths.scratch_dir(settings, main) / "sessions" / run / f"{level}.json"
-    claude_md, claude_path = "", None
+    claude_md, claude_path, carried = "", None, {}
     if level == "loose":
-        claude_md = read_committed_claude_md(main)
+        claude_md, carried = read_carried_prompt(main, workspace, settings, handoff)
         claude_path = copy.with_name("CLAUDE.md")
     argv = build_argv(level, copy, model, caps, extra, claude_path)
     record = {
@@ -235,6 +273,7 @@ def read_launch(
         "policy_sha256": policy_sha,
         "claude_md": claude_path.relative_to(main).as_posix() if claude_path else None,
         "claude_md_sha256": sha256_text(claude_md) if claude_path else None,
+        **carried,
         "env": dict(sorted(env.items())),
         "argv": argv,
         "model": model,
@@ -291,7 +330,8 @@ def run_session(
     execute: Callable[[str, list[str], dict], None] = os.execvpe,
 ) -> int:
     """The command: build, record, then replace this process with `claude`. A dry run prints
-    the argv and the settings and records one note; nothing else is written."""
+    the argv, the settings, and any carried file, and records one note; nothing else is
+    written."""
     run = events.new_ulid()
     try:
         launch, record = read_launch(level, handoff, extra, base, settings, run)
@@ -302,8 +342,13 @@ def run_session(
     if dry_run:
         print(" ".join(launch.argv))
         print(launch.settings, end="")
+        if launch.claude_md:  # the carried file, in order (HANDOFF-0056 §3)
+            print(f"--- carried: {', '.join(record['carried'])} ---")
+            print(launch.claude_md, end="")
         digest = record["settings_sha256"][:16]
         summary = f"session {level} dry run: settings sha256={digest} model={record['model']}"
+        if record.get("slice_sha256"):
+            summary += f" slice sha256={record['slice_sha256'][:16]}"
         event = events.make_event(
             source="kgme", actor="kgme.session", kind="note", job="session",
             key=f"session:{level}:dry-run", summary=summary,

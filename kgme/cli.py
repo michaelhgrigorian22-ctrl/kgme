@@ -77,6 +77,13 @@ def build_parser() -> argparse.ArgumentParser:
     atlas_parser.add_argument(
         "--dry-run", action="store_true", help="count the nodes and notes; write nothing"
     )
+    atlas_parser.add_argument("--slice", metavar="HANDOFF", help="a slice for a handoff (0056)")
+    atlas_parser.add_argument(
+        "--around", action="append", default=[], metavar="PATH", help="a slice around a path"
+    )
+    atlas_parser.add_argument("--base", help="the tree a slice describes (default: here)")
+    atlas_parser.add_argument("--budget", type=int, help="the slice's budget in tokens")
+    atlas_parser.add_argument("--out", help="write the slice here (default: stdout)")
     merge_parser = subcommands.add_parser(
         "merge", help="land a track's green, in-lane commits on main (HANDOFF-0055)"
     )
@@ -342,9 +349,20 @@ def run_track(args: argparse.Namespace) -> int:
 
 
 def run_atlas(args: argparse.Namespace) -> int:
-    """`kgme atlas [--dry-run]` (HANDOFF-0051), in `kgme.atlas_read`, on this checkout."""
+    """`kgme atlas [--dry-run]` (HANDOFF-0051), in `kgme.atlas_read`, on this checkout; with
+    `--slice` or `--around`, a slice of `--base` (HANDOFF-0056), read-only."""
     from kgme import atlas_read, config, paths
 
+    if args.slice or args.around:
+        here = Path.cwd().resolve()
+        # without --base, the checkout around you (F10); with it, that tree as given (F1)
+        base = Path(args.base).resolve() if args.base else atlas_read.read_tree_root(here)
+        # without --base, a relative --around path is one from where you stand (F10)
+        around = args.around if args.base else [str(here / a) for a in args.around]
+        out = Path(args.out) if args.out else None
+        return atlas_read.run_slice(
+            base, config.read_config(), args.slice, around, args.budget, out, args.dry_run
+        )
     return atlas_read.run_atlas(paths.root(), config.read_config(), args.dry_run)
 
 
