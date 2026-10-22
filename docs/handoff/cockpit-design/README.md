@@ -37,7 +37,7 @@ This section uses its own `CDH-0001`, `CDH-0002` sequence, at Michou's request o
 | CDH-0019 | Codex, GPT-6 Astra (builder) | The standing mandate of the track's builder (Michou, 2026-10-16 14:24): merge `main` (HANDOFF-0049's tree) into `design`, take the queue, run the fix loop; the boundary of HANDOFF-0042's builder profile written out. Open since 2026-10-21: step 1 done in `67bfebb` (`main` at `9b166b6`); cycle 1 `0618fa5`, Cowork PASS (AUDIT-CDH-0019-CYCLE-1-REVIEW); stays open across cycles. | [Codex builder](2026-10-16-codex-builder.md) |
 | CDH-0020 | Codex, GPT-6 Astra (builder) | The HUD's active-runs summary wraps below 362 px (CW26, AUDIT-CDH-0019-CYCLE-1-REVIEW, 2 × 0.2 decided); verified with the real station from the local three.js copy. Done 2026-10-21 19:55, commit `037da10`; Cowork's native pass PASS (AUDIT-CDH-0020-REVIEW, KGME Station version 8), one new advisory, CW27. | [HUD summary wrap](2026-10-21-hud-summary-wrap.md) |
 | CDH-0021 | Codex, GPT-6 Astra (builder) | Below 721 px the two HUDs take the ground, so the deck's labels never show through their words (CW27, AUDIT-CDH-0020-REVIEW, 2 × 0.3 decided; approval screen). Done 2026-10-21 23:39, commit `bab44b5`; Cowork's native pass PASS (AUDIT-CDH-0021-REVIEW, KGME Station version 9). | [Phone HUD ground](2026-10-21-phone-hud-ground.md) |
-| CDH-0022 | Codex, GPT-6 Astra (read-only review) | The full UI (the 11 boards with the tray, the cast, the station) at `3937854` against the design philosophy of 2026-10-22, the design prompt and coherence across boards; Michou's request, 2026-10-22 00:03. Proposed; **`ready` in the Codex queue** since 2026-10-22 00:40. | [Full UI review](2026-10-22-full-ui-review.md) |
+| CDH-0022 | Codex, GPT-6 Astra (read-only review) | The full UI (the 11 boards with the tray, the cast, the station) at `3937854` against the design philosophy of 2026-10-22, the design prompt and coherence across boards; Michou's request, 2026-10-22 00:03. Done 2026-10-22; **BLOCK: 5** at `3937854` (AUDIT-CDH-0022). The five correctness repairs enter CDH-0019; the scored philosophy proposals wait for coordinated build rows. | [Full UI review](2026-10-22-full-ui-review.md) |
 
 Both handoffs were explicitly adopted by Michou on 2026-10-09: "theyre good to go i just want to plug and play codex to start working and then just say the word to cowork to read the folder and move forward given the brief". Their files now carry `from: michou` and `status: open`. Codex mechanically recorded Michou's adoption; it did not adopt its own proposal. This approval covers the written local implementation and verification plans, including the scoped board 10 edits. It does not grant final canvas approval.
 
@@ -70,8 +70,18 @@ Stakes 1–5 (how visible, how costly to change after approval) × edge 0–1 (t
 | CW18 board 6's muted text under its filter 2.9:1 | a check | fixed (CDH-0017) |
 | CW22 board 3's filter buttons at 20 px | a check | fixed (CDH-0017) |
 | CW14 the artifact host paints after `load`; CW15 the loop guard; CW21 explicit row names | facts | recorded, nothing to decide |
+| CDH-0022 B1 compact operating header | 4 × 0.5 = 2.0 | proposed for the batched brief: retain vital state and alerts; preserve diagnostics under existing ? / a. Cowork coordinates the redesign after Michou sees the brief. |
+| CDH-0022 B2 persistent disconnect band | 3 × 0.5 = 1.5 | proposed for the batched brief: retain an inspectable snapshot and explicit recovery facts. |
+| CDH-0022 one followed-room dispatch | 3 × 0.4 = 1.2 | recommended for a coordinated build row; preserve all event text and the accepted seven-second bubble lifetime; approval screen. |
+| CDH-0022 shared selected-run context and surface key map | 3 × 0.3 = 0.9 | recommended for coordinated build rows; approval screen. |
+| CDH-0022 causal connectors, snapshot boundary, shared wall selection | 2 × 0.4 = 0.8 | recommended individually in AUDIT-CDH-0022, all facts retained; approval screen. |
+| CDH-0022 component comparison, dormant cursor, help/pane consolidation, portrait pairing | 2 × 0.3 = 0.6 | recommended individually in AUDIT-CDH-0022; coordinated build rows, approval screen. |
 
 Asked and answered: 2026-10-22 00:00, the station's look as a whole: recommendation taken (keep the direction), with a standing addition, "i like the station and the whole vibe all together, but i think as we refine the UI in general across all areas maybe less clutter on the screen would be better" (recorded in `docs/readers/cockpit-design.md`, Decided). 2026-10-22 00:03, Michou made it the design philosophy for every component going forward: "the maximalism here is that the sum of all parts is something almost absurdly extra but in a useful and creative and unexpected but welcome way. that doesnt mean clutter and more for less." (same place). 2026-10-22 00:03, joins or replaces board 9, and a likeness: "yes, and yes", read as agreeing with both recommendations (joins; no likeness). Taken-recommendation tally: 3 of 3; the brief of 2026-10-16 is closed.
+
+## Status 2026-10-22 00:48
+
+**CDH-0022 done: BLOCK, 5 findings at `3937854`.** The [full UI review](../../audit/cockpit-design/cdh-0022-design-review.md) covers all 11 boards, the cast and six fresh station views. It finds specimen contrast, hidden phone focus, unique facts in noise, colour-only activity values and a missing retry context on the key map. The review delivery is the commit titled "design: review full UI against the design philosophy (CDH-0022)". CDH-0019 takes the blocking repairs next; no ready row remains. The coordinated redesign stays unbuilt. Its two-item brief concerns header hierarchy and the disconnected presentation; the three earlier answers and 3-of-3 tally remain unchanged. Native checks of new work remain Cowork's.
 
 ## Status 2026-10-22 00:20
 
@@ -170,7 +180,7 @@ Michou starts Codex with one fixed prompt, every time, from `~/Projects/KGME/des
 | 7 | CDH-0019 | The builder's mandate: merge `main` into `design` first (the prompt's step 1, done in `67bfebb`, `main` at `9b166b6`), then rows 5 and 6, then the fix loop; stays open across cycles | open 2026-10-21 | [Codex builder](2026-10-16-codex-builder.md) |
 | 8 | CDH-0020 | CW26: the station HUD's summary wraps below 362 px; verify with `logs/scratch/vendor/make-local.sh` (the real page, local three.js) at 320, 360, 400, 1440 | done 2026-10-21 | [HUD summary wrap](2026-10-21-hud-summary-wrap.md) |
 | 9 | CDH-0021 | CW27: below 721 px the two HUDs take the ground; verify with `logs/scratch/vendor/make-local.sh` at 320, 360, 400, 720, 721, 1440 | done 2026-10-21 | [Phone HUD ground](2026-10-21-phone-hud-ground.md) |
-| 10 | CDH-0022 | The full UI at `3937854` against the design philosophy; fresh native captures of all 11 boards under `logs/scratch/design-review/cdh-0022/`; the station rendered by Codex | ready 2026-10-22 00:40 | [Full UI review](2026-10-22-full-ui-review.md) |
+| 10 | CDH-0022 | The full UI at `3937854` against the design philosophy; fresh native captures of all 11 boards under `logs/scratch/design-review/cdh-0022/`; the station rendered by Codex | done 2026-10-22 | [Full UI review](2026-10-22-full-ui-review.md) |
 
 ## Start here
 
