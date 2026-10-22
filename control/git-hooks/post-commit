@@ -24,10 +24,24 @@ mkdir -p "$dir"
 atlas() {
   if [ -f "$repo/kgme/atlas.py" ]; then uv run --frozen --project "$repo" kgme atlas; fi
 }
+# The design track lands on main (HANDOFF-0055): after the atlas, on main (Claude Code's
+# commits) and on design (Codex's), `kgme merge design` merges a green, in-lane design commit
+# into the main checkout at a quiet point; a run with nothing to do writes nothing. A checkout
+# whose code predates it (no kgme/merge.py) skips it.
+merge() {
+  # The main checkout's code, whichever checkout committed: the design branch never holds
+  # kgme/merge.py, so a check of the committing checkout would skip every design commit.
+  main="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || return 0
+  main="${main%/.git}"
+  if [ -f "$main/kgme/merge.py" ]; then
+    uv run --frozen --project "$main" kgme merge design --base "$repo"
+  fi
+}
 # Only main is pushed by a hook: the design branch, and any other, is Michou's to push
-# (HANDOFF-0049 review cycle 1 F1, Cowork's ruling). Off main, only the atlas runs.
-if [ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" != "main" ]; then
-  ( trap '' HUP; atlas ) >> "$dir/atlas.log" 2>&1 &
+# (HANDOFF-0049 review cycle 1 F1, Cowork's ruling). Off main, the atlas runs, and on design the merge.
+branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
+if [ "$branch" != "main" ]; then
+  ( trap '' HUP; atlas; if [ "$branch" = "design" ]; then merge; fi ) >> "$dir/atlas.log" 2>&1 &
   exit 0
 fi
 (
@@ -39,5 +53,6 @@ fi
       "$(date +%Y-%m-%dT%H:%M:%S%z)" "$code" >> "$dir/hook-errors.jsonl"
   fi
   atlas  # after the push
+  merge  # after the atlas
 ) >> "$dir/sync.log" 2>&1 &
 exit 0

@@ -116,3 +116,15 @@ projects = []
 # itself at a turn count or an estimated spend, whichever comes first.
 max_turns = 60
 max_budget_usd = 15
+
+[tracks.design]
+# The design track's lanes (HANDOFF-0055 §1): `kgme merge design` lands a design commit on main
+# by itself only when everything it changes is inside them and the trial's `make check` is
+# green. A folder ends in `/`; anything else is a glob on the whole path. HANDOFF-0042 reuses it.
+lanes = [
+  "docs/design/",
+  "docs/handoff/cockpit-design/",
+  "docs/audit/cockpit-design/",
+  "docs/readers/cockpit-design*.md",
+  "tests/test_design_*.py",
+]

@@ -62,7 +62,8 @@
       "Edit(/memory/daily/**)",
       "Edit(/control/**)",
       "Edit(/.claude/**)",
-      "Edit(/kgme.toml)"
+      "Edit(/kgme.toml)",
+      "Bash(*kgme approve*)"
     ]
   },
   "hooks": {

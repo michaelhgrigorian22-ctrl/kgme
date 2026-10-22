@@ -58,10 +58,12 @@ def test_tier1_paths_are_absolute_after_resolution() -> None:
 
 
 @pytest.mark.blocking
-def test_cli_lists_eleven_subcommands_and_lint_is_a_no_op() -> None:
+def test_cli_lists_thirteen_subcommands_and_lint_is_a_no_op() -> None:
     names = set(cli.build_parser()._subparsers._group_actions[0].choices)
     assert names == {
         "atlas",
+        "merge",
+        "approve",
         "session",
         "brief",
         "capture",

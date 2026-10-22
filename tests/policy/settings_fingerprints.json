@@ -17,6 +17,7 @@
   "allow Edit(/tests/**)": "f71055db188e71e20c4f83329f368376def11f01990e49064258c11fadf6cb40",
   "allow Read": "9b9a8d05a7ec353bda84f9c1bb3178c299de3001b5e970508ddc889c487f92ca",
   "defaultMode": "37a8eec1ce19687d132fe29051dca629d164e2c4958ba141d5f4133a33f0688f",
+  "deny Bash(*kgme approve*)": "3db46751c5d0530a103053c942582a05d9093035b26beae44fd1efefb92b4c44",
   "deny Bash(curl * | bash)": "da1ddbd57aa2ef3ce2ce02b79034083ae7741973d76e32e1320aa4813a1e10f4",
   "deny Bash(curl * | sh)": "36a9dc13c91824d2278975860825a8445936843b0ce9f2978be0e63b2b66915f",
   "deny Bash(git branch -D*)": "a7677833669fed6cb392f5a6f884c72b1de38971d9266d78caae955e5bd613dc",

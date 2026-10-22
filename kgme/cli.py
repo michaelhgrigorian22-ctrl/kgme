@@ -23,6 +23,7 @@ events. `lint`, `ledger read`, and `review --dry-run` only read.
 import argparse
 import json
 import sys
+from pathlib import Path
 
 CLASSES = ("blocking", "transient", "cosmetic", "advisory")
 NOT_BUILT = {
@@ -76,6 +77,21 @@ def build_parser() -> argparse.ArgumentParser:
     atlas_parser.add_argument(
         "--dry-run", action="store_true", help="count the nodes and notes; write nothing"
     )
+    merge_parser = subcommands.add_parser(
+        "merge", help="land a track's green, in-lane commits on main (HANDOFF-0055)"
+    )
+    merge_parser.add_argument("track", choices=("design",))
+    merge_parser.add_argument(
+        "--dry-run", action="store_true", help="run the trial; record and merge nothing"
+    )
+    merge_parser.add_argument("--base", help="the checkout that committed (the hook's)")
+    approve_parser = subcommands.add_parser(
+        "approve", help="Michou's approval of a thing at a commit on main (HANDOFF-0055)"
+    )
+    approve_parser.add_argument("--what", help="what is approved, e.g. canvas")
+    approve_parser.add_argument("--sha", help="the approved commit, on main")
+    approve_parser.add_argument("--note", default="", help="his words")
+    approve_parser.add_argument("--show", metavar="WHAT", help="print the newest approval")
     clean_parser = subcommands.add_parser(
         "clean", help="delete disposable outputs by named target; a dry run unless --yes"
     )
@@ -162,6 +178,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_atlas(args)
     if args.command == "session":
         return run_session(args)
+    if args.command in ("merge", "approve"):
+        return run_track(args)
     print(f"kgme {args.command}: not built ({NOT_BUILT[args.command]})", file=sys.stderr)
     return 2
 
@@ -298,6 +316,29 @@ def run_session(args: argparse.Namespace) -> int:
     return session.run_session(
         args.level, args.handoff, extra, paths.root(), config.read_config(), args.dry_run
     )
+
+
+def run_track(args: argparse.Namespace) -> int:
+    """`kgme merge` and `kgme approve` (HANDOFF-0055), in `kgme.merge` and `kgme.approve`."""
+    from kgme import approve, config, merge, paths
+
+    settings = config.read_config()
+    if args.command == "merge":
+        from kgme import ledger
+
+        base = Path(args.base).resolve() if args.base else paths.root()
+        # the main checkout's kgme.toml governs a merge into main, never a branch's own lanes
+        # or check (review cycle 3 F12)
+        governing = ledger.read_main_checkout(base) / "kgme.toml"
+        if governing.is_file():
+            settings = config.read_config(governing)
+        return merge.run_merge(base, settings, args.track, args.dry_run)
+    if args.show:
+        return approve.run_show(paths.root(), settings, args.show)
+    if not (args.what and args.sha):
+        print("kgme approve: --what and --sha, or --show WHAT", file=sys.stderr)
+        return 2
+    return approve.run_approve(paths.root(), settings, args.what, args.sha, args.note)
 
 
 def run_atlas(args: argparse.Namespace) -> int:
