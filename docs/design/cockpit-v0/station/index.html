@@ -33,7 +33,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--cyan);outl
 .kbd{display:inline-block;min-width:16px;padding:0 5px;border:1px solid var(--cyan);color:var(--cyan);font-size:10px;line-height:16px;text-align:center;border-radius:2px}
 .chip{display:inline-block;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:0 6px;border:1px solid currentColor;line-height:15px;border-radius:1px;white-space:nowrap}
 .c-ok{color:var(--green)}.c-block{color:var(--magenta)}.c-amber{color:var(--amber)}.c-none{color:var(--dim)}.c-live{color:var(--cyan)}
-.source-facts{font-size:11px;color:var(--muted);overflow-wrap:anywhere}
+#system{border-top:1px solid var(--rule);padding-top:10px;font-size:11px;overflow-wrap:anywhere}#system .h{font-size:11px;color:var(--cyan);text-transform:uppercase;letter-spacing:.14em;margin:0 0 8px}#system .col{margin-bottom:8px}#system .val{font-size:11px;white-space:normal}#system dl{display:grid;grid-template-columns:80px minmax(0,1fr);gap:6px 10px;margin:0}#system dt{color:var(--muted)}#system dd{margin:0}
 /* HUD */
 .hud{position:fixed;z-index:6;display:flex;flex-wrap:wrap;gap:10px 22px;align-items:flex-end;padding-inline:36px;min-width:0}
 .hud.top{top:0;left:0;right:0;padding-block:calc(26px + env(safe-area-inset-top,0px)) 8px}
@@ -106,8 +106,9 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--cyan);outl
 #wall .room .lines{display:flex;flex-direction:column;gap:3px;font-size:10px;color:var(--text)}
 #wall .room .lines .t{color:var(--dim);margin-right:6px}
 #wall .room .lines .chip{margin-left:6px;vertical-align:1px}
-body.calm .scan,body.calm .vig,body.calm .frame,body.calm .micro,body.calm #stage,body.calm #labels,body.calm .pane{display:none}
+body.calm .scan,body.calm .vig,body.calm .frame,body.calm .micro,body.calm #stage,body.calm #labels{display:none}
 body.calm .hud{background:var(--ground)}
+body.calm .pane{background:var(--surface)}
 body.calm .chibi{visibility:hidden}
 @media (prefers-reduced-motion:reduce){.blink{animation:none}.scan{display:none}.bubble{transition:none}.frame{transition:none}}
 @media (max-width:720px){.hud{padding-inline:16px;background:var(--ground)}.hud.top .val{font-size:12px;white-space:normal}.tr-sum{white-space:normal}.clock{font-size:18px}.micro{display:none}.pane{right:16px;left:16px;width:auto;top:var(--hudtop,130px);bottom:var(--hudbottom,70px);max-height:none;box-sizing:border-box;scroll-padding-block:8px}#wall{padding-inline:16px}}
@@ -178,17 +179,14 @@ body.calm .chibi{visibility:hidden}
 <div class="frame" id="frame"></div>
 <div class="scan"></div>
 <div class="vig"></div>
-<div class="micro" style="top:7px;left:30px">KGME · Kuang Grade Mark Eleven · cockpit v0 · the station · read-only</div>
-<div class="micro" style="top:7px;right:30px" id="microright">replay of logs/ledger samples · 2026-10-08 · ×20</div>
-<div class="micro" style="bottom:7px;left:30px">ADR-017 view over the ledger · ADR-019 event v1 · hooks 0028 · guard rule 4</div>
-<div class="micro" style="bottom:7px;right:30px">drag to pan · wheel to zoom · click a room to follow it · c drops to the wall</div>
+<div class="micro" style="top:7px;left:30px">KGME</div>
+<div class="micro" style="top:7px;right:30px">· · ·</div>
+<div class="micro" style="bottom:7px;left:30px">◦ ◦ ◦</div>
+<div class="micro" style="bottom:7px;right:30px">· · ·</div>
 
 <header class="hud top">
   <div class="col"><span class="lbl">clock</span><span class="clock" id="clock">19:40:02<small> −07:00</small></span></div>
-  <div class="col"><span class="lbl">ledger</span><span class="val"><span class="c-live blink">●</span> live · <b style="font-weight:500" id="nev">0</b> events · <span id="nrun">0</span> runs <span style="color:var(--dim)">· replay <span id="nloop">1</span></span></span></div>
-  <div class="col"><span class="lbl">session</span><span class="val">c70d687b…8447 <span style="color:var(--dim)">claude-code</span></span></div>
-  <div class="col"><span class="lbl">harnesses</span><span class="val">claude 2.1.111 · codex 0.154.0 <span style="color:var(--dim)">· arbiter claude-opus-5-5 · ollama idle</span></span></div>
-  <div class="col"><span class="lbl">hull</span><span class="val" id="hull"><span style="color:var(--dim)">nominal</span></span></div>
+        <div class="col"><span class="lbl">hull</span><span class="val" id="hull"><span style="color:var(--dim)">nominal</span></span></div>
   <div class="col">
     <span class="lbl">active runs · <span class="kbd">a</span></span>
     <span class="vh" id="traystatus" role="status" aria-atomic="true">active runs: idle</span>
@@ -205,7 +203,10 @@ body.calm .chibi{visibility:hidden}
 <aside class="pane" id="pane" hidden aria-label="runs in the followed room">
   <div class="head"><span class="lbl" id="panetitle">active runs</span><button type="button" class="lbl" id="paneclose" style="color:var(--cyan)"><span class="kbd">Esc</span> closes</button></div>
   <div id="panerows"></div>
-  <div class="source-facts" data-source-facts></div>
+  <section id="system" aria-label="system facts"><h2 class="h">System</h2><div class="col"><span class="lbl">ledger</span><span class="val"><span class="c-live blink">●</span> live · <b style="font-weight:500" id="nev">0</b> events · <span id="nrun">0</span> runs <span style="color:var(--dim)">· replay <span id="nloop">1</span></span></span></div>
+<div class="col"><span class="lbl">session</span><span class="val">c70d687b…8447 <span style="color:var(--dim)">claude-code</span></span></div>
+<div class="col"><span class="lbl">harnesses</span><span class="val">claude 2.1.111 · codex 0.154.0 <span style="color:var(--dim)">· arbiter claude-opus-5-5 · ollama idle</span></span></div>
+<dl><dt>Surface</dt><dd>KGME · Kuang Grade Mark Eleven · cockpit v0 · the station · read-only</dd><dt>Replay</dt><dd id="replaymeta">replay of logs/ledger samples · 2026-10-08 · ×20</dd><dt>Provenance</dt><dd>ADR-017 view over the ledger · ADR-019 event v1 · hooks 0028 · guard rule 4</dd><dt>Hook latency</dt><dd>Not measured by this replay.</dd><dt>Claude Max</dt><dd>Quota and reset not supplied by this replay.</dd><dt>Codex Plus</dt><dd>Quota and reset not supplied by this replay.</dd><dt>Source</dt><dd>Local sample-events.jsonl; replay, not a live ledger poll.</dd><dt>Origin</dt><dd id="systemorigin"></dd><dt>Navigation</dt><dd>drag to pan · wheel to zoom · click a room to follow it · c drops to the wall</dd></dl></section>
   <div class="lbl" style="padding-top:6px;border-top:1px solid var(--rule)"><span class="kbd">1</span>–<span class="kbd">7</span> rooms · <span class="kbd">Enter</span> on a row filters the timeline to its run (board 3)</div>
 </aside>
 
@@ -215,14 +216,13 @@ body.calm .chibi{visibility:hidden}
     <div class="lbl">calm removes the deck, the frame and the portraits; the HUD above and every fact below were already text · <span class="kbd">c</span> returns</div>
   </div>
   <div class="val">active runs · <span id="wallsum">idle</span> <span style="color:var(--dim)">· hull</span> <span id="wallhull"><span style="color:var(--dim)">nominal</span></span></div>
-  <div class="source-facts" data-source-facts></div>
   <div class="grid" id="wallgrid"></div>
 </section>
 
 <footer class="hud bottom">
   <span><span class="kbd">1</span>–<span class="kbd">7</span> follow a room</span>
   <span><span class="kbd">Esc</span> whole deck</span>
-  <span><span class="kbd">a</span> runs</span>
+  <span><span class="kbd">a</span> runs + system</span>
   <span><span class="kbd">c</span> calm → wall</span>
   <span><span class="kbd">p</span> pause</span>
   <span><span class="kbd">r</span> restart replay</span>
@@ -640,7 +640,7 @@ function syncRows(container, list, now, paint, emptyText) {
 let paneOpen = false;
 function renderPane(snap) {
   const pane = document.getElementById('pane');
-  if (!paneOpen && !following) { pane.hidden = true; return; }
+  if ((!paneOpen && !following) || (document.body.classList.contains('calm') && !paneOpen)) { pane.hidden = true; return; }
   pane.hidden = false;
   if (!snap) return;
   const list = following ? snap.live.filter(x => x.run.room === following) : snap.live;
@@ -677,14 +677,15 @@ addEventListener('keydown', e => {
   if (e.target && e.target.closest && e.target.closest('input,textarea,select,[contenteditable]')) return;   // WCAG 2.1.4: single-character keys never act in a text field
   if (e.key >= '1' && e.key <= '7') { follow(ROOMS[+e.key - 1].id); }
   else if (e.key === 'Escape') { if (paneOpen) { paneOpen = false; renderPane(); } else unfollow(); }
-  else if (e.key === 'a') { paneOpen = !paneOpen; following = null; setFollowing(); }
+  else if (e.key === 'a') { togglePane(); }
   else if (e.key === 'c') { setCalm(!document.body.classList.contains('calm')); }
   else if (e.key === 'r') { resetReplay(); }
   else if (e.key === 'p') { setPaused(!paused); }
 });
 document.getElementById('pause').addEventListener('click', () => setPaused(!paused));
-document.getElementById('trayopen').addEventListener('click', () => { paneOpen = !paneOpen; following = null; setFollowing(); });
-document.getElementById('paneclose').addEventListener('click', () => { paneOpen = false; following = null; setFollowing(); });
+function togglePane() { paneOpen = !paneOpen; following = null; setFollowing(); (paneOpen ? document.getElementById('paneclose') : document.getElementById('trayopen')).focus(); }
+document.getElementById('trayopen').addEventListener('click', togglePane);
+document.getElementById('paneclose').addEventListener('click', () => { paneOpen = false; following = null; setFollowing(); document.getElementById('trayopen').focus(); });
 
 // Keep the actual focused room button visible without changing the scene or HUD.
 let focusedRoomAnchor;
@@ -704,7 +705,7 @@ function keepRoomFocusVisible() {
 let now0 = performance.now(), paused = false;
 function setPaused(on) {   // CDH-0014: auto-rotation-controls (ux-guidelines 108); the toggle keeps one name and reports its state
   paused = on; const b = document.getElementById('pause'); b.textContent = on ? 'play' : 'pause'; b.setAttribute('aria-pressed', String(on));
-  document.getElementById('microright').dataset.paused = on ? '1' : '';
+  document.getElementById('replaymeta').dataset.paused = on ? '1' : '';
 }
 function frame(t) {
   requestAnimationFrame(frame);
@@ -740,9 +741,8 @@ function frame(t) {
   events = text.split('\n').filter(Boolean).map(l => JSON.parse(l)).sort((a, b) => a.ts < b.ts ? -1 : 1);
   const stamps = events.map(e => Date.parse(e.ts)).filter(Number.isFinite);
   lastTs = stamps.length ? Math.max(...stamps) : T0 + 15 * 60 * 1000; loopEnd = lastTs + LOOP_TAIL;
-  document.getElementById('microright').textContent = `replay of ${events.length} ledger samples · 2026-10-08 ${fmtClock(START)} → ${fmtClock(lastTs)} · ×${SPEED} · loops`;
-  const sourceFacts = [...document.querySelectorAll('.micro')].map(el => el.textContent).join(' · ');
-  for (const el of document.querySelectorAll('[data-source-facts]')) el.textContent = sourceFacts;
+  document.getElementById('systemorigin').textContent = location.origin;
+  document.getElementById('replaymeta').textContent = `replay of ${events.length} ledger samples · 2026-10-08 ${fmtClock(START)} → ${fmtClock(lastTs)} · ×${SPEED} · loops`;
   if (reduced) setPaused(true);   // CDH-0014: moving content stops when reduced motion is requested; p or the control resumes it
   lastReal = performance.now(); requestAnimationFrame(frame);
 })().catch(err => { document.getElementById('traysum').textContent = 'the cast or the ledger did not load: ' + err.message; console.error(err); });

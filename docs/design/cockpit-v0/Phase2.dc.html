@@ -39,6 +39,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .blink{animation:blink 1.2s steps(2,end) infinite}
 @keyframes blink{50%{opacity:.2}}
 @media (prefers-reduced-motion:reduce){.blink{animation:none}.scan{display:none}}
+.quota-alert{display:flex;align-items:center;gap:8px;min-height:24px;font-size:11px}.quota-track{width:80px;height:7px;border:1px solid currentColor}.quota-track i{display:block;height:100%;background:currentColor}
 </style>
 </helmet>
 <div class="hud" style="--f:#39d0ff;--fg:rgba(57,208,255,.10)">
@@ -49,29 +50,28 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   <div class="tx" style="bottom:16px"></div>
   <div class="ty" style="left:16px"></div>
   <div class="ty" style="right:16px"></div>
-  <div class="micro" style="top:7px;left:30px">KGME · cockpit · the Phase 2 surface, drawn so the boundary is visible</div>
-  <div class="micro" style="top:7px;right:30px">dashed = not built · roadmap Phase 2 · ADR-017 build order</div>
-  <div class="micro" style="bottom:7px;left:30px">every dashed control routes through the ledger when it exists: intent before, outcome after</div>
-  <div class="micro" style="bottom:7px;right:30px">v0 ships none of this</div>
+  <div class="micro" style="top:7px;left:30px">KGME</div>
+  <div class="micro" style="top:7px;right:30px">· · ·</div>
+  <div class="micro" style="bottom:7px;left:30px">◦ ◦ ◦</div>
+  <div class="micro" style="bottom:7px;right:30px">· · ·</div>
 </sc-if>
 
 <header style="position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:12px 22px;align-items:flex-end;padding:30px 36px 10px">
   <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">clock</span><span style="font-size:22px;font-weight:700;letter-spacing:.04em">19:52:14<span style="color:#6f8290;font-size:12px;font-weight:400"> −07:00</span></span></div>
   <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">ledger</span><span style="font-size:14px"><span class="c-live blink">●</span> live · <b style="font-weight:500">1 479</b> events</span></div>
-  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">session</span><span style="font-size:14px">c70d687b…8447 <span style="color:#6f8290">claude-code</span></span></div>
-  <div style="flex:1 1 40px"></div>
-  <div class="p2" style="padding:8px 12px;display:flex;flex-direction:column;gap:4px;min-width:330px">
+  <dc-import name="Tray" view="bar" runs="{{trayRuns}}" calm="{{calm}}" hint-size="300px,38px"></dc-import>
+</header>
+<div style="position:relative;z-index:1;padding:4px 36px 8px;display:flex;flex-wrap:wrap;gap:14px"><div class="p2" style="padding:8px 12px;display:flex;flex-direction:column;gap:4px;min-width:330px">
     <span class="tag">phase 2 · model routing</span>
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span class="lbl" style="color:#6f8290">model · <span class="kbd">m</span></span><span style="font-size:12px">optimized ▾</span></div>
     <div style="font-size:11px">would answer with <span style="color:#cfe6ef">ollama · qwen3:14b</span> <span style="color:#6f8290">· why: transform, tier 2, no tools · cost ≈ 0 · 1 keystroke overrides</span></div>
     <div style="display:flex;gap:6px;font-size:10px"><span class="chip" style="color:#6f8290">claude-fable-5-1</span><span class="chip" style="color:#6f8290">claude-opus-5-5</span><span class="chip" style="color:#6f8290">gpt-6-astra</span><span class="chip" style="color:#6f8290">groq</span><span class="chip" style="color:#cfe6ef;border-style:solid">ollama</span></div>
   </div>
-  <div class="p2" style="padding:8px 12px;display:flex;flex-direction:column;gap:4px">
+<div class="p2" style="padding:8px 12px;display:flex;flex-direction:column;gap:4px">
     <span class="tag">phase 2 · vs code follow</span>
     <span class="lbl" style="color:#6f8290">editor is following</span>
     <span style="font-size:11px">kgme/sync_io.py:88 <span style="color:#6f8290">· code --goto · off with <span class="kbd">v</span></span></span>
-  </div>
-</header>
+  </div></div>
 
 <div style="position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:14px;padding:4px 36px 8px;flex:1 1 auto;align-content:flex-start">
   <aside style="flex:0 1 232px;min-width:200px;display:flex;flex-direction:column;gap:12px">
@@ -127,7 +127,6 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   </aside>
 </div>
 
-<div class="source-facts" style="position:relative;z-index:1;padding:0 36px 8px;font-size:11px;color:#7a8d9b;overflow-wrap:anywhere">KGME · cockpit · the Phase 2 surface, drawn so the boundary is visible · dashed = not built · roadmap Phase 2 · ADR-017 build order · every dashed control routes through the ledger when it exists: intent before, outcome after · v0 ships none of this</div>
 <footer style="position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;padding:8px 36px 26px;font-size:11px;color:#6f8290">
   <span><span class="kbd">j</span> <span class="kbd">k</span> move</span>
   <span><span class="kbd">/</span> filter</span>
@@ -144,7 +143,14 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"calm":{"editor":"boolean","default":false,"section":"HUD"},"$preview":{"width":1440,"height":900}}'>
 class Component extends DCLogic {
-  renderVals() { return { noise: !(this.props.calm ?? false) }; }
+  trayRuns() {
+    return [
+      { actor: 'builder', mapping: 'claude-code.*', run: 'c70d687b…8447', lifecycle: 'working', elapsed: '12m 12s', event: 'Edit docs/audit/2026-10-08-push-on-commit.md · ok', chip: 'ok', focus: true },
+      { actor: 'builder', mapping: 'claude-code.*', run: '3f9e21aa…c0d1', lifecycle: 'working', quiet: '4m', elapsed: '41m 03s', event: 'Read docs/design/cockpit-v0/canvas.json · ok', chip: 'ok' },
+      { actor: 'reviewer', mapping: 'kgme.review', run: '01M4F8NR…04F', lifecycle: 'transient', elapsed: '9m 14s', event: 'cycle 1 tooling exhausted · not a strike · retry after 23:06', chip: 'blocking' }
+    ];
+  }
+  renderVals() { const calm = this.props.calm ?? false; return { noise: !calm, calm, trayRuns: this.trayRuns() }; }
 }
 </script>
 </body>
