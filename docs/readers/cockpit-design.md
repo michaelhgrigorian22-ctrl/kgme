@@ -3,7 +3,7 @@ id: READER-COCKPIT-DESIGN
 type: note
 status: active
 created: 2026-10-09T21:50:00-07:00
-modified: 2026-10-22T00:20:00-07:00
+modified: 2026-10-22T02:15:00-07:00
 author: cowork
 source: stated
 tier: 2
@@ -51,6 +51,8 @@ CDH-0001 implemented the reusable cast; CDH-0002 found the native iframe failure
   It refines 2026-10-08's "almost too much": the brief stays "outrageous, but it retains all the darkness".
 - **The station joins board 9's wall (Michou, 2026-10-22):** when the cockpit is built, `w` cycles desk → wall → station.
 - **No likeness (Michou, 2026-10-22):** "you" on the bridge stays the chalk silhouette.
+- **The compact operating header (Michou, 2026-10-22, B1):** operating surfaces show state and alerts; system context (session, versions, latency, full quotas, origin, ledger file, provenance) lives once, under `?` on desk and wall and under `a` on the station; the corner micro-labels carry no fact.
+- **The disconnect band (Michou, 2026-10-22, B2):** a disconnected cockpit shows a persistent band under the header, never a modal, and the last snapshot stays inspectable.
 - **Superseded 2026-10-09, design session (CDH-0001):** the sprite direction moved from 24 × 24 pixel art to original vector characters, 240 × 280 source, six material roles, cel-shaded, static in the matrices and animated only in the selected detail; see `docs/design/cockpit-v0/chibi/README.md`. The actor mapping, the two-palette rule, the class-colour accent and the noise rule are unchanged. The design track's own handoffs are `CDH-NNNN` under `docs/handoff/cockpit-design/` (HANDOFF-0042 registers them).
 
 ## Open (Michou has not ruled)
