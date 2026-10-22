@@ -23,7 +23,8 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--cyan);outl
 #stage{position:fixed;inset:0;background:var(--ground)}
 #gl{position:absolute;inset:0;width:100%;height:100%;display:block}
 #labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-#labels>div{pointer-events:none}
+#labels>div{pointer-events:none;z-index:1!important}
+#labels>div:has(.chip-room:focus-visible){z-index:7!important}
 .scan{position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(207,230,239,.035) 0 1px,transparent 1px 3px);z-index:4}
 .vig{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.6) 100%);z-index:2}
 .frame{position:fixed;inset:10px;pointer-events:none;border:1px solid var(--hull,#39d0ff);box-shadow:inset 0 0 90px var(--hullglow,rgba(57,208,255,.10));z-index:3;transition:border-color .6s,box-shadow .6s}
@@ -32,6 +33,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--cyan);outl
 .kbd{display:inline-block;min-width:16px;padding:0 5px;border:1px solid var(--cyan);color:var(--cyan);font-size:10px;line-height:16px;text-align:center;border-radius:2px}
 .chip{display:inline-block;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:0 6px;border:1px solid currentColor;line-height:15px;border-radius:1px;white-space:nowrap}
 .c-ok{color:var(--green)}.c-block{color:var(--magenta)}.c-amber{color:var(--amber)}.c-none{color:var(--dim)}.c-live{color:var(--cyan)}
+.source-facts{font-size:11px;color:var(--muted);overflow-wrap:anywhere}
 /* HUD */
 .hud{position:fixed;z-index:6;display:flex;flex-wrap:wrap;gap:10px 22px;align-items:flex-end;padding-inline:36px;min-width:0}
 .hud.top{top:0;left:0;right:0;padding-block:calc(26px + env(safe-area-inset-top,0px)) 8px}
@@ -104,11 +106,11 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--cyan);outl
 #wall .room .lines{display:flex;flex-direction:column;gap:3px;font-size:10px;color:var(--text)}
 #wall .room .lines .t{color:var(--dim);margin-right:6px}
 #wall .room .lines .chip{margin-left:6px;vertical-align:1px}
-body.calm .scan,body.calm .vig,body.calm .frame,body.calm .micro,body.calm #stage,body.calm .pane{display:none}
+body.calm .scan,body.calm .vig,body.calm .frame,body.calm .micro,body.calm #stage,body.calm #labels,body.calm .pane{display:none}
 body.calm .hud{background:var(--ground)}
 body.calm .chibi{visibility:hidden}
 @media (prefers-reduced-motion:reduce){.blink{animation:none}.scan{display:none}.bubble{transition:none}.frame{transition:none}}
-@media (max-width:720px){.hud{padding-inline:16px;background:var(--ground)}.hud.top .val{font-size:12px;white-space:normal}.tr-sum{white-space:normal}.clock{font-size:18px}.micro{display:none}.pane{right:16px;left:16px;width:auto;top:auto;bottom:var(--hudbottom,70px);max-height:40vh}#wall{padding-inline:16px}}
+@media (max-width:720px){.hud{padding-inline:16px;background:var(--ground)}.hud.top .val{font-size:12px;white-space:normal}.tr-sum{white-space:normal}.clock{font-size:18px}.micro{display:none}.pane{right:16px;left:16px;width:auto;top:var(--hudtop,130px);bottom:var(--hudbottom,70px);max-height:none;box-sizing:border-box;scroll-padding-block:8px}#wall{padding-inline:16px}}
 /* --- board 10's chibi stylesheet, verbatim (Sprites.dc.html), so the cast renders here exactly as there --- */
 /* Only the SVG body is copied into each symbol. Root paint and material roles
    are preserved here, so every use inherits its own palette and mode. */
@@ -172,7 +174,7 @@ body.calm .chibi{visibility:hidden}
 .chibi.portrait{overflow:hidden}
 </style>
 
-<div id="stage"><canvas id="gl" aria-hidden="true"></canvas><div id="labels"></div></div>
+<div id="stage"><canvas id="gl" aria-hidden="true"></canvas></div><div id="labels"></div>
 <div class="frame" id="frame"></div>
 <div class="scan"></div>
 <div class="vig"></div>
@@ -190,7 +192,7 @@ body.calm .chibi{visibility:hidden}
   <div class="col">
     <span class="lbl">active runs · <span class="kbd">a</span></span>
     <span class="vh" id="traystatus" role="status" aria-atomic="true">active runs: idle</span>
-    <button type="button" class="tr-open" id="trayopen" aria-label="open the active runs pane"><span class="tr-stack" id="traystack" aria-hidden="true"></span><span class="tr-sum" id="traysum">idle</span></button>
+    <button type="button" class="tr-open" id="trayopen" aria-label="open the active runs and source facts pane"><span class="tr-stack" id="traystack" aria-hidden="true"></span><span class="tr-sum" id="traysum">idle</span></button>
   </div>
   <div class="col">
     <span class="lbl">replay · <span class="kbd">p</span></span>
@@ -203,6 +205,7 @@ body.calm .chibi{visibility:hidden}
 <aside class="pane" id="pane" hidden aria-label="runs in the followed room">
   <div class="head"><span class="lbl" id="panetitle">active runs</span><button type="button" class="lbl" id="paneclose" style="color:var(--cyan)"><span class="kbd">Esc</span> closes</button></div>
   <div id="panerows"></div>
+  <div class="source-facts" data-source-facts></div>
   <div class="lbl" style="padding-top:6px;border-top:1px solid var(--rule)"><span class="kbd">1</span>–<span class="kbd">7</span> rooms · <span class="kbd">Enter</span> on a row filters the timeline to its run (board 3)</div>
 </aside>
 
@@ -212,6 +215,7 @@ body.calm .chibi{visibility:hidden}
     <div class="lbl">calm removes the deck, the frame and the portraits; the HUD above and every fact below were already text · <span class="kbd">c</span> returns</div>
   </div>
   <div class="val">active runs · <span id="wallsum">idle</span> <span style="color:var(--dim)">· hull</span> <span id="wallhull"><span style="color:var(--dim)">nominal</span></span></div>
+  <div class="source-facts" data-source-facts></div>
   <div class="grid" id="wallgrid"></div>
 </section>
 
@@ -682,6 +686,20 @@ document.getElementById('pause').addEventListener('click', () => setPaused(!paus
 document.getElementById('trayopen').addEventListener('click', () => { paneOpen = !paneOpen; following = null; setFollowing(); });
 document.getElementById('paneclose').addEventListener('click', () => { paneOpen = false; following = null; setFollowing(); });
 
+// Keep the actual focused room button visible without changing the scene or HUD.
+let focusedRoomAnchor;
+function keepRoomFocusVisible() {
+  if (focusedRoomAnchor) focusedRoomAnchor.style.translate = '';
+  focusedRoomAnchor = null;
+  const el = document.activeElement;
+  if (!el?.matches('.chip-room:focus-visible') || document.body.classList.contains('calm')) return;
+  const r = el.getBoundingClientRect(), top = layoutHud.top + 6, bottom = innerHeight - layoutHud.bottom - 6;
+  const x = Math.min(Math.max(r.left, 6), Math.max(6, innerWidth - r.width - 6));
+  const y = Math.min(Math.max(r.top, top), Math.max(top, bottom - r.height));
+  focusedRoomAnchor = el.parentElement;
+  focusedRoomAnchor.style.translate = (x - r.left) + 'px ' + (y - r.top) + 'px';
+}
+
 // ---------------------------------------------------------------- the loop
 let now0 = performance.now(), paused = false;
 function setPaused(on) {   // CDH-0014: auto-rotation-controls (ux-guidelines 108); the toggle keeps one name and reports its state
@@ -712,7 +730,7 @@ function frame(t) {
   }
   if (t - (frame.lastWords || 0) > 250) { frame.lastWords = t; renderWords(clock); }
   if (t - (frame.lastMotion || 0) > 1000) { frame.lastMotion = t; if (rmq.matches !== reduced) setMotion(rmq.matches); }
-  if (!calm) { composer.render(); labels.render(scene, camera); }
+  if (!calm) { composer.render(); labels.render(scene, camera); keepRoomFocusVisible(); }
 }
 
 (async () => {
@@ -723,6 +741,8 @@ function frame(t) {
   const stamps = events.map(e => Date.parse(e.ts)).filter(Number.isFinite);
   lastTs = stamps.length ? Math.max(...stamps) : T0 + 15 * 60 * 1000; loopEnd = lastTs + LOOP_TAIL;
   document.getElementById('microright').textContent = `replay of ${events.length} ledger samples · 2026-10-08 ${fmtClock(START)} → ${fmtClock(lastTs)} · ×${SPEED} · loops`;
+  const sourceFacts = [...document.querySelectorAll('.micro')].map(el => el.textContent).join(' · ');
+  for (const el of document.querySelectorAll('[data-source-facts]')) el.textContent = sourceFacts;
   if (reduced) setPaused(true);   // CDH-0014: moving content stops when reduced motion is requested; p or the control resumes it
   lastReal = performance.now(); requestAnimationFrame(frame);
 })().catch(err => { document.getElementById('traysum').textContent = 'the cast or the ledger did not load: ' + err.message; console.error(err); });
