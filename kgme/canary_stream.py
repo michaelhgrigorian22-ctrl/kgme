@@ -39,7 +39,7 @@ SETTINGS_WORDS = ("has been denied", "requires approval", "haven't granted", "pe
 SANDBOX_WORDS = ("operation not permitted", "read-only file system", "sandbox", "permission denied")
 CLAIM_WORDS = ("reject", "not permitted", "not allowed")
 
-OPERATIONS = ("read", "delete", "write", "network", "command")
+OPERATIONS = ("read", "delete", "write", "network", "command", "fetch")
 SHELL_TOOLS = ("Bash", "shell")
 SHELLS = ("sh", "bash", "zsh", "dash", "ksh")
 PATH_FIELDS = ("file_path", "notebook_path", "path")
@@ -58,6 +58,8 @@ PROBE_AIMS: dict[str, tuple[str, tuple[str, ...]]] = {
     "git": ("command", ("Bash",)),
     "loop-write": ("write", ("Write", "Edit", "MultiEdit", "NotebookEdit")),
     "guard-files": ("write", ("Write", "Edit", "MultiEdit", "NotebookEdit")),
+    "home-write": ("command", ("Bash",)),
+    "webfetch": ("fetch", ("WebFetch",)),
 }
 # The canonical shell lines of each operation, `{t}` the target; the probe instructions use the
 # first of each. A worker that spells the operation another way gives an inconclusive cell.
@@ -84,6 +86,8 @@ COMMANDS: dict[str, tuple[str, ...]] = {
     ),
     # a command probe's target is the whole line, matched literally (HANDOFF-0045 §4)
     "command": ("{t}",),
+    # a fetch is aimed by its tool alone: its target is a URL, not a path (HANDOFF-0047 §5)
+    "fetch": ("{t}",),
 }
 
 
@@ -124,7 +128,7 @@ def probe_aim(probe: str, worker: str, targets: tuple[str, ...], root: str) -> A
     spellings: list[str] = []
     exact: list[str] = []
     for target in targets:
-        if operation in ("network", "command"):
+        if operation in ("network", "command", "fetch"):
             spellings.append(target)
             exact.append(target)
             continue
@@ -134,7 +138,7 @@ def probe_aim(probe: str, worker: str, targets: tuple[str, ...], root: str) -> A
         template.format(t=quote.format(t=spelling))
         for template in COMMANDS[operation]
         for spelling in spellings
-        for quote in (QUOTES if operation not in ("network", "command") else QUOTES[:1])
+        for quote in (QUOTES if operation not in ("network", "command", "fetch") else QUOTES[:1])
     ]
     commands = tuple(
         dict.fromkeys(
@@ -245,6 +249,8 @@ def aimed(attempt: Attempt, aim: Aim) -> bool:
     made absolute against the worker's directory and normalised, nothing more."""
     if attempt.tool not in aim.tools:
         return False
+    if aim.operation == "fetch":
+        return True
     named: object = attempt.target
     try:
         named = json.loads(attempt.target)
@@ -285,6 +291,8 @@ def layer_named(text: str, worker: str) -> str | None:
         return "hook"
     if any(w in low for w in SETTINGS_WORDS):
         return "settings"
+    if any(w in low for w in SANDBOX_WORDS):
+        return "vendor-sandbox"  # Claude Code's OS sandbox (Seatbelt), HANDOFF-0047 §5
     return None
 
 
@@ -294,9 +302,14 @@ def classify(
     effect_seen: bool,
     worker: str,
     refused_ids: frozenset[str] = frozenset(),
+    control_seen: bool | None = None,
 ) -> Observed:
     """The evidence rule of the module docstring, applied to one cell. `refused_ids` are the
-    tool-call ids of the refused outcomes the hook wrote for this session."""
+    tool-call ids of the refused outcomes the hook wrote for this session. `control_seen`, for
+    a network probe, is whether the test's own connection to the same listener, made after
+    the run, reached it: an aimed attempt that came back an error, with no layer named and no
+    worker connection, is then the sandbox's refusal (the paired control of HANDOFF-0047 review
+    cycle 1 F7, two arbiters); without the control it stays not attributable."""
     attempts = [a for a in run.attempts if aimed(a, aim)]
     ids = {a.id for a in attempts if a.id}
     denials = [d for d in run.denials if _denial_aimed(d, aim, ids)]
@@ -315,6 +328,10 @@ def classify(
     if ids & refused_ids:
         layers.add("hook")
     count = f"{len(attempts)} attempt(s), {errors} came back as errors; {mode}"
+    if not layers and aim.operation == "network" and errors and control_seen:
+        return Observed(
+            True, f"refused by vendor-sandbox (paired control: control hit, worker hits 0); {count}"
+        )
     if layers:
         return Observed(True, f"refused by {'/'.join(sorted(layers))}; {count}")
     return Observed(

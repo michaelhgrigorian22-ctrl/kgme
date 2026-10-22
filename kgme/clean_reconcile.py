@@ -73,7 +73,7 @@ def write_reconciled_outcomes(base: Path, dirs: ledger.Dirs, run_id: str) -> tup
     for intent in opened:
         key, intent_id = intent["key"], intent["id"]
         recorded = read_numbers_recorded(dirs, intent_id)
-        data, problem = ledger.read_payload(base, intent)
+        data, problem = ledger.read_payload(ledger.read_record_root(base), intent)
         if data is None and not problem:
             summary = f"{CLOSE}reconciled on start: intent {intent_id} left no payload to check"
             write_recovery_outcome(dirs, run_id, key, intent_id, summary, "error", "transient")

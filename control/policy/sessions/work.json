@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "disableBypassPermissionsMode": "disable"
+  },
+  "sandbox": {
+    "enabled": true,
+    "allowUnsandboxedCommands": false,
+    "failIfUnavailable": true,
+    "filesystem": {
+      "allowWrite": [
+        "{repo}",
+        "{tmp}"
+      ]
+    }
+  }
+}

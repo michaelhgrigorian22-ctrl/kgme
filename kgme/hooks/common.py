@@ -26,11 +26,16 @@ FILE_TOOLS = ("Read", "Edit", "Write", "NotebookEdit", "MultiEdit", "Glob", "Gre
 
 @dataclass(frozen=True)
 class Places:
-    """Where a hook writes: the two streams, the scratch directory, its payload subdirectory."""
+    """Where a hook writes: the two streams, the scratch directory, its payload subdirectory,
+    and the main checkout payload refs are relative to. The streams, the scratch (where the
+    loop's Outputs list is, review cycle 2 F9), and the payloads are the main checkout's from
+    any worktree (HANDOFF-0047 §3; Michou, 2026-10-21: payloads follow the ledger, since
+    worktrees are disposable)."""
 
     streams: ledger.Dirs
     scratch: Path
     payloads: Path
+    root: Path
 
 
 def read_payload() -> dict:
@@ -49,16 +54,18 @@ def read_places(argv: list[str]) -> tuple[Places, dict]:
     streams and never in git. Any other value is ignored."""
     settings = config.read_config()
     flagged = CANARY_STREAMS.match(os.environ.get("KGME_TEST_STREAMS", ""))
+    main = ledger.read_main_checkout()
     if "--test-streams" in argv or flagged:
         # Errors go to the test scratch; payloads stay under logs/scratch/payloads/, the one
         # prefix ADR-019 §1 allows for payload_ref, in a subdirectory tests may delete.
-        scratch = paths.scratch_test_dir(settings)
-        payloads = paths.payloads_dir(settings) / "test"
-        return Places(ledger.read_test_dirs(settings), scratch, payloads), settings
+        scratch = paths.scratch_test_dir(settings, main)
+        payloads = paths.payloads_dir(settings, main) / "test"
+        return Places(ledger.read_test_dirs(settings), scratch, payloads, main), settings
     places = Places(
         ledger.read_default_dirs(settings),
-        paths.scratch_dir(settings),
-        paths.payloads_dir(settings),
+        paths.scratch_dir(settings, main),
+        paths.payloads_dir(settings, main),
+        main,
     )
     return places, settings
 

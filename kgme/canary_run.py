@@ -33,6 +33,7 @@ def run_cell(
     settings_sha: str,
     matrix: Path | None = None,
     fingerprints: canary.Fingerprints | None = None,
+    read_control: Callable[[canary_stream.Run], bool] | None = None,
 ) -> tuple[canary.Observed, canary_stream.Run | None]:
     """Effects: intent, the worker, outcome. A cell that could not be measured is transient:
     an ADR-016 transient against the tooling, never a verdict on a layer."""
@@ -55,6 +56,10 @@ def run_cell(
         state = "complete" if run.complete else "incomplete"
         terminal = f", terminal error {run.subtype or '?'}" if run.error else ""
         return transient(f"invocation failed: exit {run.returncode}, stream {state}{terminal}", run)
-    observed = canary_stream.classify(run, aim, read_effect(run), cell.worker, read_refusals(run))
+    effect = read_effect(run)  # before the control, which itself reaches the listener
+    control = read_control(run) if read_control is not None else None
+    observed = canary_stream.classify(
+        run, aim, effect, cell.worker, read_refusals(run), control_seen=control
+    )
     canary.write_outcome(cell, observed, dirs, run_id, intent, matrix)
     return observed, run

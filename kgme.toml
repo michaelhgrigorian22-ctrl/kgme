@@ -103,8 +103,16 @@ cell_timeout = 150
 reviewer = "gpt-6-astra"
 reviewer_alternate = "gpt-5.6-sol"
 arbiter = "claude-opus-5-5"
+# The model `kgme session` starts every level with (HANDOFF-0047, ADR-022 §1).
+builder = "claude-opus-5-5"
 
 [atlas]
 # Other projects the atlas reads by structure only: folder names, README links, the KGME parts
 # the README names (HANDOFF-0051). A Tier 1 project is refused. Empty until Michou adds one.
 projects = []
+
+[sessions]
+# The hard stops of a `loose` run (HANDOFF-0047, ADR-022 §2): headless, unattended, so it ends
+# itself at a turn count or an estimated spend, whichever comes first.
+max_turns = 60
+max_budget_usd = 15

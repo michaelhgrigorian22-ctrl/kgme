@@ -109,6 +109,10 @@ def run_brief(date: str, dry_run: bool, base: Path, settings: dict) -> int:
     """The run inside one failure boundary: any refusal or exception after the day is known
     good becomes one classified outcome under an intent (`write_failure`); a refusal or an
     `OSError` exits 1, anything else is recorded and raised, loudly (ADR-015)."""
+    refused = ledger.read_worktree_refusal(base)
+    if refused:
+        print(f"kgme brief: {refused}", file=sys.stderr)
+        return 2
     if not brief.valid_date(date):
         print(f"kgme brief: {date!r} is not a day written YYYY-MM-DD", file=sys.stderr)
         return 2
@@ -219,7 +223,7 @@ def run_write(
     payload_text = json.dumps(record, indent=2) + "\n"
     payload = places.payloads / f"brief-{date}-{run_id}.json"
     try:
-        clean_fs.write_payload(places.base, payload, payload_text)
+        clean_fs.write_payload(places.record, payload, payload_text)
     except clean_fs.Refused as refused:
         raise clean_fs.Refused(f"payload directory: {refused}") from refused
     intent_id = ledger.append(
@@ -228,7 +232,7 @@ def run_write(
             run_id,
             key,
             brief.identity_summary(identity, body, date),
-            payload_ref=payload.relative_to(places.base).as_posix(),
+            payload_ref=payload.relative_to(places.record).as_posix(),
             payload_sha256=brief_read.sha256_text(payload_text),
         ),
         places.dirs,

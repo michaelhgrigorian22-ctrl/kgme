@@ -64,11 +64,12 @@ def read_places(settings: dict, base: Path, manifest: Path = MANIFEST) -> brief_
     return brief_read.Places(
         base=base,
         dirs=ledger.read_base_dirs(settings, base),
-        payloads=paths.payloads_dir(settings, base),
+        payloads=paths.payloads_dir(settings, ledger.read_record_root(base)),
         manifest=policy.read_manifest(paths.root() / manifest),
         blocklist=[paths.resolve(p) for p in blocklist if not p.startswith("**/")],
         patterns=[p[3:] for p in blocklist if p.startswith("**/")],
         tier1=paths.tier1_paths(settings, base),
+        record=ledger.read_record_root(base),
     )
 
 
@@ -92,6 +93,10 @@ def run_capture(
     """One capture inside one failure boundary. Words that are not one line, or a `--due` on
     a kind without one, exit 2 before anything; every later refusal or failure is one
     classified outcome under an intent."""
+    refused = ledger.read_worktree_refusal(base)
+    if refused:
+        print(f"kgme capture: {refused}", file=sys.stderr)
+        return 2
     try:
         capture.check_words(words)
     except capture.Unreadable as error:

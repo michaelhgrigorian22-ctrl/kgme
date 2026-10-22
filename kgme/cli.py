@@ -59,6 +59,17 @@ def build_parser() -> argparse.ArgumentParser:
     daily_parser.add_argument(
         "--dry-run", action="store_true", help="print the draft; write nothing"
     )
+    session_parser = subcommands.add_parser(
+        "session", help="start claude at a named level: tight, work, loose (ADR-022)"
+    )
+    session_parser.add_argument("level", choices=("tight", "work", "loose"))
+    session_parser.add_argument("--handoff", help="the handoff a loose run builds")
+    session_parser.add_argument(
+        "--dry-run", action="store_true", help="print the command and settings; start nothing"
+    )
+    # `*`, never REMAINDER: the launcher's own flags are read wherever they sit, and only what
+    # follows `--` reaches `claude` (found by hand, 2026-10-21)
+    session_parser.add_argument("extra", nargs="*", help="after --: extra claude arguments")
     atlas_parser = subcommands.add_parser(
         "atlas", help="regenerate atlas/, the Obsidian lens on how KGME's parts connect"
     )
@@ -149,6 +160,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_daily(args)
     if args.command == "atlas":
         return run_atlas(args)
+    if args.command == "session":
+        return run_session(args)
     print(f"kgme {args.command}: not built ({NOT_BUILT[args.command]})", file=sys.stderr)
     return 2
 
@@ -195,10 +208,16 @@ def run_lint(args: argparse.Namespace) -> int:
 
 
 def run_review(args: argparse.Namespace) -> int:
-    """One review cycle on the staged diff (HANDOFF-0029), or a ruling or override event."""
+    """One review cycle on the staged diff (HANDOFF-0029), or a ruling or override event. From a
+    worktree it refuses before reading any diff (HANDOFF-0047 review cycle 3 F12)."""
     from pathlib import Path
 
-    from kgme import config, review_io, review_run
+    from kgme import config, ledger, paths, review_io, review_run
+
+    refused = ledger.read_worktree_refusal(paths.root())
+    if refused:
+        print(f"kgme review: {refused}", file=sys.stderr)
+        return 2
 
     settings = config.read_config()
     places = review_run.read_places(args.test_streams)
@@ -269,6 +288,16 @@ def run_daily(args: argparse.Namespace) -> int:
 
     date = args.date or datetime.now().astimezone().date().isoformat()
     return daily_io.run_daily(date, paths.root(), config.read_config(), None, args.dry_run)
+
+
+def run_session(args: argparse.Namespace) -> int:
+    """`kgme session <level> [--handoff ID] [-- extra]` (HANDOFF-0047), in `kgme.session`."""
+    from kgme import config, paths, session
+
+    extra = list(args.extra)
+    return session.run_session(
+        args.level, args.handoff, extra, paths.root(), config.read_config(), args.dry_run
+    )
 
 
 def run_atlas(args: argparse.Namespace) -> int:

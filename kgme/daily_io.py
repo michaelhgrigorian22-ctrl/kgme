@@ -132,7 +132,7 @@ def read_held(places: brief_read.Places, date: str, unread: list[str]) -> list[t
     for intent in ledger.read_ok_intents(record.JOB, places.dirs):
         if not capture_recover.is_held(intent) or not intent["summary"].startswith(prefix):
             continue
-        data, why = ledger.read_payload(places.base, intent)
+        data, why = ledger.read_payload(places.record, intent)
         if data is None and why:
             unread.append(f"held line {intent['id']}: {why}")
             continue
@@ -181,6 +181,10 @@ def run_daily(
     """The run inside one failure boundary, as `kgme capture`'s. Under the vault lock, the
     open intents of both jobs are closed first, so a held line whose capture was interrupted
     is in the draft (review cycle 1 F2)."""
+    refused = ledger.read_worktree_refusal(base)
+    if refused:
+        print(f"kgme daily: {refused}", file=sys.stderr)
+        return 2
     if not brief.valid_date(date):
         print(f"kgme daily: {date!r} is not a day written YYYY-MM-DD", file=sys.stderr)
         return 2

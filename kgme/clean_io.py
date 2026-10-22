@@ -200,6 +200,10 @@ def run_clean(
     target: str, delete: bool, base: Path, settings: dict, home: Path | None = None
 ) -> int:
     """The run, in the order the module docstring states. `home` is this repository's root."""
+    refused = ledger.read_worktree_refusal(base)
+    if refused:
+        print(f"kgme clean: {refused}", file=sys.stderr)
+        return 2
     targets = settings["clean"]["targets"]
     if target not in targets:
         print(
@@ -279,7 +283,8 @@ def run_locked(target: str, delete: bool, base: Path, settings: dict) -> int:
         ledger.append(_event("note", run_id, f"clean:{target}:empty", summary), dirs)
         print("kgme clean: nothing to delete")
         return 0
-    payloads = paths.payloads_dir(settings, base)
+    record_root = ledger.read_record_root(base)  # payloads beside the ledger (0047 F10)
+    payloads = paths.payloads_dir(settings, record_root)
     name = f"clean-{target}-{run_id}.json"
     plan = keep_holding(plan, payloads / name)
     digests, problem = read_prepared(plan, base)
@@ -287,7 +292,7 @@ def run_locked(target: str, delete: bool, base: Path, settings: dict) -> int:
         record = plan_record(plan, base, key, digests)
         text = json.dumps(record, indent=2) + "\n"
         try:
-            clean_fs.write_payload(base, payloads / name, text)
+            clean_fs.write_payload(record_root, payloads / name, text)
         except clean_fs.Refused as refused:
             budget = CAP - len(BEFORE)
             head, tail = "payload directory ", f": {refused}"
@@ -299,7 +304,7 @@ def run_locked(target: str, delete: bool, base: Path, settings: dict) -> int:
         write_outcome(dirs, run_id, key, intent_id, summary, "refused", "blocking")
         print(f"kgme clean: refused: {problem}", file=sys.stderr)
         return 1
-    payload_ref = (payloads / name).relative_to(base).as_posix()
+    payload_ref = (payloads / name).relative_to(record_root).as_posix()
     intent_id = ledger.append(
         _event(
             "intent",

@@ -13,12 +13,12 @@ import json
 import sys
 from pathlib import Path
 
-from kgme import events, ledger, paths
+from kgme import events, ledger
 from kgme.hooks import common
 
 
 def write_payload(payload: dict, places: common.Places, identifier: str) -> tuple[str, str]:
-    """The raw call to scratch. Returns the path relative to the repository root and its sha256."""
+    """The raw call to scratch. Returns the path relative to the main checkout and its sha256."""
     places.payloads.mkdir(parents=True, exist_ok=True)
     body = json.dumps(
         {"tool_input": payload.get("tool_input"), "tool_response": payload.get("tool_response")},
@@ -27,7 +27,7 @@ def write_payload(payload: dict, places: common.Places, identifier: str) -> tupl
     ).encode("utf-8")
     target = places.payloads / f"{identifier}.json"
     target.write_bytes(body)
-    return str(target.relative_to(paths.root())), hashlib.sha256(body).hexdigest()
+    return str(target.relative_to(places.root)), hashlib.sha256(body).hexdigest()
 
 
 def response_status(tool_response: object) -> tuple[str, str | None]:

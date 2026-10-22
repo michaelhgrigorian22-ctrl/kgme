@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "disableBypassPermissionsMode": "disable",
+    "allow": [
+      "Read",
+      "Grep",
+      "Glob",
+      "Edit({outputs})",
+      "Bash(make check)",
+      "Bash(uv run --frozen pytest *)",
+      "Bash(git diff *)",
+      "Bash(git status *)"
+    ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "allowUnsandboxedCommands": false,
+    "failIfUnavailable": true,
+    "filesystem": {
+      "allowWrite": [
+        "{outputs}"
+      ]
+    }
+  }
+}

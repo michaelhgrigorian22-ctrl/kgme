@@ -12,7 +12,10 @@ Inputs: event dicts from `kgme.events`; a `Dirs` naming where the two streams li
 Outputs: event ids; lists of event dicts; a `Page` with its orphans.
 Side effects: `append` creates the stream directory if missing and appends one line with
 `O_APPEND`, `flock`, a single `os.write`, and `fsync`. `read_default_dirs` and
-`read_test_dirs` read `kgme.toml`. `read_page` opens stream files read-only; `read_payload`
+`read_test_dirs` read `kgme.toml` and run one `git rev-parse`: the streams are the main
+checkout's whatever checkout runs (`read_main_checkout`, HANDOFF-0047 §3), so a session in a
+worktree appends to the one ledger, and outside a git repository they raise, which a hook
+turns into a refusal. `read_page` opens stream files read-only; `read_payload`
 opens one payload read-only, without following a link or waiting.
 """
 
@@ -22,6 +25,7 @@ import hashlib
 import json
 import os
 import stat
+import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -45,32 +49,84 @@ class Page:
     orphans: list[dict]
 
 
-def read_default_dirs(settings: dict | None = None) -> Dirs:
-    """The real streams from `kgme.toml`. Reads the config if not given one."""
+def read_main_checkout(start: Path | None = None) -> Path:
+    """Effect: the main checkout of the repository `start` (this package's checkout by
+    default) belongs to: the parent of `git rev-parse --git-common-dir`, which is the main
+    checkout's `.git` from any worktree. Never the running copy's own folder or
+    `CLAUDE_PROJECT_DIR` (HANDOFF-0047 §3). `RuntimeError` outside a git repository."""
+    done = subprocess.run(
+        ["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
+        cwd=start or paths.root(),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if done.returncode != 0 or not done.stdout.strip():
+        raise RuntimeError(f"{start or paths.root()} is not inside a git repository; no ledger")
+    return Path(done.stdout.strip()).resolve().parent
+
+
+def read_default_dirs(settings: dict | None = None, start: Path | None = None) -> Dirs:
+    """The real streams from `kgme.toml`, in the main checkout. Reads the config if not given
+    one."""
     settings = settings or config.read_config()
+    main = read_main_checkout(start)
     return Dirs(
-        ledger=paths.ledger_dir(settings),
-        trace=paths.trace_dir(settings),
+        ledger=paths.ledger_dir(settings, main),
+        trace=paths.trace_dir(settings, main),
         read_only_tools=tuple(settings["hooks"]["read_only_tools"]),
     )
+
+
+def read_record_root(base: Path) -> Path:
+    """Effect: where the record of a job acting on `base` lives, its streams and its payloads:
+    the main checkout when `base` is a git checkout, so a job run from a worktree records into
+    the one ledger and its payloads resolve beside it (HANDOFF-0047 review cycle 1 F4, cycle 2
+    F10); `base` itself when it is not, so a test's temporary root keeps its own."""
+    try:
+        return read_main_checkout(base)
+    except RuntimeError:
+        return base
+
+
+def read_worktree_refusal(base: Path) -> str:
+    """Effect: why a job may not act on `base`, or an empty string. A job's shared record names
+    no workspace, so a job runs in the main checkout, never a worktree of it, until HANDOFF-0048
+    gives records a workspace (HANDOFF-0047 review cycle 3 F12 and F13, two arbiters, option A).
+    A folder that is not a git checkout (a test's isolated root) may run."""
+    try:
+        main = read_main_checkout(base)
+    except RuntimeError:
+        return ""
+    if base.resolve() != main:
+        return (
+            f"{base} is a worktree of {main}; jobs run in the main checkout until HANDOFF-0048 "
+            "gives their records a workspace"
+        )
+    return ""
 
 
 def read_base_dirs(settings: dict, base: Path) -> Dirs:
     """The streams of the checkout at `base`, for a job told which checkout to act on
-    (HANDOFF-0033): a test's temporary root gets its own ledger, never this one's."""
+    (HANDOFF-0033): the main checkout's when `base` is a git checkout, so a job run from a
+    worktree writes the one ledger (HANDOFF-0047 review cycle 1 F4); `base` itself when it is
+    not, so a test's temporary root keeps its own ledger, never this one's."""
+    root = read_record_root(base)
     return Dirs(
-        ledger=paths.ledger_dir(settings, base),
-        trace=paths.trace_dir(settings, base),
+        ledger=paths.ledger_dir(settings, root),
+        trace=paths.trace_dir(settings, root),
         read_only_tools=tuple(settings["hooks"]["read_only_tools"]),
     )
 
 
-def read_test_dirs(settings: dict | None = None) -> Dirs:
-    """The gitignored test streams from `kgme.toml`, so `make check` never dirties the tree."""
+def read_test_dirs(settings: dict | None = None, start: Path | None = None) -> Dirs:
+    """The gitignored test streams from `kgme.toml`, so `make check` never dirties the tree;
+    the main checkout's, as the real streams are."""
     settings = settings or config.read_config()
+    main = read_main_checkout(start)
     return Dirs(
-        ledger=paths.ledger_test_dir(settings),
-        trace=paths.trace_test_dir(settings),
+        ledger=paths.ledger_test_dir(settings, main),
+        trace=paths.trace_test_dir(settings, main),
         read_only_tools=tuple(settings["hooks"]["read_only_tools"]),
     )
 

@@ -39,6 +39,7 @@ class Places:
     blocklist: list[Path]
     patterns: list[str]
     tier1: list[Path]
+    record: Path  # the record root: payloads and their refs (HANDOFF-0047 review cycle 2 F10)
 
     def allowed(self, operation: str, path: Path) -> policy.Verdict:
         return policy.check(
@@ -58,11 +59,12 @@ def read_places(settings: dict, base: Path) -> Places:
     return Places(
         base=base,
         dirs=ledger.read_base_dirs(settings, base),
-        payloads=paths.payloads_dir(settings, base),
+        payloads=paths.payloads_dir(settings, ledger.read_record_root(base)),
         manifest=policy.read_manifest(paths.root() / MANIFEST),
         blocklist=[paths.resolve(p) for p in blocklist if not p.startswith("**/")],
         patterns=[p[3:] for p in blocklist if p.startswith("**/")],
         tier1=paths.tier1_paths(settings, base),
+        record=ledger.read_record_root(base),
     )
 
 

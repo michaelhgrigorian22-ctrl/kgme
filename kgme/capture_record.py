@@ -78,7 +78,7 @@ def write_intent(
     text = json.dumps(record, indent=2, ensure_ascii=False) + "\n"
     payload = places.payloads / f"{job}-{run_id}-{events.new_ulid()}.json"
     try:
-        clean_fs.write_payload(places.base, payload, text)
+        clean_fs.write_payload(places.record, payload, text)
     except clean_fs.Refused as refused:
         raise clean_fs.Refused(f"payload directory: {refused}") from refused
     intent = job_event(
@@ -88,7 +88,7 @@ def write_intent(
         summary,
         job=job,
         actor=actor,
-        payload_ref=payload.relative_to(places.base).as_posix(),
+        payload_ref=payload.relative_to(places.record).as_posix(),
         payload_sha256=sha256_bytes(text.encode("utf-8")),
     )
     return ledger.append(intent, places.dirs)
@@ -106,7 +106,7 @@ def write_outcome(
 
 def read_record(places: brief_read.Places, intent: dict) -> dict | None:
     """The record an intent's payload holds, when the payload is the evidence it bound."""
-    data, _ = ledger.read_payload(places.base, intent)
+    data, _ = ledger.read_payload(places.record, intent)
     if data is None:
         return None
     try:

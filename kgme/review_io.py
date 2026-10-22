@@ -37,15 +37,17 @@ class Places:
 def read_places(test_streams: bool) -> Places:
     """The real places, or the gitignored test streams and test scratch under `--test-streams`."""
     settings = config.read_config()
+    # review runs in the main checkout only (0047 review cycle 3 F12), so this is the record
+    # root as well as the workspace
     root = paths.root()
     if test_streams:
         scratch = paths.scratch_test_dir(settings)
         dirs = ledger.read_test_dirs(settings)
-        audit_dir, payloads = scratch / "audit", paths.payloads_dir(settings) / "test"
+        audit_dir, payloads = scratch / "audit", paths.payloads_dir(settings, root) / "test"
     else:
         scratch = paths.scratch_dir(settings)
         dirs = ledger.read_default_dirs(settings)
-        audit_dir, payloads = paths.audit_dir(settings), paths.payloads_dir(settings)
+        audit_dir, payloads = paths.audit_dir(settings), paths.payloads_dir(settings, root)
     return Places(
         dirs,
         audit_dir,

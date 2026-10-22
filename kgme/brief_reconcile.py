@@ -43,7 +43,7 @@ def well_formed(record: object, expected_destination: str) -> str:
 def read_intended(places: Places, intent: dict) -> tuple[dict | None, str]:
     """The record an intent's payload holds and an empty string, or None and why it is not
     evidence; (None, "") when the intent left no payload."""
-    data, problem = ledger.read_payload(places.base, intent)
+    data, problem = ledger.read_payload(places.record, intent)
     if data is None:
         return None, f"payload {problem}" if problem else ""
     try:
