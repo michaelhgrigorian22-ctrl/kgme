@@ -110,6 +110,9 @@ builder = "claude-opus-5-5"
 # Other projects the atlas reads by structure only: folder names, README links, the KGME parts
 # the README names (HANDOFF-0051). A Tier 1 project is refused. Empty until Michou adds one.
 projects = []
+# The token budget of an atlas slice (HANDOFF-0056): `kgme atlas --slice` and `--around`, and
+# the slice a `loose` launch carries. Tokens are estimated as characters / 4.
+slice_budget = 3000
 
 [sessions]
 # The hard stops of a `loose` run (HANDOFF-0047, ADR-022 §2): headless, unattended, so it ends

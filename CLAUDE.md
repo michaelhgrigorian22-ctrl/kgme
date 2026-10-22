@@ -91,7 +91,7 @@ tests/               ENGINE: pytest suites and the policy canaries
 logs/                RECORD: ledger/ append-only JSONL, tracked; scratch/ and trace/ ignored
 router/              llm.py: ask(provider, prompt) + policy layer   (later)
 launchd/             plists + install script                         (later)
-skills/              role skills linked into the agents (later, HANDOFF-0048)
+skills/              skills any harness reads, linked into .claude/skills/ and .agents/skills/: kgme-atlas (HANDOFF-0056); role skills and the installer (later, HANDOFF-0048)
 ```
 
 Outside this repository, beside it: the design worktree on branch `design` (`~/Projects/Automate-design`; `~/Projects/KGME/design` after HANDOFF-0049 Part B) and `work/` for crew workspaces (later, HANDOFF-0048).
