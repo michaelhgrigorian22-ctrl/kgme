@@ -3,7 +3,7 @@ id: READER-MERGING
 type: note
 status: active
 created: 2026-10-21T21:10:00-07:00
-modified: 2026-10-22T00:44:52-07:00
+modified: 2026-10-22T01:32:53-07:00
 author: claude-code
 source: inferred
 sources: ["HANDOFF-0055", "kgme/merge.py", "kgme/approve.py"]
@@ -25,7 +25,7 @@ The lanes are set in `kgme.toml` under `[tracks.design]`: `docs/design/`, the co
 Each run writes one intent and one outcome. To see what a merge would do without doing it: `kgme merge design --dry-run`, which runs the trial and writes nothing.
 
 ## When a landing is blocked
-If git fails or times out after it has begun changing your checkout, `kgme merge` undoes nothing. It keeps the tested merge commit under a ref named refs/kgme/merge-blocked/ plus the design commit's short id, writes one `blocking` outcome that names that ref and the repair, and refuses every later design commit, writing nothing, until your checkout is quiet again. The repair, from your terminal: remove a stale main.lock under .git/refs/heads if the outcome mentions one, `git switch main`, then `git merge --ff-only` with the kept ref the outcome names. Once that commit is on `main`, the next run deletes the kept ref and carries on.
+Once `kgme merge` has started git on your checkout, any failure (git exits non-zero, times out, or leaves a state it cannot check) is a blocked landing, whether or not anything changed, and `kgme merge` undoes nothing. Moves and waits it sees before starting git touch nothing and are retried. It keeps the tested merge commit under a ref named refs/kgme/merge-blocked/ plus the design commit's short id, writes one `blocking` outcome that names that ref and the repair, and refuses every later design commit, writing nothing, until your checkout is quiet again. The repair, from your terminal: remove a stale main.lock under .git/refs/heads if the outcome mentions one, `git switch main`, then `git merge --ff-only` with the kept ref the outcome names. Once the design commit is on `main`, by your repair or by a later landing, the next run deletes the kept ref and carries on.
 
 ## Approving
 From your own terminal:
