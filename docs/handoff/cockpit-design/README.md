@@ -46,9 +46,9 @@ Stakes 1–5 (how visible, how costly to change after approval) × edge 0–1 (t
 
 | item | stakes × edge | disposition |
 | --- | --- | --- |
-| The station's look as a whole | 4 × 0.7 = 2.8 | **answered 2026-10-22, taken:** keep the direction and iterate in cycles, with less clutter on screen across every area as the UI is refined (the reader's Decided list) |
-| The station replaces or joins board 9's four-column wall when the cockpit is built | 4 × 0.6 = 2.4 | **asked**; recommendation: joins — `w` cycles desk → wall → station |
-| Whether "you" on the bridge should resemble Michou | 3 × 0.8 = 2.4 | **asked**; recommendation: no likeness, the chalk silhouette stays |
+| The station's look as a whole | 4 × 0.7 = 2.8 | **answered 2026-10-22, taken:** keep the direction and iterate in cycles, under the design philosophy of 2026-10-22 (the reader's Decided list) |
+| The station replaces or joins board 9's four-column wall when the cockpit is built | 4 × 0.6 = 2.4 | **answered 2026-10-22, taken:** joins — `w` cycles desk → wall → station |
+| Whether "you" on the bridge should resemble Michou | 3 × 0.8 = 2.4 | **answered 2026-10-22, taken:** no likeness, the chalk silhouette stays |
 | `Enter` in the tray sets the `r` filter (as drawn) or scrolls to the run | 3 × 0.4 = 1.2 | decided: as drawn; approval screen |
 | Sticker placement (detail pane header, Phase 2 model selector only) | 2 × 0.6 = 1.2 | decided: as drawn; approval screen |
 | Codex taste 1: a clear band between the HUD and the room labels | 2 × 0.5 = 1.0 | decided and built (CDH-0017): the deck framed lower, the top chip 76 px under the HUD at 1440 |
@@ -70,7 +70,11 @@ Stakes 1–5 (how visible, how costly to change after approval) × edge 0–1 (t
 | CW22 board 3's filter buttons at 20 px | a check | fixed (CDH-0017) |
 | CW14 the artifact host paints after `load`; CW15 the loop guard; CW21 explicit row names | facts | recorded, nothing to decide |
 
-Asked and answered: 2026-10-22 00:00, the station's look as a whole: recommendation taken (keep the direction), with a standing addition, "i like the station and the whole vibe all together, but i think as we refine the UI in general across all areas maybe less clutter on the screen would be better" (recorded in `docs/readers/cockpit-design.md`, Decided). Still open: joins or replaces board 9; a likeness. Taken-recommendation tally: 1 of 1.
+Asked and answered: 2026-10-22 00:00, the station's look as a whole: recommendation taken (keep the direction), with a standing addition, "i like the station and the whole vibe all together, but i think as we refine the UI in general across all areas maybe less clutter on the screen would be better" (recorded in `docs/readers/cockpit-design.md`, Decided). 2026-10-22 00:03, Michou made it the design philosophy for every component going forward: "the maximalism here is that the sum of all parts is something almost absurdly extra but in a useful and creative and unexpected but welcome way. that doesnt mean clutter and more for less." (same place). 2026-10-22 00:03, joins or replaces board 9, and a likeness: "yes, and yes", read as agreeing with both recommendations (joins; no likeness). Taken-recommendation tally: 3 of 3; the brief of 2026-10-16 is closed.
+
+## Status 2026-10-22 00:20
+
+**The brief of 2026-10-16 is closed, 3 of 3 recommendations taken:** the station's direction stays; the station joins board 9's wall (`w` cycles desk → wall → station); "you" stays the chalk silhouette. **Michou set the design philosophy for every component going forward:** maximalism means the sum of the parts is almost absurdly extra, in a useful, creative, unexpected but welcome way, never clutter. It is in the reader's Decided list with the agents' working reading. He asked for a Codex review of the full UI against it while the substantive track works.
 
 ## Status 2026-10-22 00:05
 

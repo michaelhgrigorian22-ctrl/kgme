@@ -3,7 +3,7 @@ id: READER-COCKPIT-DESIGN
 type: note
 status: active
 created: 2026-10-09T21:50:00-07:00
-modified: 2026-10-22T00:05:00-07:00
+modified: 2026-10-22T00:20:00-07:00
 author: cowork
 source: stated
 tier: 2
@@ -34,7 +34,7 @@ CDH-0001 implemented the reusable cast; CDH-0002 found the native iframe failure
 ## The one rule
 **Signal in the centre, noise at the edges, and noise never carries information.** Everything outside the three columns (frame, tick rails, micro-labels, scanlines, vignette, sweep) and every sprite is decoration that mirrors a fact already shown in text. Therefore the `c` key and `prefers-reduced-motion` can remove or freeze all of it without loss. A finding that a decorative element carries a fact nowhere else on screen is `blocking`; a finding that a fact is shown only by colour is `blocking` (ADR-016 vocabulary, see below).
 
-## Decided (by Michou, 2026-10-08 and 09)
+## Decided (by Michou, 2026-10-08, 09 and 22)
 - Palette, phosphor + neon: ground `#0a0c10`, surface `#11151c`, rule `#1e2a33`, text `#cfe6ef`, muted `#6f8290`, cyan `#39d0ff` (focus, live, frame), magenta `#ff3d7f` (blocking and refused only), amber `#ffb02e` (pending, transient, advisory), green `#4de38a` (ok, approval). Sprite extras: hat `#8fb4c4` in phosphor; a sticker palette for two places only.
 - Type: JetBrains Mono everywhere, dense, 22 px rows; 9 px only for repeated labels.
 - The frame carries system state: cyan live, magenta flood on blocking or halt, amber strip while an intent awaits its outcome, grey static when disconnected.
@@ -44,13 +44,18 @@ CDH-0001 implemented the reusable cast; CDH-0002 found the native iframe failure
 - Sprite motion: all dense run portraits and the 49-cell matrix stay static; only 1 selected visible detail may animate. Hidden, offscreen, calm and actual reduced-motion states remove animation work. Calm removes decoration without losing actor, lifecycle, class or event facts or changing row geometry. Modes are not failure classes; fixture controls cannot override reduced motion or bind application keys.
 - Sprite evidence: the 24 × 24 source grid, 6 flat fills, 2 hard-swapped frames and 3 KB cap are retired for CDH-0001. The provisional target is 512 KiB raw for all 7 SVG assets plus shared animation code. Report bytes per actor and total, SVG element counts, simultaneous active animations, and 30-second target-Mac captures with 50 static portraits and 1 selected detail, with motion and calm baselines. Record environment, frame intervals, long tasks and interaction observations; label missing measurements unverified. A small file is not proof of runtime performance.
 - Wishlist's empty sections stay empty for v0.
-- **Less clutter (Michou, 2026-10-22, answering the brief's first question):** "i like the station and the whole vibe all together, but i think as we refine the UI in general across all areas maybe less clutter on the screen would be better". The direction, the darkness and the cast stay; every refinement, on every board and in the station, leaves less on screen at once. How the agents read it until he says otherwise: decoration and repeated hints go first (duplicate key hints, micro-labels, ornament that mirrors a fact already shown), and no fact is removed, since the one rule already says decoration carries no information. It tempers 2026-10-08's "almost too much": the brief stays "outrageous, but it retains all the darkness", carried by character and light rather than by count.
+- **The design philosophy, for every component going forward (Michou, 2026-10-22):** "the maximalism here is that the sum of all parts is something almost absurdly extra but in a useful and creative and unexpected but welcome way. that doesnt mean clutter and more for less." Maximalism is never read literally, as a screen so full of clutter that the operator can't act. It came with his answer to the brief's first question: he likes the station and the whole vibe, and wants less clutter on screen as the UI is refined across all areas. How the agents apply it until he says otherwise:
+  - every element earns its place: the operator uses it, or it delights without getting in the way, and it does not repeat another;
+  - the "extra" lives in how the parts combine (character, light, motion, surprise), not in how many there are;
+  - decoration and repeated hints are the first candidates to cut, and no fact is ever removed (the one rule).
+  It refines 2026-10-08's "almost too much": the brief stays "outrageous, but it retains all the darkness".
+- **The station joins board 9's wall (Michou, 2026-10-22):** when the cockpit is built, `w` cycles desk → wall → station.
+- **No likeness (Michou, 2026-10-22):** "you" on the bridge stays the chalk silhouette.
 - **Superseded 2026-10-09, design session (CDH-0001):** the sprite direction moved from 24 × 24 pixel art to original vector characters, 240 × 280 source, six material roles, cel-shaded, static in the matrices and animated only in the selected detail; see `docs/design/cockpit-v0/chibi/README.md`. The actor mapping, the two-palette rule, the class-colour accent and the noise rule are unchanged. The design track's own handoffs are `CDH-NNNN` under `docs/handoff/cockpit-design/` (HANDOFF-0042 registers them).
 
 ## Open (Michou has not ruled)
 - Acceptance of the canvas as a whole (HANDOFF-0036's acceptance test: identify the timeline, a run, a failure class and the keyboard focus within ten minutes using only the keyboard map).
 - Sticker palette placement: the two allowed spots, or a `sticker` tweak that allows it anywhere.
-- Whether "you" should look like you.
 - The `mood` tweak for micro-label copy (the "based" set on board 10).
 - Every value in the top bar is a sample; the real cockpit reads them. The versions shown are placeholders.
 
