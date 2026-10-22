@@ -36,7 +36,7 @@ This section uses its own `CDH-0001`, `CDH-0002` sequence, at Michou's request o
 | CDH-0018 | Codex, GPT-6 Astra (read-only review) | Review of CDH-0017 at `2e14d66`. Done 2026-10-21, **`BLOCK: 1`** (AUDIT-CDH-0018: CW17's duration cells below the gate); commit `479816c`. | [Open list review](2026-10-16-open-list-review.md) |
 | CDH-0019 | Codex, GPT-6 Astra (builder) | The standing mandate of the track's builder (Michou, 2026-10-16 14:24): merge `main` (HANDOFF-0049's tree) into `design`, take the queue, run the fix loop; the boundary of HANDOFF-0042's builder profile written out. Open since 2026-10-21: step 1 done in `67bfebb` (`main` at `9b166b6`); cycle 1 `0618fa5`, Cowork PASS (AUDIT-CDH-0019-CYCLE-1-REVIEW); stays open across cycles. | [Codex builder](2026-10-16-codex-builder.md) |
 | CDH-0020 | Codex, GPT-6 Astra (builder) | The HUD's active-runs summary wraps below 362 px (CW26, AUDIT-CDH-0019-CYCLE-1-REVIEW, 2 × 0.2 decided); verified with the real station from the local three.js copy. Done 2026-10-21 19:55, commit `037da10`; Cowork's native pass PASS (AUDIT-CDH-0020-REVIEW, KGME Station version 8), one new advisory, CW27. | [HUD summary wrap](2026-10-21-hud-summary-wrap.md) |
-| CDH-0021 | Codex, GPT-6 Astra (builder) | Below 721 px the two HUDs take the ground, so the deck's labels never show through their words (CW27, AUDIT-CDH-0020-REVIEW, 2 × 0.3 decided; approval screen). Proposed; **`ready` in the Codex queue** since 2026-10-21 20:20. | [Phone HUD ground](2026-10-21-phone-hud-ground.md) |
+| CDH-0021 | Codex, GPT-6 Astra (builder) | Below 721 px the two HUDs take the ground, so the deck's labels never show through their words (CW27, AUDIT-CDH-0020-REVIEW, 2 × 0.3 decided; approval screen). Done 2026-10-21 23:39; both phone HUDs are opaque, with facts and layout preserved at six widths. Cowork's native pass pending (AUDIT-CDH-0021). | [Phone HUD ground](2026-10-21-phone-hud-ground.md) |
 
 Both handoffs were explicitly adopted by Michou on 2026-10-09: "theyre good to go i just want to plug and play codex to start working and then just say the word to cowork to read the folder and move forward given the brief". Their files now carry `from: michou` and `status: open`. Codex mechanically recorded Michou's adoption; it did not adopt its own proposal. This approval covers the written local implementation and verification plans, including the scoped board 10 edits. It does not grant final canvas approval.
 
@@ -65,12 +65,18 @@ Stakes 1–5 (how visible, how costly to change after approval) × edge 0–1 (t
 | CW20 the empty portrait column in calm | 1 × 0.2 = 0.2 | decided: keep, as the tray's F6 |
 | CW17 host boards' focused rows 4.43:1 | a check | CDH-0017 repaired time and job cells; CDH-0018 found the missed durations. CDH-0019 cycle 1 repairs Main and Wall durations to 5.1371:1 (computed); Cowork's native pass at version 30 confirms the lighter token painted (AUDIT-CDH-0019-CYCLE-1-REVIEW). Closed. |
 | CW26 the station HUD's active-runs summary past the viewport below 362 px (42 px at 320, 2 px at 360) | 2 × 0.2 = 0.4 | built in CDH-0020: right edge 304 / 344 px at 320 / 360, full summary on two lines; desktop stays single-line. Cowork re-measured it standalone and saw the wrap natively at version 8 (AUDIT-CDH-0020-REVIEW). Closed. |
-| CW27 below 721 px the deck's labels show through the HUD's words (13 of 15 on-screen labels under a HUD box at 320, 15 of 18 at 400) | 2 × 0.3 = 0.6 | decided: the two HUDs take the ground under the phone media query, as calm does; CDH-0021 (Codex); approval screen |
+| CW27 below 721 px the deck's labels show through the HUD's words (13 of 15 on-screen labels under a HUD box at 320, 15 of 18 at 400) | 2 × 0.3 = 0.6 | built in CDH-0021: both HUDs read rgb(10, 12, 16) at 320–720 px and remain transparent at 721 and 1440 in deck mode; standalone captures at 320 and 400 show no deck labels through the HUDs. Cowork's native pass pending; approval screen |
 | CW18 board 6's muted text under its filter 2.9:1 | a check | fixed (CDH-0017) |
 | CW22 board 3's filter buttons at 20 px | a check | fixed (CDH-0017) |
 | CW14 the artifact host paints after `load`; CW15 the loop guard; CW21 explicit row names | facts | recorded, nothing to decide |
 
 Asked and answered: (none yet under ADR-023). Taken-recommendation tally: —.
+
+## Status 2026-10-21 23:39
+
+**CDH-0021 implemented by Codex**, source base `0c9f892`: one background declaration gives both phone HUDs the ground inside the existing 720 px query. Both compute to rgb(10, 12, 16) from 320 through 720 px and stay transparent at 721 and 1440 in deck mode; calm retains its existing ground at all six widths. Every HUD fact, both HUD rectangles and the summary's right edges are unchanged. Calm retains 1 / 1 / 1 / 1 / 1 / 3 columns, seven rooms and 0 px overflow. Four inspected before/after captures at 320 and 400 show that deck labels no longer show through either HUD. No page errors occurred. CW27 remains scored 2 × 0.3 = 0.6 and listed for the approval screen.
+
+The [implementation report](../../audit/cockpit-design/cdh-0021-implementation.md) records the file and capture hashes and all checks. The delivery is the single commit adding that report, titled "design: give phone HUDs the ground (CDH-0021)". Make check passes 360 tests (10 deselected), with 0 blocking lint findings. Queue row 9 is done; **Cowork's native pass and republication remain pending**. No ready row remains. The three existing taste questions and their taken-recommendation tally are unchanged. Step 1 remains completed by `67bfebb`; main was not merged again.
 
 ## Status 2026-10-21 20:20
 
@@ -150,7 +156,7 @@ Michou starts Codex with one fixed prompt, every time, from `~/Projects/KGME/des
 | 6 | CDH-0018 | The open list's cycle (CDH-0017, `2e14d66`, AUDIT-CDH-0017); captures under `logs/scratch/design-review/cdh-0017/` | done 2026-10-21 | [Open list review](2026-10-16-open-list-review.md) |
 | 7 | CDH-0019 | The builder's mandate: merge `main` into `design` first (the prompt's step 1, done in `67bfebb`, `main` at `9b166b6`), then rows 5 and 6, then the fix loop; stays open across cycles | open 2026-10-21 | [Codex builder](2026-10-16-codex-builder.md) |
 | 8 | CDH-0020 | CW26: the station HUD's summary wraps below 362 px; verify with `logs/scratch/vendor/make-local.sh` (the real page, local three.js) at 320, 360, 400, 1440 | done 2026-10-21 | [HUD summary wrap](2026-10-21-hud-summary-wrap.md) |
-| 9 | CDH-0021 | CW27: below 721 px the two HUDs take the ground; verify with `logs/scratch/vendor/make-local.sh` at 320, 360, 400, 720, 721, 1440 | ready 2026-10-21 20:20 | [Phone HUD ground](2026-10-21-phone-hud-ground.md) |
+| 9 | CDH-0021 | CW27: below 721 px the two HUDs take the ground; verify with `logs/scratch/vendor/make-local.sh` at 320, 360, 400, 720, 721, 1440 | done 2026-10-21 | [Phone HUD ground](2026-10-21-phone-hud-ground.md) |
 
 ## Start here
 
