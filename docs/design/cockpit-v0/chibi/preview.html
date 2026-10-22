@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KGME chibi cast | CDH-0001 design fixture</title>
+  <link rel="stylesheet" href="./characters.css">
+  <style>
+    :root{color-scheme:dark;--ground:#0a0c10;--surface:#11151c;--rule:#1e2a33;--text:#cfe6ef;--muted:#6f8290;--cyan:#39d0ff}
+    *{box-sizing:border-box}body{margin:0;background:var(--ground);color:var(--text);font:12px/1.5 'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+    main{max-width:1440px;margin:auto;padding:28px}h1{font-size:24px;letter-spacing:.025em;line-height:1.2;margin:6px 0 12px}h2{font-size:12px;letter-spacing:.1em;text-transform:uppercase;margin:0 0 14px;color:var(--cyan)}h3{margin:0;font-size:12px}p{margin:4px 0;color:var(--muted)}a{color:var(--cyan)}button,select,input{font:inherit}button,select{background:#17212b;border:1px solid #566f7f;border-radius:3px;color:var(--text);padding:5px 8px;min-height:30px}button{cursor:pointer}button:hover{border-color:var(--cyan)}button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}button:disabled{cursor:default;opacity:.6}label{display:inline-flex;align-items:center;gap:7px}select{max-width:170px}.eyebrow{color:var(--cyan);font-size:10px;letter-spacing:.15em;text-transform:uppercase}.intro{max-width:1100px;margin-bottom:22px}.panel{background:var(--surface);border:1px solid var(--rule);padding:18px;margin:16px 0}.controls{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-bottom:12px}.controls label{font-size:11px}.fixture-tag{display:inline-block;border:1px dashed #63788a;padding:1px 6px;color:var(--muted);font-size:10px}.selected-layout{display:grid;grid-template-columns:112px minmax(260px,1fr) minmax(220px,.8fr);gap:20px;align-items:center}.detail-mount{width:96px;height:96px;display:grid;place-items:center;background:var(--ground);border:1px solid var(--rule)}.selected-facts{min-width:0}.selected-facts strong{font-size:15px}.facts{font-size:11px;color:var(--text)}.muted{color:var(--muted)}.status{font-size:11px;color:var(--cyan)}.matrix-scroll{overflow-x:auto}.matrix{border-collapse:collapse;width:100%;min-width:970px;table-layout:fixed}.matrix th,.matrix td{border-top:1px solid var(--rule);padding:9px 4px;vertical-align:middle}.matrix thead th{height:96px;font-weight:400;vertical-align:top}.matrix th:first-child{width:170px;text-align:left;padding-left:0}.matrix tbody th{font-weight:400}.matrix td{text-align:center;height:92px}.matrix svg{margin:auto}.matrix .mode-name{font-size:11px;color:var(--text);font-weight:700}.matrix small{font-size:9px;color:var(--muted);display:block}.actor-name{font-weight:700;font-size:13px;color:var(--text)}.actor-map{font-size:10px;color:var(--cyan)}.actor-bio{font-size:10px;color:var(--muted);margin-top:3px}.pair-grid{display:grid;grid-template-columns:repeat(7,minmax(154px,1fr));gap:12px;min-width:1130px}.pair{min-width:0}.pair-art{display:flex;justify-content:center;gap:4px;border:1px solid var(--rule);padding:8px 2px;margin:8px 0;background:var(--ground)}.pair-art>div:last-child{background:var(--surface)}.pair-art svg{width:72px;height:72px}.pair-caption{font-size:9px;color:var(--muted);display:flex;justify-content:space-around}.contexts{display:grid;grid-template-columns:1.1fr 1fr;gap:18px}.run-header{height:36px;display:flex;gap:10px;align-items:center;padding:4px 10px;border-bottom:1px solid var(--rule);font-size:11px;white-space:nowrap}.run-header svg{flex:none}.ledger-row{display:grid;grid-template-columns:65px 12px 110px minmax(0,1fr) 70px 40px;gap:8px;align-items:center;height:22px;padding:0 10px;border-bottom:1px solid #1e2a33;font-size:10px;white-space:nowrap}.ledger-row>span{overflow:hidden;text-overflow:ellipsis}.ledger-row>span:last-child{text-align:right}.class-ok{color:#4de38a}.class-transient,.class-advisory{color:#ffb02e}.class-blocking{color:#ff3d7f}.sample-run{overflow:auto;border:1px solid var(--rule)}.context-caption{font-size:10px;margin:6px 0 12px}.detail-context{display:flex;gap:12px;align-items:center;padding:10px;border:1px solid var(--rule)}.detail-context svg{flex:none}.phase2{border-style:dashed;margin-top:14px;color:var(--muted)}.phase2 svg{width:48px;height:48px}.kbd{border:1px dashed #6f8290;padding:0 4px;border-radius:2px}.probe{margin-top:12px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}.probe input{width:190px;padding:5px 8px;border:1px solid var(--rule);color:var(--text);background:var(--ground)}.run-list{max-height:410px;overflow:auto;border:1px solid var(--rule);margin-top:14px;scrollbar-gutter:stable}.profile-report{white-space:pre-wrap;font-size:11px;max-height:280px;overflow:auto;color:var(--muted)}.profile-only{display:none}.is-profile .profile-only{display:block}.is-profile .catalogue{display:none}.error{color:#ff3d7f;white-space:pre-wrap}.footnote{font-size:11px;padding:8px 0 18px}.is-embed main{padding:14px}.is-embed .intro{display:none}.is-embed .panel:first-of-type{margin-top:0}.is-embed .panel{padding:14px}.is-embed h1{font-size:18px}
+    @media(max-width:900px){main{padding:16px}.selected-layout{grid-template-columns:96px 1fr}.selected-layout>div:last-child{grid-column:1/-1}.contexts{grid-template-columns:1fr}.controls{gap:10px}.run-header{font-size:10px}}
+  </style>
+</head>
+<body>
+<main>
+  <header class="intro">
+    <div class="eyebrow">KGME / CDH-0001 / illustrated cast</div>
+    <h1>Seven actors. The same facts.</h1>
+    <p>This is a standalone design fixture with synthetic state labels. Every illustration is decoration. The actor, lifecycle, class and event remain in text when calm mode removes all artwork.</p>
+    <p>Timeline portraits use phosphor materials at 24 CSS px. Full detail characters use 72 CSS px. Palette comparison specimens are not a global sticker setting.</p>
+  </header>
+
+  <section class="panel" id="selected-panel" aria-labelledby="selected-heading">
+    <h2 id="selected-heading">Selected detail preview <span class="fixture-tag">Design fixture controls</span></h2>
+    <div class="controls">
+      <label>Actor <select id="actor-select" aria-label="Fixture actor"></select></label>
+      <label>Mode <select id="mode-select" aria-label="Fixture animation mode"></select></label>
+      <label>Detail palette <select id="palette-select" aria-label="Fixture detail palette"><option value="sticker">Sticker</option><option value="phosphor">Phosphor</option></select></label>
+      <label><input id="calm-toggle" type="checkbox">Calm: hide decoration</label>
+      <label><input id="profile-toggle" type="checkbox">50-run profile scene</label>
+    </div>
+    <div class="selected-layout">
+      <div class="detail-mount" id="selected-art" aria-hidden="true"></div>
+      <div class="selected-facts" id="selected-facts"></div>
+      <div><p class="status" id="motion-status" role="status">Loading local artwork.</p><p class="muted">Only this visible detail can animate. System reduced motion always wins. No application keyboard commands are bound here.</p></div>
+    </div>
+  </section>
+
+  <section class="panel profile-only" id="profile-panel" aria-labelledby="profile-heading">
+    <h2 id="profile-heading">Profile scene: 50 static run portraits + 1 selected detail</h2>
+    <p>All rows below are synthetic samples. Capture instrumentation runs only on request. Compare 30-second motion and calm captures in the same browser and viewport; inspect the source report for measured results.</p>
+    <div class="probe"><button id="profile-motion" type="button">Capture 30 s: motion</button><button id="profile-calm" type="button">Capture 30 s: calm</button><label>Fixture input probe <input id="input-probe" autocomplete="off" placeholder="Type to measure response"></label></div>
+    <div class="run-list" id="run-list" tabindex="0" aria-label="50 synthetic run headers and 22 pixel ledger rows"></div>
+    <pre id="profile-report" class="profile-report" aria-live="polite">No capture has been recorded in this session.</pre>
+  </section>
+
+  <section class="panel catalogue" aria-labelledby="matrix-heading">
+    <h2 id="matrix-heading">49 static specimens / phosphor / 72 CSS px</h2>
+    <p>Column headers state each sample's mode, lifecycle, class and event. Row headers state its actor. Modes describe poses; they do not create failure classes. Every matrix cell stays still.</p>
+    <div class="matrix-scroll"><table id="matrix" class="matrix"><caption class="muted">Seven actors × seven modes. These sample events are not read from the ledger.</caption></table></div>
+  </section>
+
+  <section class="panel catalogue" aria-labelledby="palette-heading">
+    <h2 id="palette-heading">Same source geometry / two material palettes</h2>
+    <p>Each pair is a detail-header specimen. Left: phosphor on #0a0c10. Right: sticker on #11151c. Every specimen below is mode idle, lifecycle ready, Class: —, event sample ready. Fixed ochre cloth is a material, not a warning.</p>
+    <div class="matrix-scroll"><div id="palette-pairs" class="pair-grid"></div></div>
+  </section>
+
+  <section class="panel catalogue" aria-labelledby="context-heading">
+    <h2 id="context-heading">Where they stand / original board context</h2>
+    <p>These retained board examples are design samples. No example submits a command or reads the live ledger.</p>
+    <div class="contexts">
+      <div>
+        <div class="sample-run">
+          <div class="run-header"><span data-art="builder" data-mode="working" data-palette="phosphor" data-size="portrait"></span><span>▣ run c70d687b…8447</span><span class="muted">claude-code · HANDOFF-0040 · 212 events</span></div>
+          <div class="ledger-row"><span class="muted">19:41:48</span><span>◀</span><span>tool:Bash</span><span>Bash ok · 9 passed</span><span class="class-ok">ok</span><span>15 s</span></div>
+          <div class="run-header"><span data-art="reviewer" data-mode="transient" data-palette="phosphor" data-size="portrait"></span><span>▣ run 01M4F8NR…04F</span><span class="muted">kgme.review · cycle 1 · usage limit · melting</span></div>
+          <div class="ledger-row"><span class="muted">19:43:03</span><span>◀</span><span>review:0040</span><span>cycle 1 attempt 1: reviewer exited 1 with no text</span><span class="class-transient">transient</span><span>3 s</span></div>
+        </div>
+        <p class="context-caption">24 px portraits belong in run headers, outside the 22 px event rows. Builder: mode working, lifecycle active, latest class ok, event tool:Bash. Reviewer: mode transient, lifecycle retrying, class transient, event review:0040.</p>
+      </div>
+      <div>
+        <div class="detail-context"><span data-art="arbiter" data-mode="blocked" data-palette="sticker"></span><div><p class="class-blocking">detail · note · halt</p><h3>review:HANDOFF-0032 HALT after cycle 3</h3><p>arbiter claude-opus-5-5 · the skull sits down and burns until the override lands</p></div></div>
+        <p class="context-caption">Detail header: 72 px, sticker palette. Actor arbiter. Mode blocked. Lifecycle halted. Class blocking. Event review:HANDOFF-0032.</p>
+        <div class="detail-context phase2"><span data-art="guard" data-mode="waiting" data-palette="phosphor"></span><div><p>phase 2 · approval pending</p><h3>Bash git push origin main</h3><p>the cherub with the riot shield holds the door until <span class="kbd">y</span> or <span class="kbd">n</span></p></div></div>
+        <p class="context-caption">Approval card: 48 px, inactive Phase 2 drawing. Actor kgme.guard. Mode waiting. Lifecycle pending. Class advisory. Event sample approval. The guard is the hook pair, not a model.</p>
+      </div>
+    </div>
+  </section>
+  <p id="fixture-error" class="error" role="alert"></p>
+  <footer class="footnote muted">Original SVG artwork is loaded from 7 sibling files. The fixture makes only same-origin requests for its source; it has no analytics or font download. Board 10 renders this cast natively from inline symbols (CDH-0003, CDH-0006); this fixture is the profiling harness. Michou's avatar is stylized, not a verified likeness.</footer>
+</main>
+<script src="./characters.js"></script>
+</body>
+</html>

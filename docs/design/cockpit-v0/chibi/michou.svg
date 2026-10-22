@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 280" width="240" height="280" class="chibi actor-michou" data-actor="michou" data-portrait="32 18 169 169" style="--garment:#c6923b;--garment-shade:#825d34;--garment-light:#ebbd69;--face:#f2c5a5;--face-shade:#ce9581;--face-light:#ffe4cb;--tool:#3f527d;--tool-shade:#403333;--tool-light:#cad6e1;--print:#3a3028;--dark:#211f2a;--accent:#6f8290" fill="var(--dark)" stroke="var(--dark)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" role="img" aria-labelledby="michou-title michou-desc">
+<title id="michou-title">Michou: stylized bucket-hat avatar with flip phone</title>
+<desc id="michou-desc">Original layered SVG for CDH-0001. Six semantic material roles with restrained cel shading. Decorative; actor and event facts belong in adjacent text.</desc>
+<style>.chibi .eyes-closed,.chibi .effect-fire,.chibi .effect-halo,.chibi .effect-melt,.chibi .chalk{display:none}</style>
+<g class="effect-fire" >
+<path d="M48 250Q29 229 42 210q7 13 12 11-6-28 11-49-1 25 11 25 13-31 19-38 0 30 17 42 19-9 20-26 24 25 13 44 23-12 21-36 30 29 22 56l16-15q8 33-24 41H74Z" fill="var(--accent)" stroke="none" opacity=".82"/>
+<path d="M55 250q-5-18 9-24 0 14 12 13l16-22 7 27 28-20 4 24 24-12 8 14z" fill="var(--face-light)" stroke="none" opacity=".64"/>
+</g>
+<g class="effect-melt" >
+<path d="M63 255q-20 5-13 11 12 7 33 1 7 12 26 3 14 7 24-2 35 7 45-2 4-8-25-12z" fill="var(--garment)" stroke-width="1.8"/>
+<ellipse cx="61" cy="273" rx="5" ry="2" fill="var(--garment)" stroke="none"/>
+<ellipse cx="172" cy="271" rx="7" ry="2" fill="var(--garment)" stroke="none"/>
+</g>
+<g class="effect-halo" >
+<ellipse cx="121" cy="15" rx="33" ry="7" fill="none" stroke="var(--accent)" stroke-width="4"/>
+<path d="M167 16l1.6800000000000002 4.08 4.32 1.92-4.32 1.6800000000000002-1.6800000000000002 4.32-1.6800000000000002-4.32-4.32-1.6800000000000002 4.32-1.92Z" fill="var(--accent)" stroke-width="1.3"/>
+</g>
+<g class="figure" >
+<g class="body" >
+<path d="M74 146q-25 6-29 36l12 29 21-6 42 13 39-14 19-25-18-27-43-14z" fill="var(--garment)" />
+<path d="M64 152l24 9 22 26 17-30 21-13-4 31-22 28-40-13z" fill="var(--garment-shade)" />
+<path d="M73 168l30 22 16 5 20-27-4 32-22 10-33-10z" fill="var(--garment)" />
+<path d="M59 199q-6 14 5 20l38 9 23-15 26 7 23-5 5-13-42-6-21 12-24-13z" fill="var(--garment)" />
+<g class="cheetah-print" >
+<path d="M56 176q-2-6 6-6l6 2-1 6 -4 2-3-2z" fill="var(--print)" stroke="none"/>
+<path d="M76 183q-2-5 5-5l5 2-1 5 -3 2-3-2z" fill="var(--print)" stroke="none"/>
+<path d="M90 199q-2-6 6-6l6 2-1 6 -4 2-3-2z" fill="var(--print)" stroke="none"/>
+<path d="M137 182q-2-6 6-6l6 2-1 6 -4 2-3-2z" fill="var(--print)" stroke="none"/>
+<path d="M155 161q-2-5 5-5l5 2-1 5 -3 2-3-2z" fill="var(--print)" stroke="none"/>
+<path d="M147 196q-2-5 5-5l5 2-1 5 -3 2-3-2z" fill="var(--print)" stroke="none"/>
+<path d="M62 202q-2-5 5-5l5 2-1 5 -3 2-3-2z" fill="var(--print)" stroke="none"/>
+<path d="M72 154q-2-4 4-4l4 2-1 4 -2 2-3-2z" fill="var(--print)" stroke="none"/>
+<path d="M88 168q-2-5 5-5l5 2-1 5 -3 2-3-2z" fill="var(--print)" stroke="none"/>
+<path d="M153 210q-2-5 5-5l5 2-1 5 -3 2-3-2z" fill="var(--print)" stroke="none"/>
+<path d="M120 200q-2-5 5-5l5 2-1 5 -3 2-3-2z" fill="var(--print)" stroke="none"/>
+</g>
+<path d="M77 212q-26 12-29 39l15 12 30-7 22-29 22 17 25 11 25-20-13-23-32-3-24 12-18-8z" fill="var(--dark)" />
+<path d="M77 223l-18 27 14 10 18-11 6-28z" fill="var(--garment-shade)" />
+<path d="M133 224l18 17 24-8-12-14z" fill="var(--garment-shade)" />
+<path d="M53 245q10-9 28-2l12 14-2 14H48l-4-12z" fill="var(--dark)" />
+<path d="M145 248q7-13 27-8l15 15 12 8-3 8h-49l-7-9z" fill="var(--dark)" />
+<path d="M49 256l14-7 17 3 10 13-42 0z" fill="var(--face-light)" />
+<path d="M146 257l15-11 12 7 15 9 10 3-2 6h-48z" fill="var(--face-light)" />
+<path d="M52 257l10-4 9 4-1 5-21 1z" fill="var(--tool)" />
+<path d="M153 259l9-8 9 5 1 6z" fill="var(--tool)" />
+<path d="M59 246l17 3m-20 1 20 4m75-10 16 4m-13 1 16 4" fill="none" stroke="var(--face-light)" stroke-width="1.7"/>
+<path d="M64 173q-18-1-21 17-1 14 16 15l18-9-3-17z" fill="var(--garment)" />
+<g class="cheetah-print" >
+<path d="M47 188q-2-5 5-5l5 2-1 5 -3 2-3-2z" fill="var(--print)" stroke="none"/>
+<path d="M61 181q-2-5 5-5l5 2-1 5 -3 2-3-2z" fill="var(--print)" stroke="none"/>
+</g>
+<path d="M73 191q-12-4-19 5-1 7 6 12l18 1 10-6-4-9z" fill="var(--face)" />
+<path d="M60 200l13 1m-7 4 11-1" fill="none" stroke="var(--face-shade)" stroke-width="1.4"/>
+<path d="M104 152q2 26 23 23 18-3 23-18" fill="none" stroke="var(--tool-light)" stroke-width="5"/>
+<path d="M96 149q3 39 33 33 19-3 27-23" fill="none" stroke="var(--tool-light)" stroke-width="3"/>
+<ellipse cx="108" cy="169" rx="3" ry="4" fill="none" stroke="var(--dark)" stroke-width="1"/>
+<ellipse cx="116" cy="173" rx="3" ry="4" fill="none" stroke="var(--dark)" stroke-width="1"/>
+<ellipse cx="126" cy="177" rx="3" ry="4" fill="none" stroke="var(--dark)" stroke-width="1"/>
+<ellipse cx="138" cy="169" rx="3" ry="4" fill="none" stroke="var(--dark)" stroke-width="1"/>
+<path d="M124 179l7 6-4 11-7-7z" fill="var(--tool-light)" />
+<path d="M100 161l-4 23m48-24 4 18" fill="none" stroke="var(--dark)" stroke-width="2"/>
+</g>
+<g class="head" >
+<path d="M63 59L48 79l11 1-19 20 20-1-10 17 16-3-3 18 22-5 19 9 42 1 16-16 14 6-2-13 17 3-7-15 15-6-20-14-8-24-72-15z" fill="var(--tool-shade)" />
+<path d="M64 79q-19 1-17 19 2 17 23 18 21 28 58 29 35-9 40-34 21-5 18-22-5-11-18-7l-16-22-73-4z" fill="var(--face)" />
+<path d="M69 117q28 21 64 19l26-12q-15 21-32 22-38-2-58-29z" fill="var(--face-shade)" stroke="none"/>
+<path d="M66 66l-6 27 18-15 3 24 19-26 11 17 8-23 21 22 3-20 20 19 7-15 8 10-12-29-53-13z" fill="var(--tool-shade)" />
+<path d="M70 68l11 4-3 17 10-15 14-6-16-10z" fill="var(--print)" stroke="none"/>
+<path d="M119 62l9 14 11 9-1-17z" fill="var(--print)" stroke="none"/>
+<g class="eyes-open" >
+<path d="M68 94l38 7-5 18q-22 12-34-14z" fill="var(--dark)" />
+<path d="M127 104l38-9 2 13q-10 24-32 13z" fill="var(--dark)" />
+<path d="M106 104l21 5m-59-12-12-6m109 8 11-7" fill="none" stroke="var(--dark)" stroke-width="4"/>
+<path d="M74 99l21 4m42 6 22-6" fill="none" stroke="var(--tool-light)" stroke-width="1.8"/>
+</g>
+<g class="eyes-closed" >
+<path d="M68 94l38 7-5 18q-22 12-34-14z" fill="var(--dark)" />
+<path d="M127 104l38-9 2 13q-10 24-32 13z" fill="var(--dark)" />
+<path d="M106 104l21 5" fill="none" stroke="var(--dark)" stroke-width="4"/>
+</g>
+<path d="M108 126q12 11 29 3l3-4" fill="none" stroke="var(--dark)" stroke-width="1.8"/>
+<path d="M117 112l-4 9 8 2" fill="none" stroke="var(--face-shade)" stroke-width="1.4"/>
+<ellipse cx="61" cy="118" rx="4" ry="5" fill="none" stroke="var(--tool-light)" stroke-width="2.8"/>
+<path d="M68 36q31-18 74-8l22 34 25 15q3 11-14 15l-40-18-38-5-46 4-16-6 23-17z" fill="var(--tool)" />
+<path d="M70 39l6 20 29-5 33 7 10-5-13-22-30-4z" fill="var(--tool-light)" stroke="none" opacity=".35"/>
+<path d="M137 32l19 25-16 5-10-30z" fill="var(--tool-shade)" stroke="none"/>
+<path d="M62 56q59-11 101 11l20 15-9 7q-38-26-85-21l-37 5-15-7z" fill="var(--tool)" />
+<path d="M54 65q59-16 112 10" fill="none" stroke="var(--tool-light)" stroke-width="1.5"/>
+<rect x="105" y="45" width="20" height="15" rx="2" fill="var(--dark)" transform="rotate(8 115 52)"/>
+<rect x="110" y="48" width="10" height="8" rx="1" fill="var(--tool-light)" transform="rotate(8 115 52)"/>
+</g>
+<g class="prop" style="transform-origin:164px 188px">
+<path d="M157 182q-4-13 4-16l10-8 13 7 2 21-14 14-15-7z" fill="var(--face)" />
+<path d="M169 160l-10-11 11-29 32 6-8 31-14 7 0 25-26-4 8-26z" fill="var(--dark)" />
+<path d="M174 126l20 4-7 21-20-4z" fill="var(--tool-light)" />
+<path d="M178 130l12 2-4 13-13-3z" fill="var(--garment-shade)" stroke="none"/>
+<rect x="163" y="161" width="18" height="23" rx="2" fill="var(--tool-shade)" transform="rotate(12 172 173)"/>
+<path d="M167 165l10 2m-11 3 10 2m-11 3 10 2m-11 3 10 2" fill="none" stroke="var(--tool-light)" stroke-width="1.4"/>
+<path d="M180 170q9-4 12 2l-7 7-9 1-4-5z" fill="var(--face)" />
+<path d="M181 180q10-3 10 4l-11 9-8-3z" fill="var(--face)" />
+<path d="M176 182l10-3" fill="none" stroke="var(--face-shade)" stroke-width="1.5"/>
+</g>
+</g>
+<g class="chalk" >
+<path d="M36 65l22-16 11-14q38-18 73-7l24 34 24 16-13 18 14 19-17-2 2 13-14-6-7 25 25 19 2 24-8 24 13 23-15 13 26 17-2 7-51 0-24-35-28 32-48 3-2-12 17-32-14-17-7-20 16-31 17-17-13-21-13 3 9-17-17 1 17-20-10-1z M168 157l4-34 30 5-7 30-14 7 0 20-25-3 M71 96l35 7-7 17-17 0z M129 105l35-9 2 11-14 16-16-2z" fill="none" stroke="var(--accent)" stroke-width="3" stroke-dasharray="10 3 2 3"/>
+<path d="M196 71h15l-15 15h15m-7-30h10l-10 10h10" fill="none" stroke="var(--accent)" stroke-width="2"/>
+</g>
+</svg>

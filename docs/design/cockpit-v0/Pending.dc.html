@@ -32,6 +32,9 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .row:hover{background:#0f141b}
 .grp{display:flex;gap:12px;align-items:baseline;padding:8px 10px 4px;border-bottom:1px solid #1e2a33;color:#39d0ff;font-size:11px}
 .focus{outline:1px solid #ffb02e;outline-offset:-1px;background:#1a150c}
+.mut{color:#6f8290}
+/* CDH-0017 CW17: the focused row's muted lines read #7a8d9b on the focus tint (5.14:1 on #0e1a22, 5.41:1 on #1c0f16, 5.28:1 on #1a150c) */
+.focus .mut{color:#7a8d9b}
 .kbd{display:inline-block;min-width:16px;padding:0 5px;border:1px solid #39d0ff;color:#39d0ff;font-size:10px;line-height:16px;text-align:center;border-radius:2px}
 .seg{display:flex;gap:2px}.seg i{display:block;width:7px;height:12px;background:#1e2a33}.seg i.on{background:#39d0ff}
 .cell{width:11px;height:11px;background:#141b22}
@@ -61,11 +64,12 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 </sc-if>
 
 <header style="position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:12px 22px;align-items:flex-end;padding:30px 36px 10px">
-  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">clock</span><span style="font-size:22px;font-weight:700;letter-spacing:.04em">19:53:48<span style="color:#6f8290;font-size:12px;font-weight:400"> −07:00</span></span></div>
+  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">clock</span><span style="font-size:22px;font-weight:700;letter-spacing:.04em">19:53:48<span class="mut" style="font-size:12px;font-weight:400"> −07:00</span></span></div>
   <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">ledger</span><span style="font-size:14px"><span class="c-live blink">●</span> live · <b style="font-weight:500">1 486</b> events · 70 runs · <span class="c-pend">1 open intent</span></span></div>
-  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">session</span><span style="font-size:14px">c70d687b…8447 <span style="color:#6f8290">claude-code</span></span></div>
-  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">hook latency</span><span style="font-size:14px">44 ms <span style="color:#6f8290">p50</span> · 61 ms <span style="color:#6f8290">p95</span></span></div>
-  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">harnesses</span><span style="font-size:14px">claude 2.1.111 · codex 0.154.0 <span style="color:#6f8290">· arbiter claude-opus-5-5</span></span></div>
+  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">session</span><span style="font-size:14px">c70d687b…8447 <span class="mut">claude-code</span></span></div>
+  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">hook latency</span><span style="font-size:14px">44 ms <span class="mut">p50</span> · 61 ms <span class="mut">p95</span></span></div>
+  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">harnesses</span><span style="font-size:14px">claude 2.1.111 · codex 0.154.0 <span class="mut">· arbiter claude-opus-5-5</span></span></div>
+  <dc-import name="Tray" view="bar" runs="{{trayRuns}}" calm="{{calm}}" hint-size="300px,38px"></dc-import>
   <div style="flex:1 1 40px"></div>
   <div style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Claude Max · week · judgment cap 50%</span><div style="display:flex;gap:10px;align-items:center"><div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span style="font-size:11px">31%</span></div></div>
   <div style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Codex Plus · 5 h window</span><div style="display:flex;gap:10px;align-items:center"><div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div><span style="font-size:11px">91%</span></div></div>
@@ -82,14 +86,14 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
     </section>
     <section class="pnl brk" style="padding:12px">
       <div class="lbl" style="margin-bottom:8px">ADR-016 strikes · review:HANDOFF-0040</div>
-      <div style="display:flex;gap:8px;align-items:center"><div style="width:34px;height:22px;background:#39d0ff"></div><div style="width:34px;height:22px;border:1px dashed #39d0ff"></div><div style="width:34px;height:22px;border:1px dashed #39d0ff"></div><span style="margin-left:6px;font-size:11px">cycle 1 <span style="color:#6f8290">· 0 blocking</span></span></div>
+      <div style="display:flex;gap:8px;align-items:center"><div style="width:34px;height:22px;background:#39d0ff"></div><div style="width:34px;height:22px;border:1px dashed #39d0ff"></div><div style="width:34px;height:22px;border:1px dashed #39d0ff"></div><span style="margin-left:6px;font-size:11px">cycle 1 <span class="mut">· 0 blocking</span></span></div>
     </section>
     <section class="pnl brk" style="padding:12px;border-color:#ffb02e">
       <div class="lbl" style="margin-bottom:8px;color:#ffb02e">open intents</div>
       <div style="font-size:11px;display:flex;flex-direction:column;gap:6px">
         <div style="display:flex;justify-content:space-between"><span>tool:Bash</span><span class="c-pend">1 m 34 s</span></div>
         <div class="bar"><i></i></div>
-        <div style="color:#6f8290">make canary-agents · typical 98–105 s · timeout 150 s per cell</div>
+        <div class="mut">make canary-agents · typical 98–105 s · timeout 150 s per cell</div>
       </div>
     </section>
   </aside>
@@ -101,19 +105,19 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
     </div>
     <div style="flex:1 1 auto;overflow:auto">
       <sc-for list="{{rows}}" as="row" hint-placeholder-count="14">
-        <sc-if value="{{row.isGroup}}" hint-placeholder-val="{{ false }}"><div class="grp"><span>▣ run {{row.run}}</span><span style="color:#6f8290">{{row.meta}}</span></div></sc-if>
+        <sc-if value="{{row.isGroup}}" hint-placeholder-val="{{ false }}"><div class="grp"><span>▣ run {{row.run}}</span><span class="mut">{{row.meta}}</span></div></sc-if>
         <sc-if value="{{row.isEvent}}" hint-placeholder-val="{{ true }}">
           <div class="row {{row.cls}}">
-            <span style="color:#6f8290">{{row.t}}</span>
+            <span class="mut">{{row.t}}</span>
             <span style="{{row.glyphStyle}}">{{row.glyph}}</span>
-            <span style="color:#6f8290;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{row.job}}</span>
+            <span class="mut" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{row.job}}</span>
             <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{row.summary}}</span>
             <span><span class="chip {{row.chipCls}}">{{row.chip}}</span></span>
             <span style="text-align:right;color:#6f8290">{{row.dt}}</span>
           </div>
         </sc-if>
       </sc-for>
-      <div class="row" style="border-bottom:0"><span style="color:#6f8290">19:53:48</span><span class="c-pend blink">▮</span><span></span><span style="color:#ffb02e">◀ waiting for the outcome with ref=01M4FA2K…R8V · 1 m 34 s</span><span><span class="chip c-pend">pending</span></span><span style="text-align:right;color:#ffb02e">1:34</span></div>
+      <div class="row" style="border-bottom:0"><span class="mut">19:53:48</span><span class="c-pend blink">▮</span><span></span><span style="color:#ffb02e">◀ waiting for the outcome with ref=01M4FA2K…R8V · 1 m 34 s</span><span><span class="chip c-pend">pending</span></span><span style="text-align:right;color:#ffb02e">1:34</span></div>
     </div>
   </main>
 
@@ -127,7 +131,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
       <b>source · actor</b><span>claude-code · claude-code.hook</span>
       <b>kind · class</b><span>intent · <span class="chip c-none">—</span></span>
       <b>job · key</b><span>tool:Bash · toolu_01Q8…c2Fp</span>
-      <b>parent</b><span>01M4F8NR8147T0KJA7TD08P04E <span style="color:#6f8290">· session's first event</span></span>
+      <b>parent</b><span>01M4F8NR8147T0KJA7TD08P04E <span class="mut">· session's first event</span></span>
       <b>outcome</b><span class="c-pend">none with ref = this id · elapsed 1 m 34 s</span>
     </div>
     <div style="border-top:1px solid #1e2a33;padding-top:10px;display:flex;flex-direction:column;gap:6px;font-size:11px">
@@ -135,7 +139,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
       <span>The pre-tool guard wrote this intent before the command ran (ADR-013 §4). The post-tool hook will write the outcome when it returns. Nothing is wrong yet: the agent tier of the canary matrix runs ten live cells and takes about 100 s.</span>
       <span class="lbl" style="margin-top:4px">what happens if it never returns</span>
       <span>At 150 s the row turns <span class="c-block">blocking</span> in the cockpit's own reckoning (not in the ledger). If the session dies, the next session's reconciliation writes an outcome <code style="color:#cfe6ef">status: unknown</code> with ref to this id, and the row closes amber, never green.</span>
-      <span style="color:#6f8290">The cockpit draws this state; it never writes it.</span>
+      <span class="mut">The cockpit draws this state; it never writes it.</span>
     </div>
   </aside>
 </div>
@@ -179,9 +183,15 @@ class Component extends DCLogic {
       e('19:52:14', 'intent',  'tool:Bash',  'Bash make canary-agents', 'pending', '', 'focus'),
     ];
   }
+  trayRuns() {
+    return [
+      { actor: 'builder', mapping: 'claude-code.*', run: 'c70d687b…8447', lifecycle: 'waiting', elapsed: '12m 12s', event: 'Bash make canary-agents · no outcome yet', chip: 'pending', focus: true },
+      { actor: 'reviewer', mapping: 'kgme.review', run: '01M4F8NR…04F', lifecycle: 'transient', elapsed: '9m 14s', event: 'cycle 1 tooling exhausted · not a strike · retry after 23:06', chip: 'blocking' }
+    ];
+  }
   renderVals() {
     const calm = this.props.calm ?? false;
-    return { noise: !calm, cells: this.cells(), rows: this.rows() };
+    return { noise: !calm, calm, cells: this.cells(), rows: this.rows(), trayRuns: this.trayRuns() };
   }
 }
 </script>
