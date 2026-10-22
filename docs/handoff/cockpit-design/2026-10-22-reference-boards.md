@@ -22,7 +22,7 @@ This row becomes `ready` after Cowork's native pass of CDH-0026.
 ## Do
 
 1. **Board 1, Components.**
-   - One complete statement of the noise rule, not several (0.2).
+   - One complete statement of the noise rule, not several (0.2). Its micro-label specimen says a micro-label carries no fact, replacing "repeats facts shown elsewhere" (CW32, AUDIT-CDH-0023-0025-REVIEW, 0.2).
    - The noise specimen beside its calm explanation as one before/after (0.4).
    - One cross-component specimen: a selected event with its frame, glyph, text and tray role aligned, replacing separate duplicated examples (0.6).
 2. **Board 2, Empty.**
@@ -39,6 +39,7 @@ This row becomes `ready` after Cowork's native pass of CDH-0026.
    - Arrange approval, model and command around one explained future interaction (0.9).
    - Use the guard and the arbiter to show request versus ruling in it (0.8).
    - Duplicate "not yet bound" prose goes; every control keeps its explicit label (0.2).
+   - The footer gains "? keys + system" like boards 2–6, since board 8's system facts now live in board 7's Phase 2 state (CW33, 0.3).
    - Nothing activates.
 5. **Board 10, Sprites.**
    - Prose duplicated with board 1 goes, each mapping and constraint kept once (0.2).

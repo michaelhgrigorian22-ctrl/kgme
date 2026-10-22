@@ -17,7 +17,7 @@ design_track: HANDOFF-0036
 
 AUDIT-CDH-0022's "the sum" paragraph names what the whole canvas does that no single board does: the tray answers who, the timeline what happened, the detail why, and the station makes responsibility spatial. This row spends the extravagance there: on the links between responsibility, event and evidence, replacing repeated captions.
 
-Every item is from AUDIT-CDH-0022's table, scored below 1.5 and decided by Cowork. Each goes on the approval screen. This row becomes `ready` after Cowork's native pass of CDH-0023.
+Every item is from AUDIT-CDH-0022's table, scored below 1.5 and decided by Cowork. Each goes on the approval screen. Cowork's native pass of CDH-0023 is done (AUDIT-CDH-0023-0025-REVIEW, PASS), so this row is `ready`.
 
 ## Do
 
