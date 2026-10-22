@@ -34,6 +34,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .pulse{animation:pulse 2.4s ease-in-out infinite}
 @keyframes pulse{50%{opacity:.5}}
 @media (prefers-reduced-motion:reduce){.pulse{animation:none}.scan{display:none}}
+.quota-alert{display:flex;align-items:center;gap:8px;min-height:24px;font-size:11px}.quota-track{width:80px;height:7px;border:1px solid currentColor}.quota-track i{display:block;height:100%;background:currentColor}
 </style>
 </helmet>
 <div class="hud" style="--f:#39d0ff;--fg:rgba(57,208,255,.06)">
@@ -45,21 +46,16 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   <div class="tx" style="bottom:16px"></div>
   <div class="ty" style="left:16px"></div>
   <div class="ty" style="right:16px"></div>
-  <div class="micro" style="top:7px;left:30px">KGME · Kuang Grade Mark Eleven · cockpit v0 · read-only</div>
-  <div class="micro" style="top:7px;right:30px">127.0.0.1:8642 · logs/ledger/ · no month file yet</div>
-  <div class="micro" style="bottom:7px;left:30px">ADR-017 view over the ledger · ADR-019 event v1 · hooks 0028</div>
-  <div class="micro" style="bottom:7px;right:30px">poll 2 s · no remote assets · c calms the edges</div>
+  <div class="micro" style="top:7px;left:30px">KGME</div>
+  <div class="micro" style="top:7px;right:30px">· · ·</div>
+  <div class="micro" style="bottom:7px;left:30px">◦ ◦ ◦</div>
+  <div class="micro" style="bottom:7px;right:30px">· · ·</div>
 </sc-if>
 
 <header style="position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:12px 22px;align-items:flex-end;padding:30px 36px 10px">
   <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">clock</span><span style="font-size:22px;font-weight:700;letter-spacing:.04em">09:00:00<span style="color:#6f8290;font-size:12px;font-weight:400"> −07:00</span></span></div>
   <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">ledger</span><span style="font-size:14px"><span style="color:#6f8290">○</span> empty · <b style="font-weight:500">0</b> events · 0 runs</span></div>
-  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">session</span><span style="font-size:14px;color:#6f8290">none</span></div>
-  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">hook latency</span><span style="font-size:14px;color:#6f8290">— ms</span></div>
-  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">harnesses</span><span style="font-size:14px">claude 2.1.111 · codex 0.154.0 <span style="color:#6f8290">· arbiter claude-opus-5-5</span></span></div>
-  <div style="flex:1 1 40px"></div>
-  <div style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Claude Max · week</span><div style="display:flex;gap:10px;align-items:center"><div class="seg"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span style="font-size:11px;color:#6f8290">no reading</span></div></div>
-  <div style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Codex Plus · 5 h window</span><div style="display:flex;gap:10px;align-items:center"><div class="seg"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span style="font-size:11px;color:#6f8290">no reading</span></div></div>
+  <dc-import name="Tray" view="bar" runs="{{trayRuns}}" calm="{{calm}}" hint-size="300px,38px"></dc-import>
 </header>
 
 <div style="position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:14px;padding:4px 36px 8px;flex:1 1 auto;align-content:flex-start">
@@ -115,7 +111,6 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   </aside>
 </div>
 
-<div class="source-facts" style="position:relative;z-index:1;padding:0 36px 8px;font-size:11px;color:#7a8d9b;overflow-wrap:anywhere">KGME · Kuang Grade Mark Eleven · cockpit v0 · read-only · 127.0.0.1:8642 · logs/ledger/ · no month file yet · ADR-017 view over the ledger · ADR-019 event v1 · hooks 0028 · poll 2 s · no remote assets · c calms the edges</div>
 <footer style="position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;padding:8px 36px 26px;font-size:11px;color:#6f8290">
   <span><span class="kbd">j</span> <span class="kbd">k</span> move</span>
   <span><span class="kbd">/</span> filter</span>
@@ -125,7 +120,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   <span><span class="kbd">g</span> <span class="kbd">G</span> oldest / newest</span>
   <span><span class="kbd">f</span> follow</span>
   <span><span class="kbd">c</span> calm</span>
-  <span><span class="kbd">?</span> keys</span>
+  <span><span class="kbd">?</span> keys + system</span>
   <span style="margin-left:auto">vim keys transfer · nothing here launches a process</span>
 </footer>
 </div>
@@ -134,7 +129,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 class Component extends DCLogic {
   renderVals() {
     const calm = this.props.calm ?? false;
-    return { noise: !calm, cells: Array.from({ length: 96 }, () => ({})) };
+    return { noise: !calm, calm, trayRuns: [], cells: Array.from({ length: 96 }, () => ({})) };
   }
 }
 </script>

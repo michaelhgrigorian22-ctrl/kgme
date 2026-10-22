@@ -46,6 +46,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 @keyframes blink{50%{opacity:.2}}
 @media (prefers-reduced-motion:reduce){.blink{animation:none}.scan{display:none}}
 .cell-value{display:block;background:#0a0c10;color:#cfe6ef;font-size:11px;line-height:11px;text-align:center;margin:0 1px}
+.quota-alert{display:flex;align-items:center;gap:8px;min-height:24px;font-size:11px}.quota-track{width:80px;height:7px;border:1px solid currentColor}.quota-track i{display:block;height:100%;background:currentColor}
 </style>
 </helmet>
 <div class="hud" style="--f:#ff3d7f;--fg:rgba(255,61,127,.22)">
@@ -58,22 +59,16 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   <div class="tx" style="bottom:16px"></div>
   <div class="ty" style="left:16px"></div>
   <div class="ty" style="right:16px"></div>
-  <div class="micro" style="top:7px;left:30px;color:#ff3d7f">KGME · cockpit v0 · HALT · review:HANDOFF-0032 · cycle 3</div>
-  <div class="micro" style="top:7px;right:30px">127.0.0.1:8642 · logs/ledger/2026-09.jsonl · trace collapsed</div>
-  <div class="micro" style="bottom:7px;left:30px">ADR-016 bound · 3 consecutive cycles on one root cause · packet AUDIT-0029</div>
-  <div class="micro" style="bottom:7px;right:30px">override is a terminal act · v0 writes nothing</div>
+  <div class="micro" style="top:7px;left:30px;color:#ff3d7f">KGME</div>
+  <div class="micro" style="top:7px;right:30px">· · ·</div>
+  <div class="micro" style="bottom:7px;left:30px">◦ ◦ ◦</div>
+  <div class="micro" style="bottom:7px;right:30px">· · ·</div>
 </sc-if>
 
 <header style="position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:12px 22px;align-items:flex-end;padding:30px 36px 10px">
   <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">clock</span><span style="font-size:22px;font-weight:700;letter-spacing:.04em">09:49:58<span class="mut" style="font-size:12px;font-weight:400"> −07:00</span></span></div>
   <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">ledger</span><span style="font-size:14px"><span class="c-block blink">●</span> <span class="c-block">halted</span> · <b style="font-weight:500">1 302</b> events · 61 runs</span></div>
-  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">session</span><span style="font-size:14px">01M38FTP…TYM <span class="mut">kgme.review</span></span></div>
-  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">hook latency</span><span style="font-size:14px">44 ms <span class="mut">p50</span> · 61 ms <span class="mut">p95</span></span></div>
-  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">harnesses</span><span style="font-size:14px">claude 2.1.111 · codex 0.154.0 <span class="mut">· arbiter claude-opus-5-5</span></span></div>
   <dc-import name="Tray" view="bar" runs="{{trayRuns}}" calm="{{calm}}" hint-size="300px,38px"></dc-import>
-  <div style="flex:1 1 40px"></div>
-  <div style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Claude Max · week · judgment cap 50%</span><div style="display:flex;gap:10px;align-items:center"><div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span style="font-size:11px">44%</span></div></div>
-  <div style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Codex Plus · 5 h window</span><div style="display:flex;gap:10px;align-items:center"><div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span style="font-size:11px">38%</span></div></div>
 </header>
 
 <div style="position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:14px;padding:4px 36px 8px;flex:1 1 auto;align-content:flex-start">
@@ -157,7 +152,6 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   </aside>
 </div>
 
-<div class="source-facts" style="position:relative;z-index:1;padding:0 36px 8px;font-size:11px;color:#7a8d9b;overflow-wrap:anywhere">KGME · cockpit v0 · HALT · review:HANDOFF-0032 · cycle 3 · 127.0.0.1:8642 · logs/ledger/2026-09.jsonl · trace collapsed · ADR-016 bound · 3 consecutive cycles on one root cause · packet AUDIT-0029 · override is a terminal act · v0 writes nothing</div>
 <footer style="position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;padding:8px 36px 26px;font-size:11px;color:#6f8290">
   <span><span class="kbd">j</span> <span class="kbd">k</span> move</span>
   <span><span class="kbd">/</span> filter</span>
@@ -167,7 +161,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   <span><span class="kbd">p</span> payload</span>
   <span><span class="kbd">2</span> blocking only</span>
   <span><span class="kbd">c</span> calm</span>
-  <span><span class="kbd">?</span> keys</span>
+  <span><span class="kbd">?</span> keys + system</span>
   <span style="margin-left:auto;color:#ff3d7f">halt · nothing proceeds until the override lands</span>
 </footer>
 </div>

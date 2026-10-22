@@ -46,6 +46,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 @keyframes sweep{from{top:0}to{top:100%}}
 @media (prefers-reduced-motion:reduce){.blink,.pulse,.sweep{animation:none}.scan,.sweep{display:none}}
 .cell-value{display:block;background:#0a0c10;color:#cfe6ef;font-size:11px;line-height:11px;text-align:center;margin:0 1px}
+.quota-alert{display:flex;align-items:center;gap:8px;min-height:24px;font-size:11px}.quota-track{width:80px;height:7px;border:1px solid currentColor}.quota-track i{display:block;height:100%;background:currentColor}
 </style>
 </helmet>
 <div class="hud" style="--f:#39d0ff;--fg:rgba(57,208,255,.10)">
@@ -58,10 +59,10 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   <div class="tx" style="bottom:16px"></div>
   <div class="ty" style="left:16px"></div>
   <div class="ty" style="right:16px"></div>
-  <div class="micro" style="top:7px;left:30px">KGME · Kuang Grade Mark Eleven · cockpit v0 · read-only</div>
-  <div class="micro" style="top:7px;right:30px">127.0.0.1:8642 · logs/ledger/2026-10.jsonl · trace collapsed</div>
-  <div class="micro" style="bottom:7px;left:30px">ADR-017 view over the ledger · ADR-019 event v1 · hooks 0028 · guard rule 4</div>
-  <div class="micro" style="bottom:7px;right:30px">poll 2 s · no remote assets · c calms the edges</div>
+  <div class="micro" style="top:7px;left:30px">KGME</div>
+  <div class="micro" style="top:7px;right:30px">· · ·</div>
+  <div class="micro" style="bottom:7px;left:30px">◦ ◦ ◦</div>
+  <div class="micro" style="bottom:7px;right:30px">· · ·</div>
 </sc-if>
 
 <header style="position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:12px 22px;align-items:flex-end;padding:30px 36px 10px">
@@ -73,28 +74,8 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
     <span class="lbl">ledger</span>
     <span style="font-size:14px"><span class="c-live blink">●</span> live · <b style="font-weight:500">1 479</b> events · 70 runs</span>
   </div>
-  <div style="display:flex;flex-direction:column;gap:2px">
-    <span class="lbl">session</span>
-    <span style="font-size:14px">c70d687b…8447 <span class="mut">claude-code</span></span>
-  </div>
-  <div style="display:flex;flex-direction:column;gap:2px">
-    <span class="lbl">hook latency</span>
-    <span style="font-size:14px">44 ms <span class="mut">p50</span> · 61 ms <span class="mut">p95</span></span>
-  </div>
-  <div style="display:flex;flex-direction:column;gap:2px">
-    <span class="lbl">harnesses</span>
-    <span style="font-size:14px">claude 2.1.111 · codex 0.154.0 <span class="mut">· arbiter claude-opus-5-5</span></span>
-  </div>
   <dc-import name="Tray" view="bar" runs="{{trayRuns}}" calm="{{calm}}" hint-size="300px,38px"></dc-import>
-  <div style="flex:1 1 40px"></div>
-  <div style="display:flex;flex-direction:column;gap:4px">
-    <span class="lbl">Claude Max · week · judgment cap 50%</span>
-    <div style="display:flex;gap:10px;align-items:center"><div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span style="font-size:11px">31%</span></div>
-  </div>
-  <div style="display:flex;flex-direction:column;gap:4px">
-    <span class="lbl">Codex Plus · 5 h window</span>
-    <div style="display:flex;gap:10px;align-items:center"><div class="seg"><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i class="warn"></i><i></i><i></i></div><span class="c-adv" style="font-size:11px">91% · resets 23:06</span></div>
-  </div>
+  <sc-for list="{{quotaAlerts}}" as="q"><div class="quota-alert" style="{{q.color}}"><span>{{q.label}}</span><div class="quota-track"><i style="{{q.fill}}"></i></div><span>{{q.text}}</span></div></sc-for>
 </header>
 
 <div style="position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:14px;padding:4px 36px 8px;flex:1 1 auto;align-content:flex-start">
@@ -175,7 +156,6 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   </aside>
 </div>
 
-<div class="source-facts" style="position:relative;z-index:1;padding:0 36px 8px;font-size:11px;color:#7a8d9b;overflow-wrap:anywhere">KGME · Kuang Grade Mark Eleven · cockpit v0 · read-only · 127.0.0.1:8642 · logs/ledger/2026-10.jsonl · trace collapsed · ADR-017 view over the ledger · ADR-019 event v1 · hooks 0028 · guard rule 4 · poll 2 s · no remote assets · c calms the edges</div>
 <footer style="position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;padding:8px 36px 26px;font-size:11px;color:#6f8290">
   <span><span class="kbd">j</span> <span class="kbd">k</span> move</span>
   <span><span class="kbd">/</span> filter</span>
@@ -186,13 +166,18 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   <span><span class="kbd">f</span> follow</span>
   <span><span class="kbd">a</span> runs</span>
   <span><span class="kbd">c</span> calm</span>
-  <span><span class="kbd">?</span> keys</span>
+  <span><span class="kbd">?</span> keys + system</span>
   <span style="margin-left:auto">vim keys transfer · nothing here launches a process</span>
 </footer>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"calm":{"editor":"boolean","default":false,"section":"HUD"},"$preview":{"width":1440,"height":900}}'>
 class Component extends DCLogic {
+  quotaAlerts(value = 91, cap = 100) {
+    if (value < 80 && value < cap) return [];
+    const capped = value >= cap;
+    return [{ label: 'Codex Plus', text: value + '%' + (capped ? ' · cap' : ' · high'), color: 'color:' + (capped ? '#ff3d7f' : '#ffb02e'), fill: 'width:' + Math.min(value, 100) + '%' }];
+  }
   cells() {
     const v = [0,0,1,0,0,2,3,1,0,0,0,0, 0,1,2,2,1,0,0,0,1,3,4,2, 1,0,0,0,2,3,3,2,1,0,0,0, 0,0,1,2,4,4,3,1,0,0,1,1, 2,3,2,1,0,0,0,0,0,1,2,3, 4,4,3,2,1,1,0,0,0,0,0,0, 0,0,0,1,2,2,3,4,4,3,2,1, 0,0,1,1,0,0,0,2,3,4,4,5];
     const col = ['#141b22','#163241','#1b4a60','#217a97','#2aa6cc','#39d0ff'];
@@ -238,7 +223,7 @@ class Component extends DCLogic {
   }
   renderVals() {
     const calm = this.props.calm ?? false;
-    return { noise: !calm, calm, cells: this.cells(), rows: this.rows(), trayRuns: this.trayRuns() };
+    return { quotaAlerts: this.quotaAlerts(), noise: !calm, calm, cells: this.cells(), rows: this.rows(), trayRuns: this.trayRuns() };
   }
 }
 </script>

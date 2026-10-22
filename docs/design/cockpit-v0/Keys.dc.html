@@ -40,6 +40,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .leg{display:grid;grid-template-columns:72px minmax(0,1fr);gap:4px 12px;font-size:11px;align-items:baseline}
 .leg .k{text-align:right}
 @media (prefers-reduced-motion:reduce){.scan{display:none}}
+.surface-choice{min-height:24px;padding:4px 10px;border:1px solid #1e2a33;background:#0a0c10;color:#cfe6ef;font:inherit}.surface-choice[aria-pressed="true"]{border-color:#39d0ff;text-decoration:underline;text-underline-offset:3px}.surface-choice:focus-visible,.system:focus-visible{outline:2px solid #39d0ff;outline-offset:2px}.system{max-height:270px;overflow:auto;scroll-padding:8px}.system dl{display:grid;grid-template-columns:minmax(140px,1fr) minmax(0,3fr);gap:6px 16px;margin:0;font-size:11px}.system dt{color:#7a8d9b}.system dd{margin:0;overflow-wrap:anywhere}.key .small{font-size:7px}
 </style>
 </helmet>
 <div class="hud" style="--f:#39d0ff;--fg:rgba(57,208,255,.08)">
@@ -50,135 +51,325 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   <div class="tx" style="bottom:16px"></div>
   <div class="ty" style="left:16px"></div>
   <div class="ty" style="right:16px"></div>
-  <div class="micro" style="top:7px;left:30px">KGME · cockpit v0 · keyboard map · ? opens this as an overlay</div>
-  <div class="micro" style="top:7px;right:30px">vim grammar · mirrors Claude Code where a binding transfers</div>
-  <div class="micro" style="bottom:7px;left:30px">no modifier chords in v0 · every action is one key or one key after /</div>
-  <div class="micro" style="bottom:7px;right:30px">dashed keys are Phase 2 · reserved, not bound</div>
+  <div class="micro" style="top:7px;left:30px">KGME</div>
+  <div class="micro" style="top:7px;right:30px">· · ·</div>
+  <div class="micro" style="bottom:7px;left:30px">◦ ◦ ◦</div>
+  <div class="micro" style="bottom:7px;right:30px">· · ·</div>
 </sc-if>
 
-<div style="position:relative;z-index:1;padding:36px 36px 28px;display:flex;flex-direction:column;gap:18px;flex:1 1 auto">
-  <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:12px">
-    <div><div class="lbl">HANDOFF-0036 · acceptance: identify the timeline, a run, a failure class and the focus using only this map</div><h1 style="margin:2px 0 0;font-size:22px;font-weight:700;letter-spacing:.04em">Keyboard map</h1></div>
-    <div style="font-size:11px;color:#6f8290;max-width:560px">Solid cyan keys are bound in v0. Dashed keys are reserved for Phase 2 and do nothing yet; pressing one shows a one-line "Phase 2" notice and the key it is reserved for. Single-character keys act only while focus is on the cockpit's own surface and never inside a text field (the filter line takes text; there only <span class="kbd">Enter</span> and <span class="kbd">Esc</span> act); <span class="kbd">?</span> lists them, and remapping is Phase 2 (WCAG 2.1.4).</div>
-  </div>
-
+<div style="position:relative;z-index:1;padding:36px;display:flex;flex-direction:column;gap:16px;box-sizing:border-box;max-height:100vh;overflow:auto">
+  <div style="display:flex;justify-content:space-between;gap:16px;align-items:baseline"><div><div class="lbl">KGME cockpit v0 · ? keys + system</div><h1 style="margin:2px 0;font-size:22px">Keyboard map · {{surfaceName}}</h1></div><div style="display:flex;gap:8px"><sc-for list="{{surfaces}}" as="s"><button type="button" class="surface-choice" aria-pressed="{{s.selected}}" onClick="{{s.pick}}">{{s.name}}</button></sc-for></div></div>
+  <div style="font-size:11px;color:#7a8d9b">Single-character keys act only while focus is on the cockpit's own surface, never inside a text field. In the filter line only Enter and Esc act. No modifier chords in v0; remapping is Phase 2. This drawing previews each surface's map; it does not bind application keys.</div>
   <div style="display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start">
-    <section class="pnl brk" style="padding:18px;display:flex;flex-direction:column;gap:6px;flex:0 1 auto">
-      <div style="display:flex;gap:6px">
-        <div class="key on wide"><b>Esc</b><small>back · close</small></div>
-        <div class="key on"><b>1</b><small>ok</small></div>
-        <div class="key on"><b>2</b><small>blocking</small></div>
-        <div class="key on"><b>3</b><small>transient</small></div>
-        <div class="key on"><b>4</b><small>advisory</small></div>
-        <div class="key"><b>5</b></div><div class="key"><b>6</b></div><div class="key"><b>7</b></div><div class="key"><b>8</b></div><div class="key"><b>9</b></div>
-        <div class="key on"><b>0</b><small>all classes</small></div>
-      </div>
-      <div style="display:flex;gap:6px;padding-left:24px">
-        <div class="key on wide"><b>Tab</b><small>next pane</small></div>
-        <div class="key"><b>q</b></div>
-        <div class="key on"><b>w</b><small>wall</small></div>
-        <div class="key"><b>e</b></div>
-        <div class="key on"><b>r</b><small>run · retry</small></div>
-        <div class="key on"><b>t</b><small>trace</small></div>
-        <div class="key f2"><b>y</b><small>approve · p2</small></div>
-        <div class="key on"><b>u</b><small>parent</small></div>
-        <div class="key"><b>i</b></div>
-        <div class="key on"><b>o</b><small>open intents</small></div>
-        <div class="key on"><b>p</b><small>payload</small></div>
-      </div>
-      <div style="display:flex;gap:6px;padding-left:40px">
-        <div class="key on"><b>a</b><small>active runs</small></div>
-        <div class="key"><b>s</b></div>
-        <div class="key"><b>d</b></div>
-        <div class="key on"><b>f</b><small>follow</small></div>
-        <div class="key on"><b>g</b><small>oldest · G newest</small></div>
-        <div class="key"><b>h</b></div>
-        <div class="key on"><b>j</b><small>down</small></div>
-        <div class="key on"><b>k</b><small>up</small></div>
-        <div class="key"><b>l</b></div>
-        <div class="key f2"><b>;</b><small>command · p2</small></div>
-        <div class="key on wider"><b>Enter</b><small>detail</small></div>
-      </div>
-      <div style="display:flex;gap:6px;padding-left:64px">
-        <div class="key"><b>z</b></div>
-        <div class="key on"><b>x</b><small>clear filters</small></div>
-        <div class="key on"><b>c</b><small>calm</small></div>
-        <div class="key"><b>v</b></div>
-        <div class="key f2"><b>b</b><small>/btw · p2</small></div>
-        <div class="key f2"><b>n</b><small>decline · p2</small></div>
-        <div class="key f2"><b>m</b><small>model · p2</small></div>
-        <div class="key"><b>,</b></div>
-        <div class="key"><b>.</b></div>
-        <div class="key on"><b>/</b><small>filter · ? keys</small></div>
-      </div>
-      <div style="display:flex;gap:6px;padding-left:160px">
-        <div class="key f2 space"><b>Space</b><small>queue message · p2</small></div>
-      </div>
-    </section>
-
-    <div style="flex:1 1 320px;min-width:300px;display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:14px">
-      <section class="pnl brk" style="padding:14px">
-        <h2 class="h">Move</h2>
-        <div class="leg">
-          <span class="k"><span class="kbd">j</span> <span class="kbd">k</span></span><span>next / previous row</span>
-          <span class="k"><span class="kbd">g</span> <span class="kbd">G</span></span><span>oldest / newest event</span>
-          <span class="k"><span class="kbd">Enter</span></span><span>open the row in the detail pane</span>
-          <span class="k"><span class="kbd">Esc</span></span><span>close detail, then clear filter, then nothing</span>
-          <span class="k"><span class="kbd">u</span></span><span>jump to the event's <code>parent</code></span>
-          <span class="k"><span class="kbd">Tab</span></span><span>focus runs → timeline → detail</span>
-          <span class="k"><span class="kbd">f</span></span><span>follow the newest event; any move unfollows</span>
-        </div>
-      </section>
-      <section class="pnl brk" style="padding:14px">
-        <h2 class="h">Filter</h2>
-        <div class="leg">
-          <span class="k"><span class="kbd">/</span></span><span>filter line · <code>run:</code> <code>kind:</code> <code>job:</code> or free text over summaries</span>
-          <span class="k"><span class="kbd">1</span>–<span class="kbd">4</span></span><span>toggle a class: ok, blocking, transient, advisory</span>
-          <span class="k"><span class="kbd">0</span></span><span>every class</span>
-          <span class="k"><span class="kbd">r</span></span><span>while disconnected: retry now; otherwise cycle run filter: this run → all</span>
-          <span class="k"><span class="kbd">t</span></span><span>expand or collapse trace events under their parent</span>
-          <span class="k"><span class="kbd">o</span></span><span>only intents without an outcome</span>
-          <span class="k"><span class="kbd">a</span></span><span>only open runs: who is working, waiting, transient or blocked · <span class="kbd">Enter</span> sets <span class="kbd">r</span> to that run</span>
-          <span class="k"><span class="kbd">x</span></span><span>clear every filter</span>
-        </div>
-      </section>
-      <section class="pnl brk" style="padding:14px">
-        <h2 class="h">View</h2>
-        <div class="leg">
-          <span class="k"><span class="kbd">c</span></span><span>calm: drop frame, rails, micro-labels, scanlines; data unchanged</span>
-          <span class="k"><span class="kbd">p</span></span><span>show the payload path and hash of the selected event</span>
-          <span class="k"><span class="kbd">w</span></span><span>wall layout for the external monitor</span>
-          <span class="k"><span class="kbd">?</span></span><span>this map, as an overlay</span>
-        </div>
-        <div class="lbl" style="margin-top:10px">Mouse works everywhere; nothing needs it.</div>
-      </section>
-      <section class="pnl brk" style="padding:14px;border-color:#3a4650">
-        <h2 class="h" style="color:#6f8290">Reserved · Phase 2</h2>
-        <div class="leg" style="color:#6f8290">
-          <span class="k"><span class="kbd" style="color:#6f8290;border-color:#3a4650;border-style:dashed">b</span></span><span>/btw side lane, context without history</span>
-          <span class="k"><span class="kbd" style="color:#6f8290;border-color:#3a4650;border-style:dashed">m</span></span><span>model selector · optimized mode</span>
-          <span class="k"><span class="kbd" style="color:#6f8290;border-color:#3a4650;border-style:dashed">y</span> <span class="kbd" style="color:#6f8290;border-color:#3a4650;border-style:dashed">n</span></span><span>approve · decline a pending approval</span>
-          <span class="k"><span class="kbd" style="color:#6f8290;border-color:#3a4650;border-style:dashed">;</span></span><span>command line · dispatch a handoff</span>
-          <span class="k"><span class="kbd" style="color:#6f8290;border-color:#3a4650;border-style:dashed">Space</span></span><span>queue a message while a turn runs</span>
-        </div>
-      </section>
-    </div>
-  </div>
-
-  <section class="pnl brk" style="padding:14px;display:flex;flex-wrap:wrap;gap:24px;font-size:11px;align-items:center">
-    <span class="lbl">Focus is visible</span>
-    <span>focused row: 1 px cyan outline + surface tint · never colour alone</span>
-    <span>focused pane: its brackets brighten to 100%</span>
-    <span>filter active: the filter line stays on screen until <span class="kbd">x</span></span>
-    <span style="margin-left:auto;color:#6f8290">reduced motion: same keys, no blink, no sweep, no scanlines</span>
-  </section>
+    <div style="flex:1.2 1 680px;min-width:0;display:flex;flex-direction:column;gap:16px"><section class="pnl brk" style="padding:18px;display:flex;flex-direction:column;gap:6px"><sc-for list="{{keyboardRows}}" as="row"><div style="{{row.style}}"><sc-for list="{{row.keys}}" as="key"><div class="{{key.cls}}"><b>{{key.key}}</b><small>{{key.hint}}</small></div></sc-for></div></sc-for></section>
+  <sc-if value="{{hasSystem}}"><section class="pnl brk" style="padding:14px"><div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px"><h2 class="h" style="margin:0">System · {{sampleName}}</h2><sc-for list="{{samples}}" as="sample"><button type="button" class="surface-choice" aria-pressed="{{sample.selected}}" onClick="{{sample.pick}}">{{sample.name}}</button></sc-for></div><div class="system" tabindex="0" aria-label="system facts, scroll for all fields"><dl><sc-for list="{{systemRows}}" as="fact"><dt>{{fact.label}}</dt><dd>{{fact.value}}</dd></sc-for></dl></div></section></sc-if>
 </div>
-<div class="source-facts" style="position:relative;z-index:1;padding:0 36px 8px;font-size:11px;color:#7a8d9b;overflow-wrap:anywhere">KGME · cockpit v0 · keyboard map · ? opens this as an overlay · vim grammar · mirrors Claude Code where a binding transfers · no modifier chords in v0 · every action is one key or one key after / · dashed keys are Phase 2 · reserved, not bound</div>
+    <div style="flex:1 1 400px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px"><sc-for list="{{families}}" as="family"><section class="pnl brk" style="padding:14px"><h2 class="h">{{family.name}}</h2><div class="leg"><sc-for list="{{family.bindings}}" as="binding"><span class="k"><span class="kbd" style="{{binding.style}}">{{binding.key}}</span></span><span>{{binding.text}}</span></sc-for></div></section></sc-for></div>
+  </div>
+  <sc-if value="{{isStation}}"><div style="font-size:11px">The station's system facts live once in its <span class="kbd">a</span> pane, available in deck and calm.</div></sc-if>
+  <div style="font-size:11px;color:#7a8d9b">Focus uses a cyan outline and surface tint, never colour alone. Reduced motion keeps the keys and removes blink, sweep and scanlines. Dashed keys are Phase 2: reserved, not bound.</div>
+</div>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"calm":{"editor":"boolean","default":false,"section":"HUD"},"$preview":{"width":1440,"height":900}}'>
 class Component extends DCLogic {
-  renderVals() { return { noise: !(this.props.calm ?? false) }; }
+  state = { surface: 'desk', sample: 'Main' };
+  systemSamples() { return {
+  "Main": [
+    {
+      "label": "session",
+      "value": "c70d687b…8447 claude-code"
+    },
+    {
+      "label": "hook latency",
+      "value": "44 ms p50 · 61 ms p95"
+    },
+    {
+      "label": "harnesses",
+      "value": "claude 2.1.111 · codex 0.154.0 · arbiter claude-opus-5-5"
+    },
+    {
+      "label": "Claude Max · week · judgment cap 50%",
+      "value": "31%"
+    },
+    {
+      "label": "Codex Plus · 5 h window",
+      "value": "91% · resets 23:06"
+    },
+    {
+      "label": "Surface",
+      "value": "KGME · Kuang Grade Mark Eleven · cockpit v0 · read-only"
+    },
+    {
+      "label": "Source",
+      "value": "127.0.0.1:8642 · logs/ledger/2026-10.jsonl · trace collapsed"
+    },
+    {
+      "label": "Provenance",
+      "value": "ADR-017 view over the ledger · ADR-019 event v1 · hooks 0028 · guard rule 4"
+    },
+    {
+      "label": "Policy",
+      "value": "poll 2 s · no remote assets · c calms the edges"
+    }
+  ],
+  "Empty": [
+    {
+      "label": "session",
+      "value": "none"
+    },
+    {
+      "label": "hook latency",
+      "value": "— ms"
+    },
+    {
+      "label": "harnesses",
+      "value": "claude 2.1.111 · codex 0.154.0 · arbiter claude-opus-5-5"
+    },
+    {
+      "label": "Claude Max · week",
+      "value": "no reading"
+    },
+    {
+      "label": "Codex Plus · 5 h window",
+      "value": "no reading"
+    },
+    {
+      "label": "Surface",
+      "value": "KGME · Kuang Grade Mark Eleven · cockpit v0 · read-only"
+    },
+    {
+      "label": "Source",
+      "value": "127.0.0.1:8642 · logs/ledger/ · no month file yet"
+    },
+    {
+      "label": "Provenance",
+      "value": "ADR-017 view over the ledger · ADR-019 event v1 · hooks 0028"
+    },
+    {
+      "label": "Policy",
+      "value": "poll 2 s · no remote assets · c calms the edges"
+    }
+  ],
+  "Blocking": [
+    {
+      "label": "session",
+      "value": "01M38FTP…TYM kgme.review"
+    },
+    {
+      "label": "hook latency",
+      "value": "44 ms p50 · 61 ms p95"
+    },
+    {
+      "label": "harnesses",
+      "value": "claude 2.1.111 · codex 0.154.0 · arbiter claude-opus-5-5"
+    },
+    {
+      "label": "Claude Max · week · judgment cap 50%",
+      "value": "44%"
+    },
+    {
+      "label": "Codex Plus · 5 h window",
+      "value": "38%"
+    },
+    {
+      "label": "Surface",
+      "value": "KGME · cockpit v0 · HALT · review:HANDOFF-0032 · cycle 3"
+    },
+    {
+      "label": "Source",
+      "value": "127.0.0.1:8642 · logs/ledger/2026-09.jsonl · trace collapsed"
+    },
+    {
+      "label": "Provenance",
+      "value": "ADR-016 bound · 3 consecutive cycles on one root cause · packet AUDIT-0029"
+    },
+    {
+      "label": "Policy",
+      "value": "override is a terminal act · v0 writes nothing"
+    }
+  ],
+  "Pending": [
+    {
+      "label": "session",
+      "value": "c70d687b…8447 claude-code"
+    },
+    {
+      "label": "hook latency",
+      "value": "44 ms p50 · 61 ms p95"
+    },
+    {
+      "label": "harnesses",
+      "value": "claude 2.1.111 · codex 0.154.0 · arbiter claude-opus-5-5"
+    },
+    {
+      "label": "Claude Max · week · judgment cap 50%",
+      "value": "31%"
+    },
+    {
+      "label": "Codex Plus · 5 h window",
+      "value": "91%"
+    },
+    {
+      "label": "Surface",
+      "value": "KGME · cockpit v0 · 1 intent without outcome · reconciliation pending"
+    },
+    {
+      "label": "Source",
+      "value": "127.0.0.1:8642 · logs/ledger/2026-10.jsonl · trace collapsed"
+    },
+    {
+      "label": "Provenance",
+      "value": "ADR-013 §4 write-ahead · the intent is proof the action was attempted"
+    },
+    {
+      "label": "Policy",
+      "value": "poll 2 s · no remote assets · c calms the edges"
+    }
+  ],
+  "Disconnected": [
+    {
+      "label": "session",
+      "value": "c70d687b…8447 claude-code · stale"
+    },
+    {
+      "label": "hook latency",
+      "value": "— ms"
+    },
+    {
+      "label": "harnesses",
+      "value": "claude 2.1.111 · codex 0.154.0"
+    },
+    {
+      "label": "Claude Max · week · stale",
+      "value": "7/20 lit segments"
+    },
+    {
+      "label": "Codex Plus · stale",
+      "value": "18/20 lit segments"
+    },
+    {
+      "label": "Surface",
+      "value": "KGME · cockpit v0 · no signal"
+    },
+    {
+      "label": "Source",
+      "value": "127.0.0.1:8642 · connection refused"
+    },
+    {
+      "label": "Provenance",
+      "value": "last event 19:52:14 −07:00 · this view is a snapshot"
+    },
+    {
+      "label": "Policy",
+      "value": "retrying every 2 s · nothing is lost: the ledger is a file"
+    }
+  ],
+  "Phase2": [
+    {
+      "label": "session",
+      "value": "c70d687b…8447 claude-code"
+    },
+    {
+      "label": "Surface",
+      "value": "KGME · cockpit · the Phase 2 surface, drawn so the boundary is visible"
+    },
+    {
+      "label": "Source",
+      "value": "dashed = not built · roadmap Phase 2 · ADR-017 build order"
+    },
+    {
+      "label": "Provenance",
+      "value": "every dashed control routes through the ledger when it exists: intent before, outcome after"
+    },
+    {
+      "label": "Policy",
+      "value": "v0 ships none of this"
+    }
+  ],
+  "Wall": [
+    {
+      "label": "session",
+      "value": "c70d687b…8447 claude-code · HANDOFF-0040 · 19:40:02 →"
+    },
+    {
+      "label": "hook latency",
+      "value": "44 ms p50 · 61 ms p95 · 0 hook errors"
+    },
+    {
+      "label": "harnesses",
+      "value": "claude 2.1.111 · codex 0.154.0 · arbiter claude-opus-5-5 · ollama idle"
+    },
+    {
+      "label": "Claude Max · week · judgment cap 50%",
+      "value": "31%"
+    },
+    {
+      "label": "Codex Plus · 5 h window",
+      "value": "91% · resets 23:06"
+    },
+    {
+      "label": "Surface",
+      "value": "KGME · cockpit v0 · wall · external monitor 2560 × 1080 · w toggles"
+    },
+    {
+      "label": "Source",
+      "value": "127.0.0.1:8642 · logs/ledger/2026-10.jsonl · raw stream from logs/scratch/payloads (read-only)"
+    },
+    {
+      "label": "Provenance",
+      "value": "same keys · same data · four columns instead of three · the raw stream is the only thing the desk view does not show"
+    },
+    {
+      "label": "Policy",
+      "value": "c calms the edges"
+    }
+  ],
+  "Keys": [
+    {
+      "label": "Key grammar",
+      "value": "KGME · cockpit v0 · keyboard map · ? opens this as an overlay"
+    },
+    {
+      "label": "Key grammar",
+      "value": "vim grammar · mirrors Claude Code where a binding transfers"
+    },
+    {
+      "label": "Key grammar",
+      "value": "no modifier chords in v0 · every action is one key or one key after /"
+    },
+    {
+      "label": "Key grammar",
+      "value": "dashed keys are Phase 2 · reserved, not bound"
+    }
+  ]
+}; }
+  renderVals() {
+    const surface = this.state.surface, station = surface === 'station';
+    const sample = surface === 'wall' ? 'Wall' : this.state.sample;
+    const names = { Main:'Live', Empty:'Empty', Blocking:'Blocking', Pending:'Pending', Disconnected:'Disconnected', Phase2:'Phase 2', Wall:'Wall' };
+    const reserve = [['b','/btw side lane, context without history'],['m','model selector · optimized mode'],['y / n','approve / decline a pending approval'],[';','command line · dispatch a handoff'],['Space','queue a message while a turn runs']];
+    const families = station ? [
+      {name:'Rooms and runs', pairs:[['1–7','Bridge, Workshop, Review chamber, Airlock, Archive, Dock, Engine room'],['a','open active runs and system facts; available in deck and calm'],['Esc','close the runs pane, then return to the whole deck']]},
+      {name:'View and replay', pairs:[['c','toggle deck and the calm text wall; all facts retained'],['p','pause / play the replay'],['r','restart the replay'],['w','desk → wall → station (integrated cockpit)'],['?','this surface-aware map (integrated cockpit)']]}
+    ] : [
+      {name:'Move', pairs:[['j / k','next / previous row'],['g / G','oldest / newest event'],['Enter','open the selected event in detail'],['Esc','close detail, then clear filter, then nothing'],['u','jump to the event parent'],['Tab','focus runs → timeline → detail'],['f','follow newest; moving unfollows']]},
+      {name:'Filter', pairs:[['/','run:, kind:, job: or free text over summaries'],['1–4 / 0','ok, blocking, transient, advisory / every class'],['r','while disconnected: retry now; otherwise this run → all'],['t','expand / collapse trace events under their parent'],['o','only intents without an outcome'],['a','open runs; Enter sets the r filter to that run'],['x','clear every filter']]},
+      {name:'View', pairs:[['c','calm: drop decoration; data unchanged'],['p','payload path and hash of the selected event'],['w','desk → wall → station'],['?','this map and the system section']]}
+    ];
+    families.push({name:'Reserved · Phase 2',pairs:reserve,reserved:true});
+    const hints = station ? {Esc:'back · close','1':'bridge','2':'workshop','3':'review','4':'airlock','5':'archive','6':'dock','7':'engine',Tab:'controls',w:'surfaces',r:'restart',a:'runs · system',p:'pause',c:'calm','/':'? keys'} : {Esc:'back · close','1':'ok','2':'blocking','3':'transient','4':'advisory','0':'all classes',Tab:'next pane',w:'surfaces',r:'run · retry',t:'trace',u:'parent',o:'open intents',p:'payload',a:'open runs',f:'follow',g:'oldest · G newest',j:'down',k:'up',Enter:'detail',x:'clear',c:'calm','/':'filter · ? keys'};
+    const reserved={b:'/btw · p2',m:'model · p2',y:'approve · p2',n:'decline · p2',';':'command · p2',Space:'queue message · p2'};
+    const rows=[['Esc','1','2','3','4','5','6','7','8','9','0'],['Tab','q','w','e','r','t','y','u','i','o','p'],['a','s','d','f','g','h','j','k','l',';','Enter'],['z','x','c','v','b','n','m',',','.','/'],['Space']];
+    const samples=this.systemSamples();
+    const missing = [['harnesses','Harnesses / arbiter'],['hook latency','Hook latency'],['Claude Max','Claude Max quota / reset'],['Codex Plus','Codex Plus quota / reset']].filter(([key])=>!samples[sample].some(f=>f.label.startsWith(key))).map(([,label])=>({label,value:'Not supplied in this sample.'}));
+    const systemRows=station?[]:[...samples[sample],...missing,...samples.Keys,{label:'Quota resets',value:sample==='Main'||sample==='Wall'?'Codex reset is shown with its quota; Claude Max reset not supplied.':'Reset times not supplied in this sample.'}];
+    return { noise: !(this.props.calm ?? false), surfaceName: surface === 'desk'?'Desk':surface === 'wall'?'Wall':'Station', isStation:station, hasSystem:!station, sampleName:names[sample], systemRows,
+      surfaces:['desk','wall','station'].map(key=>({name:key,selected:key===surface,pick:()=>this.setState({surface:key})})),
+      samples:surface==='desk'?Object.keys(names).filter(k=>k!=='Wall').map(key=>({name:names[key],selected:key===sample,pick:()=>this.setState({sample:key})})):[],
+      keyboardRows:rows.map((keys,i)=>({style:'display:flex;gap:6px;padding-left:'+([0,24,40,64,160][i])+'px',keys:keys.map(key=>({key,hint:reserved[key]||hints[key]||'',cls:'key'+(reserved[key]?' f2':hints[key]?' on':'')+(['Esc','Tab'].includes(key)?' wide':key==='Enter'?' wider':key==='Space'?' space':'')}))})),
+      families:families.map(f=>({...f,bindings:f.pairs.map(([key,text])=>({key,text,style:f.reserved?'color:#6f8290;border-color:#3a4650;border-style:dashed':''}))})) };
+  }
 }
 </script>
 </body>

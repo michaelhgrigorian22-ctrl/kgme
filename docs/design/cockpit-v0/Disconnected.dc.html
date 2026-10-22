@@ -42,6 +42,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 @keyframes jit{0%,96%{transform:none}97%{transform:translateX(3px)}98%{transform:translateX(-2px)}99%{transform:none}}
 @media (prefers-reduced-motion:reduce){.blink,.jit{animation:none}.static{opacity:.25}}
 .cell-value{display:block;background:#0a0c10;color:#cfe6ef;font-size:11px;line-height:11px;text-align:center;margin:0 1px}
+.quota-alert{display:flex;align-items:center;gap:8px;min-height:24px;font-size:11px}.quota-track{width:80px;height:7px;border:1px solid currentColor}.quota-track i{display:block;height:100%;background:currentColor}
 </style>
 </helmet>
 <div class="hud" style="--f:#4a5560;--fg:rgba(120,130,140,.14)">
@@ -53,23 +54,18 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   <div class="tx" style="bottom:16px"></div>
   <div class="ty" style="left:16px"></div>
   <div class="ty" style="right:16px"></div>
-  <div class="micro" style="top:7px;left:30px">KGME · cockpit v0 · no signal</div>
-  <div class="micro" style="top:7px;right:30px">127.0.0.1:8642 · connection refused</div>
-  <div class="micro" style="bottom:7px;left:30px">last event 19:52:14 −07:00 · this view is a snapshot</div>
-  <div class="micro" style="bottom:7px;right:30px">retrying every 2 s · nothing is lost: the ledger is a file</div>
+  <div class="micro" style="top:7px;left:30px">KGME</div>
+  <div class="micro" style="top:7px;right:30px">· · ·</div>
+  <div class="micro" style="bottom:7px;left:30px">◦ ◦ ◦</div>
+  <div class="micro" style="bottom:7px;right:30px">· · ·</div>
 </sc-if>
 
 <div class="stale jit" style="position:relative;z-index:1;display:flex;flex-direction:column;flex:1 1 auto">
 <header style="display:flex;flex-wrap:wrap;gap:12px 22px;align-items:flex-end;padding:30px 36px 10px">
   <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">clock</span><span style="font-size:22px;font-weight:700;letter-spacing:.04em">19:54:31<span style="color:#a3b0b8;font-size:12px;font-weight:400"> −07:00</span></span></div>
   <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">ledger</span><span style="font-size:14px"><span style="color:#a3b0b8">○</span> unreachable · last <b style="font-weight:500">1 486</b> events · 70 runs</span></div>
-  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">session</span><span style="font-size:14px">c70d687b…8447 <span style="color:#a3b0b8">claude-code · stale</span></span></div>
-  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">hook latency</span><span style="font-size:14px;color:#a3b0b8">— ms</span></div>
-  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">harnesses</span><span style="font-size:14px">claude 2.1.111 · codex 0.154.0</span></div>
   <dc-import name="Tray" view="bar" state="stale" last-seen="19:52:14" runs="{{trayRuns}}" calm="{{calm}}" hint-size="300px,38px"></dc-import>
-  <div style="flex:1 1 40px"></div>
-  <div style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Claude Max · week · stale</span><div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
-  <div style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Codex Plus · stale</span><div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div></div>
+  <sc-for list="{{quotaAlerts}}" as="q"><div class="quota-alert" style="{{q.color}}"><span>{{q.label}}</span><div class="quota-track"><i style="{{q.fill}}"></i></div><span>{{q.text}}</span></div></sc-for>
 </header>
 
 <div style="display:flex;flex-wrap:wrap;gap:14px;padding:4px 36px 8px;flex:1 1 auto;align-content:flex-start">
@@ -116,17 +112,21 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   </div>
 </div>
 
-<div class="source-facts" style="position:relative;z-index:1;padding:0 36px 8px;font-size:11px;color:#7a8d9b;overflow-wrap:anywhere">KGME · cockpit v0 · no signal · 127.0.0.1:8642 · connection refused · last event 19:52:14 −07:00 · this view is a snapshot · retrying every 2 s · nothing is lost: the ledger is a file</div>
 <footer style="position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;padding:8px 36px 26px;font-size:11px;color:#a3b0b8">
   <span><span class="kbd">r</span> retry</span>
   <span><span class="kbd">c</span> calm</span>
-  <span><span class="kbd">?</span> keys</span>
+  <span><span class="kbd">?</span> keys + system</span>
   <span style="margin-left:auto">disconnected · snapshot</span>
 </footer>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"calm":{"editor":"boolean","default":false,"section":"HUD"},"$preview":{"width":1440,"height":900}}'>
 class Component extends DCLogic {
+  quotaAlerts(value = 95, cap = 100) {
+    if (value < 80 && value < cap) return [];
+    const capped = value >= cap;
+    return [{ label: 'Codex Plus · stale', text: '19/20 segments' + (capped ? ' · cap' : ' · high'), color: 'color:' + (capped ? '#ff3d7f' : '#ffb02e'), fill: 'width:' + Math.min(value, 100) + '%' }];
+  }
   cells() {
     const v = [0,0,1,0,0,2,3,1,0,0,0,0, 0,1,2,2,1,0,0,0,1,3,4,2, 1,0,0,0,2,3,3,2,1,0,0,0, 0,0,1,2,4,4,3,1,0,0,1,1, 2,3,2,1,0,0,0,0,0,1,2,3, 4,4,3,2,1,1,0,0,0,0,0,0, 0,0,0,1,2,2,3,4,4,3,2,1, 0,0,1,1,0,0,0,2,3,4,4,2];
     const col = ['#141b22','#163241','#1b4a60','#217a97','#2aa6cc','#39d0ff'];
@@ -140,7 +140,7 @@ class Component extends DCLogic {
   }
   renderVals() {
     const calm = this.props.calm ?? false;
-    return { noise: !calm, calm, cells: this.cells(), trayRuns: this.trayRuns() };
+    return { quotaAlerts: this.quotaAlerts(), noise: !calm, calm, cells: this.cells(), trayRuns: this.trayRuns() };
   }
 }
 </script>
