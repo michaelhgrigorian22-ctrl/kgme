@@ -3,10 +3,10 @@ id: LESSONS-COCKPIT-DESIGN
 type: note
 status: active
 created: 2026-10-16T00:20:00-07:00
-modified: 2026-10-21T20:20:00-07:00
+modified: 2026-10-21T23:50:00-07:00
 author: codex
 source: inferred
-sources: [CDH-0019, AUDIT-CDH-0018, AUDIT-CDH-0019-CYCLE-1, AUDIT-CDH-0020-REVIEW]
+sources: [CDH-0019, AUDIT-CDH-0018, AUDIT-CDH-0019-CYCLE-1, AUDIT-CDH-0020-REVIEW, AUDIT-CDH-0021-REVIEW]
 tier: 2
 ---
 # Lessons — the design track (read at the start of every CDH; 40 lines max, condense rather than append)
@@ -21,7 +21,7 @@ Delivery and evidence
 The canvas editor and the pane
 - `<dc-import name="X" prop="{{val}}">` mounts sibling `X.dc.html`; a child's `<helmet>` CSS applies in the parent, so prefix its classes; it may mount twice on one board.
 - Toggling a board's Tweak makes the editor re-save that file (attribute quoting only). Diff against the repository before republishing the review copy.
-- Screenshots work with the pane hidden, but after a load the artifact frame paints only on a later capture: take one, wait 3 s, take another. The Tweaks icon needs the pointer tool, not the hand. Zoom from the menu, pan with wheel ticks (~87 px each); a drag flings. `#artboard-<id>` appears in the hash once a board is selected.
+- Screenshots work with the pane hidden, but after a load the artifact frame paints only on a later capture, sometimes the third: keep capturing every 10 s until it does. The pane's width follows the side panel (643 CSS px once); read the frame's width from the host page before judging a layout. The Tweaks icon needs the pointer tool, not the hand. Zoom from the menu, pan with wheel ticks (~87 px each); a drag flings. `#artboard-<id>` appears in the hash once a board is selected.
 - The artifact frame takes clicks but not keys from the pane, and does not expose its accessibility tree to it: keys, focus and names are measured standalone; clicks and pixels natively.
 - A hidden tab pauses rAF; cap the per-frame delta or the first frame back jumps a replay past its end (CW15's cause).
 
