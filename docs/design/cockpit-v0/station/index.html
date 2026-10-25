@@ -116,6 +116,10 @@ body.calm .pane{background:var(--surface)}
 body.calm .chibi{visibility:hidden}
 @media (prefers-reduced-motion:reduce){.blink{animation:none}.scan{display:none}.bubble{transition:none}.frame{transition:none}}
 @media (max-width:720px){.hud{padding-inline:16px;background:var(--ground)}.hud.top .val{font-size:12px;white-space:normal}.tr-sum{white-space:normal}.clock{font-size:18px}.micro{display:none}.pane{right:16px;left:16px;width:auto;top:var(--hudtop,130px);bottom:var(--hudbottom,70px);max-height:none;box-sizing:border-box;scroll-padding-block:8px}#wall{padding-inline:16px}}
+/* CDH-0028: opaque text surfaces keep the sky out of the contrast budget. */
+#labels{position:fixed;z-index:5;clip-path:inset(12px)}
+#labels>div:has(.chip-room){z-index:2!important}
+.hud{background:var(--ground)}.chip-room{background:var(--ground)}.pane{background:var(--surface)}.crew .tag,.micro{background:var(--ground)}.crew .tag{color:var(--text)}
 /* --- board 10's chibi stylesheet, verbatim (Sprites.dc.html), so the cast renders here exactly as there --- */
 /* Only the SVG body is copied into each symbol. Root paint and material roles
    are preserved here, so every use inherits its own palette and mode. */
@@ -412,6 +416,87 @@ for (let i = 0; i < 900; i++) { const v = new THREE.Vector3().randomDirection().
 starGeo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
 scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: '#cfe6ef', size: 2, sizeAttenuation: false, transparent: true, opacity: .7 })));
 
+// CDH-0028: ambient space. This closed component knows geometry, viewport and its
+// own animation clock only. No room, run, event, hull, quota or replay input.
+function createAmbientSky() {
+  const group = new THREE.Group(); group.name = 'ambient-space';
+  const uniforms = { time: { value: 0 } };
+  const vertex = `varying vec3 vNormal; varying vec3 vPoint; varying vec2 vUv;
+    void main(){vNormal=normalize(normalMatrix*normal);vPoint=position;vUv=uv;
+    gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`;
+  const planet = (radius, cold, warm, tilt) => {
+    const material = new THREE.ShaderMaterial({
+      uniforms: { time: uniforms.time, cold: {value:new THREE.Color(cold)}, warm: {value:new THREE.Color(warm)} },
+      vertexShader: vertex,
+      fragmentShader: `uniform float time; uniform vec3 cold; uniform vec3 warm;
+        varying vec3 vNormal; varying vec3 vPoint;
+        void main(){
+          float bend=sin(vPoint.x*2.9+vPoint.z*1.4)*.65+sin(vPoint.z*4.0)*.22;
+          float bands=.5+.5*sin(vPoint.y*11.0+bend);
+          float veins=.5+.5*sin(vPoint.y*29.0+bend*2.0);
+          vec3 ink=mix(cold,warm,smoothstep(.18,.9,bands))*(.55+.45*veins);
+          float light=.12+.88*max(0.0,dot(normalize(vNormal),normalize(vec3(-.7,.6,.8))));
+          float limb=pow(1.0-abs(vNormal.z),3.0);
+          gl_FragColor=vec4(ink*light+mix(cold,warm,.25)*limb*.38,1.0);
+        }`
+    });
+    const orbit = new THREE.Group(); const sphere = new THREE.Mesh(new THREE.SphereGeometry(radius,32,20),material);
+    sphere.rotation.z=tilt; orbit.add(sphere); group.add(orbit); return {orbit,sphere,radius};
+  };
+  // Deliberately below the deck's line luminance; these colours have no state meaning.
+  const near=planet(3.15,'#174f65','#64365e',-.32);
+  const far=planet(1.35,'#1c4656','#796135',.24);
+  const moon=planet(.52,'#284a40','#3f5c67',-.2);
+  const ring=new THREE.Mesh(new THREE.RingGeometry(3.65,5.15,96),new THREE.ShaderMaterial({
+    vertexShader:vertex,side:THREE.DoubleSide,transparent:true,depthWrite:false,
+    fragmentShader:`varying vec2 vUv; varying vec3 vPoint;
+      void main(){float r=length(vPoint.xy);float stripe=.5+.5*sin(r*39.0);
+        float edge=smoothstep(3.65,3.8,r)*(1.0-smoothstep(4.9,5.15,r));
+        gl_FragColor=vec4(mix(vec3(.018,.065,.075),vec3(.09,.038,.065),stripe),edge*(.35+.4*stripe));}`
+  }));ring.rotation.x=1.12;ring.rotation.z=-.35;near.orbit.add(ring);
+  const wash=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.ShaderMaterial({
+    uniforms,vertexShader:vertex,depthWrite:false,transparent:true,
+    fragmentShader:`uniform float time; varying vec2 vUv;
+      void main(){vec2 p=vUv*2.0-1.0;
+        float ribbon=p.y+.22*sin(p.x*3.8+time/75.0)+.16*sin(p.x*8.0-time/110.0);
+        float mist=exp(-abs(ribbon)*8.0)*(.5+.5*sin(p.x*4.0+p.y*5.0+time/95.0));
+        float fringe=exp(-abs(ribbon+.08)*19.0);
+        float darkBands=1.0-smoothstep(.45,.93,abs(p.y));
+        vec3 color=mix(vec3(.012,.034,.039),vec3(.038,.009,.033),.5+.5*sin(p.x*4.0));
+        gl_FragColor=vec4((color*mist+vec3(.005,.018,.018)*fringe)*darkBands,.8);
+      }`
+  }));wash.position.z=-6;group.add(wash);
+  let seconds=0,lastTime=null;
+  return {
+    group,
+    place(viewCamera, width, height) {
+      // Camera pan produces restrained parallax; depth stays behind every deck mesh.
+      group.quaternion.copy(viewCamera.quaternion);
+      group.position.copy(viewCamera.position).addScaledVector(new THREE.Vector3(0,0,-1).applyQuaternion(viewCamera.quaternion),75);
+      const half=8.2, aspect=width/height;
+      near.orbit.position.set(-half*aspect*.82,2.3,-1);
+      far.orbit.position.set(half*aspect*.73,3.9,-3);
+      moon.orbit.position.set(half*aspect*.8,-3.3,-2);
+      wash.scale.set(half*aspect*2.8,half*2.5,1);
+      // One ringed planet and a moon fit the narrow deck band without more fragments.
+      far.orbit.visible=width>720;
+    },
+    tick(milliseconds, still) {
+      if(lastTime!==null&&!still)seconds+=Math.min(milliseconds-lastTime,1000)/1000;
+      lastTime=milliseconds;uniforms.time.value=seconds;
+      near.sphere.rotation.y=seconds*.006;far.sphere.rotation.y=-seconds*.004;
+      moon.sphere.rotation.y=seconds*.003;
+    }
+  };
+}
+const ambientSky=createAmbientSky();scene.add(ambientSky.group);
+// Read-only comparison affordance, like at/speed: ?sky=0 keeps the prior scene.
+ambientSky.group.visible=Q.get('sky')!=='0';
+ambientSky.place(camera,innerWidth,innerHeight);
+// Text paints above decorative frame glow, below the unchanged HUD and pane.
+document.body.append(labels.domElement);
+// End ambient space.
+
 // post: one bloom pass with a threshold that catches only the edge lines and the state lights
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
@@ -433,6 +518,7 @@ function resize() {
   const w = stage.clientWidth, h = stage.clientHeight, aspect = w / h, half = 8.2;
   if (!w || !h) return;   // AUDIT-CDH-0013 F2: the stage is hidden under calm; sizing it now would write NaN bounds
   camera.left = -half * aspect; camera.right = half * aspect; camera.top = half; camera.bottom = -half; camera.updateProjectionMatrix();
+  ambientSky.place(camera,w,h);
   renderer.setSize(w, h, false); composer.setSize(w, h); labels.setSize(w, h); bloom.setSize(w, h);
 }
 addEventListener('resize', resize); resize();
@@ -738,7 +824,7 @@ function keepRoomFocusVisible() {
   const el = document.activeElement;
   if (!el?.matches('.chip-room:focus-visible') || document.body.classList.contains('calm')) return;
   const r = el.getBoundingClientRect(), top = layoutHud.top + 6, bottom = innerHeight - layoutHud.bottom - 6;
-  const x = Math.min(Math.max(r.left, 6), Math.max(6, innerWidth - r.width - 6));
+  const x = Math.min(Math.max(r.left, 14), Math.max(14, innerWidth - r.width - 14));
   const y = Math.min(Math.max(r.top, top), Math.max(top, bottom - r.height));
   focusedRoomAnchor = el.parentElement;
   focusedRoomAnchor.style.translate = (x - r.left) + 'px ' + (y - r.top) + 'px';
@@ -774,6 +860,7 @@ function frame(t) {
   }
   if (t - (frame.lastWords || 0) > 250) { frame.lastWords = t; renderWords(clock); }
   if (t - (frame.lastMotion || 0) > 1000) { frame.lastMotion = t; if (rmq.matches !== reduced) setMotion(rmq.matches); }
+  ambientSky.tick(t,reduced || calm);
   if (!calm) { composer.render(); labels.render(scene, camera); keepRoomFocusVisible(); layoutBubbles(t); }
 }
 

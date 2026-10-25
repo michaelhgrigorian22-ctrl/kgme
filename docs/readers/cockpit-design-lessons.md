@@ -3,10 +3,10 @@ id: LESSONS-COCKPIT-DESIGN
 type: note
 status: active
 created: 2026-10-16T00:20:00-07:00
-modified: 2026-10-25T13:25:00-07:00
+modified: 2026-10-25T15:14:10-07:00
 author: codex
 source: inferred
-sources: [CDH-0019, AUDIT-CDH-0018, AUDIT-CDH-0019-CYCLE-1, AUDIT-CDH-0020-REVIEW, AUDIT-CDH-0021-REVIEW, AUDIT-CDH-0022, AUDIT-CDH-0019-CYCLE-2, AUDIT-CDH-0019-CYCLE-2-REVIEW, AUDIT-CDH-0025, AUDIT-CDH-0023-0025-REVIEW, AUDIT-CDH-0026, AUDIT-CDH-0024-0026-REVIEW]
+sources: [CDH-0019, AUDIT-CDH-0018, AUDIT-CDH-0019-CYCLE-1, AUDIT-CDH-0020-REVIEW, AUDIT-CDH-0021-REVIEW, AUDIT-CDH-0022, AUDIT-CDH-0019-CYCLE-2, AUDIT-CDH-0019-CYCLE-2-REVIEW, AUDIT-CDH-0025, AUDIT-CDH-0023-0025-REVIEW, AUDIT-CDH-0026, AUDIT-CDH-0024-0026-REVIEW, AUDIT-CDH-0028]
 tier: 2
 ---
 # Lessons — the design track (read at the start of every CDH; 40 lines max, condense rather than append)
@@ -25,7 +25,7 @@ The canvas editor and the pane
 - A hidden tab pauses rAF; cap the per-frame delta or the first frame back jumps a replay past its end (CW15's cause).
 
 Measurement
-- Contrast uses linearized sRGB, (L1+.05)/(L2+.05), after any CSS filter. Audit every actual cell's cascade: a muted class cannot override inline color, even when color follows another declaration. CDH-0017 missed duration cells; CDH-0019 verified the repair with computed styles.
+- Contrast uses linearized sRGB, (L1+.05)/(L2+.05), after any CSS filter. Audit every actual cell's cascade: a muted class cannot override inline color, even when color follows another declaration. CDH-0017 missed duration cells; CDH-0019 verified the repair with computed styles. For a 3D background, sample pixels with text fill masked (not color, which changes currentColor borders), pause periodic word updates during capture, and keep decorative frame glow below the words (CDH-0028).
 - A fixed grid minimum can exceed a phone's inner width. Cap it to 100% of available width and measure both sides of the media breakpoint plus desktop widths; CDH-0019's 7-width fixture preserved the wide layout.
 - Chromium joins a button's inline spans without spaces when it names it from content; give dense rows an explicit, complete `aria-label`. The visually hidden status region's clipped text box runs past the viewport; leave `.vh` out of overflow measurements. An opaque phone HUD can hide real Tab targets. Check every focused room and the opened pane against the current HUD bounds; following a room changes wrapping and therefore those bounds (CDH-0022 / CDH-0019 cycle 2). A fix applied in the render loop shows on the next frame: measure after rendered frames (rAF), not a fixed delay.
 - An emulated reduced-motion change does not always fire the matchMedia listener; poll once a second as well.
