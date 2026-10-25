@@ -3,7 +3,7 @@ id: READER-SESSIONS
 type: note
 status: active
 created: 2026-10-21T16:00:00-07:00
-modified: 2026-10-21T16:00:00-07:00
+modified: 2026-10-24T20:12:19-07:00
 author: claude-code
 source: inferred
 sources: ["ADR-022", "HANDOFF-0047", "kgme/session.py"]
@@ -40,3 +40,15 @@ The templates and `kgme.toml` are human paths: an agent proposes a change as a d
 
 ## One ledger whatever the checkout
 The ledger, trace, and test streams resolve from the repository's git common directory, so a session in any worktree of this repository writes to the main checkout's `logs/`. Outside a git repository the hooks refuse, as the guard always has.
+
+## The cheap lane: a cloud model, code only
+*Added 2026-10-24 for HANDOFF-0053.*
+
+A model whose provider `kgme.toml [providers]` marks `code` (today `ollama-cloud`, which serves DeepSeek-V4.1-Flash) starts only as `kgme session work --model cheap --red "<command>"`. Every other route refuses it, including `--model cheap` without `--red` and naming it as the default builder. Every token such a session reads leaves the machine for Ollama's servers, so it sees code and documents, never `memory/`, `logs/`, or a Tier 1 path (Michou's ruling, 2026-10-21).
+
+- **The export.** `HEAD` minus `memory/` and `logs/` (bar `memory/templates/`, which the tests read) is extracted into `work/cheap-<run>/` and committed there as its own one-commit repository, so no history of either is reachable from it.
+- **The session.** `claude` starts in the export with `ANTHROPIC_BASE_URL` at the local Ollama server and every model slot on the cheap model. Its settings deny `Read` and `Edit` on the brain, the design worktree, `~/Projects/Finance`, and every Tier 1 root, add the same roots to the sandbox's `denyRead`, and allow no Bash network. The prompt is: make the red command exit 0 without editing the test it names, and stop on green, on the turn cap, or when a fix needs a file outside the export.
+- **The hooks.** The guard and ledger hooks run the main checkout's code (`python -P`, so the export's own `kgme/` is never imported), so the session cannot edit them and its events land in the main ledger. The guard judges paths against the export, which the launcher names in `KGME_GUARD_ROOT` on the guard's command line alone; the guard honours it only for a folder under `work_dir` outside the main checkout.
+- **The fix.** On exit the change comes home as `logs/scratch/cheap/<run>/fix.patch` with the red command's final output, never as a commit. The builder applies it in the real checkout, runs `make check`, and `kgme review` judges it as any diff.
+
+Start and end notes record the provider, model, export tree hash, denied roots, red command, exit reason, turns, and the patch's sha256. Deleting `[models] cheap` turns the lane off.
