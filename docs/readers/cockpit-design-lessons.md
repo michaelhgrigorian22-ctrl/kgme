@@ -3,10 +3,10 @@ id: LESSONS-COCKPIT-DESIGN
 type: note
 status: active
 created: 2026-10-16T00:20:00-07:00
-modified: 2026-10-25T15:44:01-07:00
+modified: 2026-10-25T16:08:23-07:00
 author: codex
 source: inferred
-sources: [CDH-0019, AUDIT-CDH-0018, AUDIT-CDH-0019-CYCLE-1, AUDIT-CDH-0020-REVIEW, AUDIT-CDH-0021-REVIEW, AUDIT-CDH-0022, AUDIT-CDH-0019-CYCLE-2, AUDIT-CDH-0019-CYCLE-2-REVIEW, AUDIT-CDH-0025, AUDIT-CDH-0023-0025-REVIEW, AUDIT-CDH-0026, AUDIT-CDH-0024-0026-REVIEW, AUDIT-CDH-0028, AUDIT-CDH-0029]
+sources: [CDH-0019, AUDIT-CDH-0018, AUDIT-CDH-0019-CYCLE-1, AUDIT-CDH-0020-REVIEW, AUDIT-CDH-0021-REVIEW, AUDIT-CDH-0022, AUDIT-CDH-0019-CYCLE-2, AUDIT-CDH-0019-CYCLE-2-REVIEW, AUDIT-CDH-0025, AUDIT-CDH-0023-0025-REVIEW, AUDIT-CDH-0026, AUDIT-CDH-0024-0026-REVIEW, AUDIT-CDH-0028, AUDIT-CDH-0029, AUDIT-CDH-0029-FOLLOWUP]
 tier: 2
 ---
 # Lessons — the design track (read at the start of every CDH; 40 lines max, condense rather than append)
@@ -22,7 +22,7 @@ The canvas editor and the pane
 - Toggling a board's Tweak makes the editor re-save that file (attribute quoting only). Diff against the repository before republishing the review copy.
 - Screenshots work with the pane hidden, but after a load the artifact frame paints only on a later capture, sometimes the third: keep capturing every 10 s until it does. The pane's width follows the side panel (643 CSS px once); read the frame's width from the host page before judging a layout. The Tweaks icon needs the pointer tool, not the hand. Zoom from the menu, pan with wheel ticks (~87 px each); a drag flings. `#artboard-<id>` appears in the hash once a board is selected.
 - After a click inside it, the artifact frame takes keys from the pane too (Tab, Shift+Tab, Enter on board 7, 2026-10-22), but it does not expose its accessibility tree: names are measured standalone; clicks, keys, focus rings and pixels natively. A capture can trail the last action by one step.
-- A hidden tab pauses rAF; cap the per-frame delta or the first frame back jumps a replay past its end (CW15's cause). Orthographic depth alone gives no parallax: use distinct camera-pan coefficients and verify screen displacement; let camera easing settle before measuring twinkle (CDH-0029).
+- A hidden tab pauses rAF; cap the per-frame delta or the first frame back jumps a replay past its end (CW15's cause). Orthographic depth alone gives no parallax: use distinct camera-pan coefficients and verify screen displacement; let camera easing settle before measuring twinkle (CDH-0029). A background in an unbounded camera must cover the viewport and wrap its stars; finite planes expose straight edges under pan. Verify actual minimum zoom and repeated drags (CDH-0029 follow-up).
 
 Measurement
 - Contrast uses linearized sRGB, (L1+.05)/(L2+.05), after any CSS filter. Audit every actual cell's cascade: a muted class cannot override inline color, even when color follows another declaration. CDH-0017 missed duration cells; CDH-0019 verified the repair with computed styles. For a 3D background, sample pixels with text fill masked (not color, which changes currentColor borders), pause periodic word updates during capture, and keep decorative frame glow below the words (CDH-0028).
