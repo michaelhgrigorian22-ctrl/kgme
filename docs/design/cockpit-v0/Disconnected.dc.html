@@ -39,9 +39,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .disconnect-band:focus-visible,.snapshot :focus-visible{outline:2px solid #cfe6ef;outline-offset:-3px}
 .blink{animation:blink 1.2s steps(2,end) infinite}
 @keyframes blink{50%{opacity:.2}}
-.jit{animation:jit 7s steps(1,end) infinite}
-@keyframes jit{0%,96%{transform:none}97%{transform:translateX(3px)}98%{transform:translateX(-2px)}99%{transform:none}}
-@media (prefers-reduced-motion:reduce){.blink,.jit{animation:none}.static{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.blink{animation:none}.static{opacity:.25}}
 .quota-alert{display:flex;align-items:center;gap:8px;min-height:24px;font-size:11px}.quota-track{width:80px;height:7px;border:1px solid currentColor}.quota-track i{display:block;height:100%;background:currentColor}
 
 /* CDH-0025: count is height; marks and accessible names survive without colour. */
@@ -128,7 +126,7 @@ class Component extends DCLogic {
   quotaAlerts(value = 90, cap = 100) {
     if (value < 80 && value < cap) return [];
     const capped = value >= cap;
-    return [{ label: 'Codex Plus · stale', text: (value / 100 * 20) + '/20 segments' + (capped ? ' · cap' : ' · high'), color: 'color:' + (capped ? '#ff3d7f' : '#ffb02e'), fill: 'width:' + Math.min(value, 100) + '%' }];
+    return [{ label: 'Codex Plus · stale', text: Math.round(value / 5) + '/20 segments' + (capped ? ' · cap' : ' · high'), color: 'color:' + (capped ? '#ff3d7f' : '#ffb02e'), fill: 'width:' + Math.min(value, 100) + '%' }];
   }
   cells() {
     const v = [0,0,1,0,0,2,3,1,0,0,0,0, 0,1,2,2,1,0,0,0,1,3,4,2, 1,0,0,0,2,3,3,2,1,0,0,0, 0,0,1,2,4,4,3,1,0,0,1,1, 2,3,2,1,0,0,0,0,0,1,2,3, 4,4,3,2,1,1,0,0,0,0,0,0, 0,0,0,1,2,2,3,4,4,3,2,1, 0,0,1,1,0,0,0,2,3,4,4,2];

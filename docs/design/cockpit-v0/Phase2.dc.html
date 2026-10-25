@@ -40,9 +40,9 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 @keyframes blink{50%{opacity:.2}}
 @media (prefers-reduced-motion:reduce){.blink{animation:none}.scan{display:none}}
 .quota-alert{display:flex;align-items:center;gap:8px;min-height:24px;font-size:11px}.quota-track{width:80px;height:7px;border:1px solid currentColor}.quota-track i{display:block;height:100%;background:currentColor}
-</style>
+.future-path{margin:0 36px 14px;padding:10px 12px;border-left:2px dashed #7a8d9b;font-size:11px;color:#7a8d9b}.future-path p{margin:6px 0 0}.future-role{display:flex;align-items:center;gap:8px;color:#cfe6ef}.future-role .chibi{width:24px;height:24px}.hud[data-calm="true"] .future-role .chibi{visibility:hidden}</style>
 </helmet>
-<div class="hud" style="--f:#39d0ff;--fg:rgba(57,208,255,.10)">
+<div class="hud" data-calm="{{calm}}" style="--f:#39d0ff;--fg:rgba(57,208,255,.10)">
 <sc-if value="{{noise}}" hint-placeholder-val="{{ true }}">
   <div class="frame"></div>
   <div class="scan"></div>
@@ -60,10 +60,10 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">clock</span><span style="font-size:22px;font-weight:700;letter-spacing:.04em">19:52:14<span style="color:#6f8290;font-size:12px;font-weight:400"> −07:00</span></span></div>
   <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">ledger</span><span style="font-size:14px"><span class="c-live blink">●</span> live · <b style="font-weight:500">1 479</b> events</span></div>
   <dc-import name="Tray" view="bar" runs="{{trayRuns}}" calm="{{calm}}" hint-size="300px,38px"></dc-import>
-</header>
+</header><section class="future-path" aria-label="future interaction"><h2 class="lbl">One future interaction · all dashed controls are inactive</h2><p>1 · Dispatch a handoff. 2 · Its tool request waits at the guard. 3 · You allow once or deny; the arbiter distinguishes that permission from a review ruling. A side question reads the same run through the model route below, without writing to it.</p></section>
 <div style="position:relative;z-index:1;padding:4px 36px 8px;display:flex;flex-wrap:wrap;gap:14px"><div class="p2" style="padding:8px 12px;display:flex;flex-direction:column;gap:4px;min-width:330px">
     <span class="tag">phase 2 · model routing</span>
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span class="lbl" style="color:#6f8290">model · <span class="kbd">m</span></span><span style="font-size:12px">optimized ▾</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span class="lbl" style="color:#6f8290">side-question model · <span class="kbd">m</span></span><span style="font-size:12px">optimized ▾</span></div>
     <div style="font-size:11px">would answer with <span style="color:#cfe6ef">ollama · qwen3:14b</span> <span style="color:#6f8290">· why: transform, tier 2, no tools · cost ≈ 0 · 1 keystroke overrides</span></div>
     <div style="display:flex;gap:6px;font-size:10px"><span class="chip" style="color:#6f8290">claude-fable-5-1</span><span class="chip" style="color:#6f8290">claude-opus-5-5</span><span class="chip" style="color:#6f8290">gpt-6-astra</span><span class="chip" style="color:#6f8290">groq</span><span class="chip" style="color:#cfe6ef;border-style:solid">ollama</span></div>
   </div>
@@ -83,7 +83,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
       <span class="tag">phase 2 · dispatch</span>
       <span class="lbl" style="color:#6f8290">command line · <span class="kbd">;</span></span>
       <div style="border:1px dashed #3a4650;padding:4px 8px;font-size:11px;color:#6f8290">; dispatch HANDOFF-0033 → claude-code<span class="blink">▮</span></div>
-      <span style="font-size:10px;color:#6f8290">adopts, launches <code>claude -p</code> under the manifest, writes the intent first. Never in v0.</span>
+      <span style="font-size:10px;color:#6f8290">adopts, launches <code>claude -p</code> under the manifest, writes the intent first.</span>
     </section>
     <section class="p2" style="padding:12px;display:flex;flex-direction:column;gap:8px">
       <span class="tag">phase 2 · queued messages</span>
@@ -111,7 +111,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 
   <aside style="flex:0 1 352px;min-width:300px;display:flex;flex-direction:column;gap:12px">
     <section class="p2" style="padding:12px;display:flex;flex-direction:column;gap:8px">
-      <span class="tag">phase 2 · approvals</span>
+      <span class="tag">phase 2 · guard request</span><div class="future-role"><svg class="chibi portrait actor-guard mode-waiting pal-phosphor tone-pending" viewBox="29 0 170 170" aria-hidden="true"><use href="#chibi-guard"></use></svg><span>guard · request</span></div>
       <span class="lbl" style="color:#6f8290">1 pending · the session is waiting</span>
       <div style="border:1px dashed #3a4650;padding:8px 10px;display:flex;flex-direction:column;gap:4px">
         <span style="font-size:12px;color:#cfe6ef">Bash git push origin main</span>
@@ -121,8 +121,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
       <span style="font-size:10px;color:#6f8290">an approval here is a ledger <code>approval</code> event with your name on it, same as <code>kgme ledger note --kind approval</code></span>
     </section>
     <section class="pnl brk" style="padding:12px;display:flex;flex-direction:column;gap:6px">
-      <div class="lbl">detail · v0 · unchanged</div>
-      <div style="font-size:11px;color:#6f8290">Nothing selected.</div>
+      <div class="future-role"><svg class="chibi portrait actor-arbiter mode-idle pal-phosphor tone-live" viewBox="26 0 181 181" aria-hidden="true"><use href="#chibi-arbiter"></use></svg><span>arbiter · ruling</span></div><p style="margin:0;font-size:11px;color:#7a8d9b">A review ruling addresses findings; it does not grant this tool permission. The existing cycle 1 tooling exhaustion is transient, not a strike. The human approval above remains a separate event.</p>
     </section>
   </aside>
 </div>
@@ -137,7 +136,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   <span class="p2" style="padding:0 8px"><span class="kbd">y</span> <span class="kbd">n</span> approve</span>
   <span class="p2" style="padding:0 8px"><span class="kbd">;</span> dispatch</span>
   <span class="p2" style="padding:0 8px"><span class="kbd">Space</span> queue</span>
-  <span style="margin-left:auto">dashed = Phase 2 · nothing dashed exists in v0</span>
+  <span><span class="kbd">?</span> keys + system</span>
 </footer>
 </div>
 </x-dc>

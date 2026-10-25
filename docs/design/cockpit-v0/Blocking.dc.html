@@ -142,7 +142,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
       <div class="causal-trace" role="group" style="color:#ff3d7f" aria-label="ADR-016: F1 blocking in cycles 1, 2, 3 causes HALT and escalation to AUDIT-0029"><span>ADR-016 · F1<br><b style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:#ff3d7f;color:#0a0c10">1</b> <b style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:#ff3d7f;color:#0a0c10">2</b> <b style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:#ff3d7f;color:#0a0c10">3</b></span><span class="causal-link" aria-hidden="true"></span><a href="#escalation-packet">HALT → AUDIT-0029</a></div>
       <span class="lbl" id="escalation-packet">escalation packet · review:HANDOFF-0032</span>
       <span style="font-size:11px">F1 blocking in cycles 1, 2, 3 · root cause: refusal evidence. F1 survivors: write aim counted on target alone; denial without tool-call id matched on tool and target</span>
-      <span class="lbl" style="margin-top:4px">to continue, from the terminal</span>
+      <span class="lbl" style="margin-top:4px">To continue after HALT, override from the terminal or reject the staged change.</span>
       <code style="font-size:11px;color:#39d0ff;overflow-wrap:anywhere">kgme review override --handoff HANDOFF-0032 --reason "…"</code>
       <span style="font-size:11px;color:#6f8290">or <code style="color:#cfe6ef">git restore --staged .</code> to reject. The cockpit records neither; it will show the approval event when it lands.</span>
       <button type="button" disabled style="margin-top:4px;align-self:flex-start;font:inherit;font-size:10px;background:transparent;color:#3a4650;border:1px dashed #3a4650;padding:3px 10px">override here · phase 2</button>
@@ -160,7 +160,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   <span><span class="kbd">2</span> blocking only</span>
   <span><span class="kbd">c</span> calm</span>
   <span><span class="kbd">?</span> keys + system</span>
-  <span style="margin-left:auto;color:#ff3d7f">halt · nothing proceeds until the override lands</span>
+  <span style="margin-left:auto;color:#ff3d7f">halted</span>
 </footer>
 </div>
 </x-dc>
