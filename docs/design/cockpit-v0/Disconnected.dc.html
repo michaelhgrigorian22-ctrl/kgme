@@ -32,9 +32,11 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .grp{display:flex;gap:12px;align-items:baseline;padding:8px 10px 4px;border-bottom:1px solid #1e2a33;color:#39d0ff;font-size:11px}
 .kbd{display:inline-block;min-width:16px;padding:0 5px;border:1px solid #39d0ff;color:#39d0ff;font-size:10px;line-height:16px;text-align:center;border-radius:2px}
 .seg{display:flex;gap:2px}.seg i{display:block;width:7px;height:12px;background:#1e2a33}.seg i.on{background:#39d0ff}
-.stale{filter:saturate(.12) brightness(.72)}
-/* CDH-0017 CW18: muted text under this filter reads #a3b0b8 (4.76:1 on the ground, 4.67:1 on the panel after the filter), the mounted tray's too */
-.stale .tr-root .tr-lbl,.stale .tr-root .tr-l1 .tr-run,.stale .tr-root .tr-l2,.stale .tr-root .tr-life .tr-quiet,.stale .tr-root .tr-muted,.stale .tr-root .tr-foot,.stale .tr-root .tr-empty{color:#a3b0b8}
+.hud .tr-root .tr-lbl,.hud .tr-root .tr-l1 .tr-run,.hud .tr-root .tr-l2,.hud .tr-root .tr-life .tr-quiet,.hud .tr-root .tr-muted,.hud .tr-root .tr-foot,.hud .tr-root .tr-empty{color:#a3b0b8}
+.disconnect-band{position:relative;z-index:5;margin:0 36px;padding:12px 14px;border:1px solid #a3b0b8;background:#171c22;display:flex;flex-wrap:wrap;gap:6px 22px;align-items:baseline}
+.disconnect-band h1{margin:0;font-size:14px}.disconnect-band p{margin:0;font-size:11px}.disconnect-band .recovery{flex-basis:100%;color:#a3b0b8}
+.snapshot-boundary{margin:8px 36px 4px;color:#a3b0b8;font-size:11px}
+.disconnect-band:focus-visible,.snapshot :focus-visible{outline:2px solid #cfe6ef;outline-offset:-3px}
 .blink{animation:blink 1.2s steps(2,end) infinite}
 @keyframes blink{50%{opacity:.2}}
 .jit{animation:jit 7s steps(1,end) infinite}
@@ -47,7 +49,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .activity-column{position:relative;min-width:0;height:100%}.activity-bar{position:absolute;bottom:0;left:0;right:0;height:var(--height);background:var(--tint);box-shadow:inset 0 0 0 1px #39d0ff}
 .activity-mark{position:absolute;bottom:var(--height);right:0;color:#cfe6ef;background:#0a0c10;font-size:11px;line-height:13px;white-space:nowrap;z-index:1}.activity-mark:empty{display:none}
 .activity-column:hover{outline:1px solid #cfe6ef;outline-offset:0}.activity-summary{font-size:11px;line-height:1.45;color:#7a8d9b;margin:6px 0 0;overflow-wrap:anywhere}.activity-axis{display:flex;justify-content:space-between;gap:4px;margin-top:6px;color:#7a8d9b;font-size:9px}
-.stale .activity-summary,.stale .activity-axis{color:#a3b0b8}
+.snapshot .activity-summary,.snapshot .activity-axis{color:#a3b0b8}
 </style>
 </helmet>
 <div class="hud" style="--f:#4a5560;--fg:rgba(120,130,140,.14)">
@@ -65,18 +67,26 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   <div class="micro" style="bottom:7px;right:30px">· · ·</div>
 </sc-if>
 
-<div class="stale jit" style="position:relative;z-index:1;display:flex;flex-direction:column;flex:1 1 auto">
+<div style="position:relative;z-index:1;display:flex;flex-direction:column;flex:1 1 auto">
 <header style="display:flex;flex-wrap:wrap;gap:12px 22px;align-items:flex-end;padding:30px 36px 10px">
   <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">clock</span><span style="font-size:22px;font-weight:700;letter-spacing:.04em">19:54:31<span style="color:#a3b0b8;font-size:12px;font-weight:400"> −07:00</span></span></div>
   <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">ledger</span><span style="font-size:14px"><span style="color:#a3b0b8">○</span> unreachable · last <b style="font-weight:500">1 486</b> events · 70 runs</span></div>
-  <dc-import name="Tray" view="bar" state="stale" last-seen="19:52:14" runs="{{trayRuns}}" calm="{{calm}}" hint-size="300px,38px"></dc-import>
+  <dc-import name="Tray" view="bar" state="stale" runs="{{trayRuns}}" calm="{{calm}}" hint-size="300px,38px"></dc-import>
   <sc-for list="{{quotaAlerts}}" as="q"><div class="quota-alert" style="{{q.color}}"><span>{{q.label}}</span><div class="quota-track"><i style="{{q.fill}}"></i></div><span>{{q.text}}</span></div></sc-for>
 </header>
 
-<div style="display:flex;flex-wrap:wrap;gap:14px;padding:4px 36px 8px;flex:1 1 auto;align-content:flex-start">
+<section class="disconnect-band" tabindex="0" aria-labelledby="disconnect-title">
+  <h1 id="disconnect-title"><span aria-hidden="true">▯</span> server unreachable</h1>
+  <p>127.0.0.1:8642 · connection refused</p>
+  <p>last event 19:52:14 −07:00 · 2 m 17 s ago</p>
+  <p>retry every 2 s · attempt 68</p>
+  <p class="recovery">nothing is lost: the ledger is a file · this view will catch up on its own · <span class="kbd">r</span> retry now · <span class="kbd">c</span> calm · <span class="kbd">?</span> when disconnected</p>
+</section>
+<p class="snapshot-boundary" id="snapshot-boundary">Snapshot as of 19:52:14 −07:00</p>
+<div class="snapshot" aria-describedby="snapshot-boundary" style="display:flex;flex-wrap:wrap;gap:14px;padding:4px 36px 8px;flex:1 1 auto;align-content:flex-start">
   <aside style="flex:0 1 232px;min-width:200px;display:flex;flex-direction:column;gap:12px">
     <section class="pnl brk" style="padding:12px 12px 10px">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px"><span class="lbl">runs · events per minute</span><span class="lbl">stale</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px"><span class="lbl">runs · events per minute</span></div>
       <div class="activity-chart" style="--buckets:60;height:90px" role="list" aria-label="60 one-minute activity buckets, fixed scale zero to five events">
         <sc-for list="{{cells}}" as="c" hint-placeholder-count="60"><div class="activity-column" role="listitem" aria-label="{{c.label}}" title="{{c.label}}" style="{{c.style}}"><span class="activity-bar" aria-hidden="true"></span><span class="activity-mark" aria-hidden="true">{{c.mark}}</span></div></sc-for>
       </div>
@@ -88,8 +98,8 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
       <div style="display:flex;gap:8px;align-items:center"><div style="width:34px;height:22px;background:#39d0ff"></div><div style="width:34px;height:22px;border:1px dashed #39d0ff"></div><div style="width:34px;height:22px;border:1px dashed #39d0ff"></div><span style="margin-left:6px;font-size:11px">cycle 1</span></div>
     </section>
   </aside>
-  <main class="pnl brk" style="flex:999 1 560px;min-width:0;display:flex;flex-direction:column">
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid #1e2a33"><span class="lbl">timeline · frozen at 19:52:14</span><span class="lbl">time · kind · job · summary · class · Δt</span></div>
+  <main class="pnl brk" tabindex="0" aria-label="timeline, last recorded events" style="flex:999 1 560px;min-width:0;display:flex;flex-direction:column">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid #1e2a33"><span class="lbl">timeline</span><span class="lbl">time · kind · job · summary · class · Δt</span></div>
     <div style="flex:1 1 auto;overflow:auto">
       <div class="grp"><span>▣ run c70d687b…8447</span><span style="color:#a3b0b8">claude-code · HANDOFF-0040 · resumed 19:51:58</span></div>
       <div class="row"><span style="color:#a3b0b8">19:51:58</span><span style="color:#a3b0b8">▶</span><span style="color:#a3b0b8">tool:Edit</span><span>Edit docs/audit/2026-10-08-push-on-commit.md</span><span><span class="chip c-none">—</span></span><span></span></div>
@@ -99,41 +109,26 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
       <div class="row"><span style="color:#a3b0b8">19:52:14</span><span style="color:#a3b0b8">▶</span><span style="color:#a3b0b8">tool:Bash</span><span>Bash make canary-agents</span><span><span class="chip c-none">—</span></span><span></span></div>
     </div>
   </main>
-  <aside class="pnl brk" style="flex:0 1 352px;min-width:300px;padding:12px;display:flex;flex-direction:column;gap:10px">
+  <aside class="pnl brk" tabindex="0" aria-label="detail, last selection kept" style="flex:0 1 352px;min-width:300px;padding:12px;display:flex;flex-direction:column;gap:10px">
     <div class="lbl">detail</div>
-    <div style="font-size:11px;color:#a3b0b8">Last selection kept. Nothing here is live.</div>
+    <div style="font-size:11px;color:#a3b0b8">Last selection kept.</div>
   </aside>
 </div>
-</div>
-
-<div style="position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;pointer-events:none">
-  <div class="pnl" style="pointer-events:auto;padding:22px 28px;border-color:#a3b0b8;max-width:560px;background:#0a0c10;display:flex;flex-direction:column;gap:12px;box-shadow:0 0 0 1px #1e2a33,0 20px 60px rgba(0,0,0,.7)">
-    <div style="display:flex;align-items:center;gap:12px"><span style="font-size:18px;color:#a3b0b8" class="blink">▯</span><span style="font-size:18px;font-weight:700;letter-spacing:.06em">server unreachable</span></div>
-    <div style="font-size:12px">The page could not reach <span style="color:#cfe6ef">127.0.0.1:8642</span>. The Dock icon opens this page; it does not start the server (launchd waits for Phase 3).</div>
-    <div style="font-size:11px;color:#a3b0b8;display:grid;grid-template-columns:110px minmax(0,1fr);gap:4px 12px">
-      <span>last event</span><span style="color:#cfe6ef">19:52:14 −07:00 · 2 m 17 s ago</span>
-      <span>retry</span><span style="color:#cfe6ef">every 2 s · attempt 68</span>
-      <span>to start</span><span><code style="color:#39d0ff">kgme cockpit</code> <span>from the repository</span></span>
-      <span>the record</span><span>intact in <code style="color:#cfe6ef">logs/ledger/2026-10.jsonl</code>; this view will catch up on its own</span>
-    </div>
-    <div style="font-size:11px;color:#a3b0b8"><span class="kbd">r</span> retry now · <span class="kbd">c</span> calm · the grey frame means no signal, never an error in the ledger</div>
-  </div>
 </div>
 
 <footer style="position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;padding:8px 36px 26px;font-size:11px;color:#a3b0b8">
   <span><span class="kbd">r</span> retry</span>
   <span><span class="kbd">c</span> calm</span>
   <span><span class="kbd">?</span> keys + system</span>
-  <span style="margin-left:auto">disconnected · snapshot</span>
 </footer>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"calm":{"editor":"boolean","default":false,"section":"HUD"},"$preview":{"width":1440,"height":900}}'>
 class Component extends DCLogic {
-  quotaAlerts(value = 95, cap = 100) {
+  quotaAlerts(value = 90, cap = 100) {
     if (value < 80 && value < cap) return [];
     const capped = value >= cap;
-    return [{ label: 'Codex Plus · stale', text: '19/20 segments' + (capped ? ' · cap' : ' · high'), color: 'color:' + (capped ? '#ff3d7f' : '#ffb02e'), fill: 'width:' + Math.min(value, 100) + '%' }];
+    return [{ label: 'Codex Plus · stale', text: (value / 100 * 20) + '/20 segments' + (capped ? ' · cap' : ' · high'), color: 'color:' + (capped ? '#ff3d7f' : '#ffb02e'), fill: 'width:' + Math.min(value, 100) + '%' }];
   }
   cells() {
     const v = [0,0,1,0,0,2,3,1,0,0,0,0, 0,1,2,2,1,0,0,0,1,3,4,2, 1,0,0,0,2,3,3,2,1,0,0,0, 0,0,1,2,4,4,3,1,0,0,1,1, 2,3,2,1,0,0,0,0,0,1,2,3, 4,4,3,2,1,1,0,0,0,0,0,0, 0,0,0,1,2,2,3,4,4,3,2,1, 0,0,1,1,0,0,0,2,3,4,4,2];
