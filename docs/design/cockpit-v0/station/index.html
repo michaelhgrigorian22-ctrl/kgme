@@ -410,12 +410,6 @@ for (const r of ROOMS) {
 scene.add(new THREE.AmbientLight('#39d0ff', .22));
 const key = new THREE.DirectionalLight('#cfe6ef', .9); key.position.set(-6, 12, 4); scene.add(key);
 const fill = new THREE.DirectionalLight('#39d0ff', .25); fill.position.set(8, 6, -8); scene.add(fill);
-// stars
-const starGeo = new THREE.BufferGeometry(); const pts = [];
-for (let i = 0; i < 900; i++) { const v = new THREE.Vector3().randomDirection().multiplyScalar(90); if (v.y < -10) v.y = -v.y; pts.push(v.x, v.y - 30, v.z); }
-starGeo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
-scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: '#cfe6ef', size: 2, sizeAttenuation: false, transparent: true, opacity: .7 })));
-
 // CDH-0028: ambient space. This closed component knows geometry, viewport and its
 // own animation clock only. No room, run, event, hull, quota or replay input.
 function createAmbientSky() {
@@ -424,29 +418,49 @@ function createAmbientSky() {
   const vertex = `varying vec3 vNormal; varying vec3 vPoint; varying vec2 vUv;
     void main(){vNormal=normalize(normalMatrix*normal);vPoint=position;vUv=uv;
     gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`;
-  const planet = (radius, cold, warm, tilt) => {
+  const planets = [];
+  const planet = (name, radius, cold, warm, tilt, surface, rate, layout) => {
     const material = new THREE.ShaderMaterial({
-      uniforms: { time: uniforms.time, cold: {value:new THREE.Color(cold)}, warm: {value:new THREE.Color(warm)} },
+      uniforms: { time: uniforms.time, surface: {value:surface}, cold: {value:new THREE.Color(cold)}, warm: {value:new THREE.Color(warm)} },
       vertexShader: vertex,
-      fragmentShader: `uniform float time; uniform vec3 cold; uniform vec3 warm;
+      fragmentShader: `uniform float time; uniform float surface; uniform vec3 cold; uniform vec3 warm;
         varying vec3 vNormal; varying vec3 vPoint;
         void main(){
           float bend=sin(vPoint.x*2.9+vPoint.z*1.4)*.65+sin(vPoint.z*4.0)*.22;
           float bands=.5+.5*sin(vPoint.y*11.0+bend);
           float veins=.5+.5*sin(vPoint.y*29.0+bend*2.0);
           vec3 ink=mix(cold,warm,smoothstep(.18,.9,bands))*(.55+.45*veins);
+          vec3 p=normalize(vPoint);
+          if(surface>1.5){
+            float cracks=abs(sin(p.x*17.0+sin(p.y*11.0)*2.0+p.z*9.0));
+            ink=mix(cold,warm,smoothstep(.05,.35,cracks))*(.65+.35*veins);
+          }else if(surface>.5){
+            float bowls=0.0,rims=0.0;
+            for(int i=0;i<12;i++){
+              float j=float(i);vec3 centre=normalize(vec3(sin(j*2.4+.2),cos(j*3.7+.3),sin(j*1.9+1.2)));
+              float d=dot(p,centre);bowls+=smoothstep(.971,.996,d);
+              rims+=smoothstep(.955,.974,d)*(1.0-smoothstep(.974,.99,d));
+            }
+            ink=mix(cold,warm,.35+.15*sin(p.x*21.0+p.y*13.0))*(1.0-bowls*.55)+warm*rims*.32;
+          }
           float light=.12+.88*max(0.0,dot(normalize(vNormal),normalize(vec3(-.7,.6,.8))));
           float limb=pow(1.0-abs(vNormal.z),3.0);
           gl_FragColor=vec4(ink*light+mix(cold,warm,.25)*limb*.38,1.0);
         }`
     });
     const orbit = new THREE.Group(); const sphere = new THREE.Mesh(new THREE.SphereGeometry(radius,32,20),material);
-    sphere.rotation.z=tilt; orbit.add(sphere); group.add(orbit); return {orbit,sphere,radius};
+    sphere.rotation.z=tilt; orbit.name=name; orbit.add(sphere); group.add(orbit);
+    const body={orbit,sphere,radius,rate,layout};planets.push(body);return body;
   };
   // Deliberately below the deck's line luminance; these colours have no state meaning.
-  const near=planet(3.15,'#174f65','#64365e',-.32);
-  const far=planet(1.35,'#1c4656','#796135',.24);
-  const moon=planet(.52,'#284a40','#3f5c67',-.2);
+  const near=planet('ringed-giant',3.15,'#174f65','#64365e',-.32,0,.006,[-.82,2.3,-1]);
+  const far=planet('amber-giant',1.35,'#1c4656','#796135',.24,0,-.004,[.73,3.9,-16]);
+  const moon=planet('green-moon',.52,'#284a40','#3f5c67',-.2,1,.003,[.80,-3.3,-9]);
+  planet('ice-world',.72,'#163c59','#46778b',.12,2,.0027,[-.22,5.3,-28]);
+  planet('cratered-rock',.80,'#34323f','#75614c',-.18,1,-.005,[-.46,-4.2,-4]);
+  const ringlet=planet('distant-ring',.56,'#3a2d52','#50616e',.33,0,.0038,[.51,5.6,-20]);
+  planet('paired-moon-a',.35,'#243650','#5d4669',-.15,1,-.0024,[.63,-5.6,-32]);
+  planet('paired-moon-b',.22,'#274a48','#5a6763',.23,2,.0045,[.72,-5.15,-33]);
   const ring=new THREE.Mesh(new THREE.RingGeometry(3.65,5.15,96),new THREE.ShaderMaterial({
     vertexShader:vertex,side:THREE.DoubleSide,transparent:true,depthWrite:false,
     fragmentShader:`varying vec2 vUv; varying vec3 vPoint;
@@ -454,6 +468,7 @@ function createAmbientSky() {
         float edge=smoothstep(3.65,3.8,r)*(1.0-smoothstep(4.9,5.15,r));
         gl_FragColor=vec4(mix(vec3(.018,.065,.075),vec3(.09,.038,.065),stripe),edge*(.35+.4*stripe));}`
   }));ring.rotation.x=1.12;ring.rotation.z=-.35;near.orbit.add(ring);
+  const thinRing=ring.clone();thinRing.scale.setScalar(.19);thinRing.rotation.z=.5;ringlet.orbit.add(thinRing);
   const wash=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.ShaderMaterial({
     uniforms,vertexShader:vertex,depthWrite:false,transparent:true,
     fragmentShader:`uniform float time; varying vec2 vUv;
@@ -465,7 +480,40 @@ function createAmbientSky() {
         vec3 color=mix(vec3(.012,.034,.039),vec3(.038,.009,.033),.5+.5*sin(p.x*4.0));
         gl_FragColor=vec4((color*mist+vec3(.005,.018,.018)*fringe)*darkBands,.8);
       }`
-  }));wash.position.z=-6;group.add(wash);
+  }));wash.position.z=-90;group.add(wash);
+  // CDH-0029: two batched point layers, reproducible clustered positions, no assets.
+  let seed=0x29c0ffee;
+  const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
+  const stars=(name,count,depth,parallax,nearby)=>{
+    const positions=[],inks=[],phases=[],periods=[],twinkles=[],sizes=[],strengths=[];
+    for(let i=0;i<count;i++){
+      const x=(random()-.5)*64;
+      const y=random()<.62 ? (random()+random()+random()-1.5)*9+Math.sin(x*.12)*5 : (random()-.5)*42;
+      positions.push(x,y,(random()-.5)*4);
+      const tint=nearby?random():1;
+      inks.push(...(tint<.05?[.06,.30,.38]:tint<.08?[.34,.045,.14]:tint<.12?[.32,.20,.04]:nearby?[.20,.32,.38]:[.09,.12,.16]));
+      phases.push(random()*Math.PI*2);periods.push(8+random()*8);
+      twinkles.push(random()<(nearby?.08:.012)?1:0);
+      sizes.push(nearby?(random()<.04?2.2:1.5):1);
+      strengths.push(nearby?.55+random()*.35:.3+random()*.45);
+    }
+    const geometry=new THREE.BufferGeometry();
+    for(const [name,data,size]of [['position',positions,3],['ink',inks,3],['phase',phases,1],['period',periods,1],['twinkle',twinkles,1],['pointSize',sizes,1],['strength',strengths,1]])geometry.setAttribute(name,new THREE.Float32BufferAttribute(data,size));
+    const material=new THREE.ShaderMaterial({
+      uniforms:{time:uniforms.time,pixelRatio:{value:Math.min(devicePixelRatio,2)}},transparent:true,depthWrite:false,
+      vertexShader:`uniform float time;uniform float pixelRatio;
+        attribute vec3 ink;attribute float phase;attribute float period;attribute float twinkle;attribute float pointSize;attribute float strength;
+        varying vec3 starInk;varying float alpha;
+        void main(){starInk=ink;alpha=strength*(1.0-twinkle*.15+twinkle*.15*sin(time*6.2831853/period+phase));
+          gl_PointSize=pointSize*pixelRatio;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
+      fragmentShader:`varying vec3 starInk;varying float alpha;
+        void main(){float edge=1.0-smoothstep(.25,.5,length(gl_PointCoord-.5));gl_FragColor=vec4(starInk,alpha*edge);}`
+    });
+    const points=new THREE.Points(geometry,material);points.name=name;points.position.z=depth;group.add(points);
+    return {points,parallax};
+  };
+  const starLayers=[stars('far-stars',5200,-70,.12,false),stars('near-stars',700,-40,.45,true)];
+  const origin=new THREE.Vector3(),delta=new THREE.Vector3(),inverse=new THREE.Quaternion();
   let seconds=0,lastTime=null;
   return {
     group,
@@ -473,19 +521,21 @@ function createAmbientSky() {
       // Camera pan produces restrained parallax; depth stays behind every deck mesh.
       group.quaternion.copy(viewCamera.quaternion);
       group.position.copy(viewCamera.position).addScaledVector(new THREE.Vector3(0,0,-1).applyQuaternion(viewCamera.quaternion),75);
+      origin.copy(viewCamera.position);inverse.copy(group.quaternion).invert();
       const half=8.2, aspect=width/height;
-      near.orbit.position.set(-half*aspect*.82,2.3,-1);
-      far.orbit.position.set(half*aspect*.73,3.9,-3);
-      moon.orbit.position.set(half*aspect*.8,-3.3,-2);
+      for(const body of planets){const [x,y,z]=body.layout;body.orbit.position.set(half*aspect*x,y,z);body.orbit.visible=width>720||body===near||body===far||body===moon;}
+      if(width<=720){near.orbit.position.set(-half*aspect*.95,1.1,-1);far.orbit.position.set(half*aspect*.78,2.9,-16);far.orbit.scale.setScalar(.48);}else far.orbit.scale.setScalar(1);
+      starLayers[1].points.visible=width>720;
       wash.scale.set(half*aspect*2.8,half*2.5,1);
-      // One ringed planet and a moon fit the narrow deck band without more fragments.
-      far.orbit.visible=width>720;
+
     },
-    tick(milliseconds, still) {
+    tick(milliseconds, still, viewCamera) {
       if(lastTime!==null&&!still)seconds+=Math.min(milliseconds-lastTime,1000)/1000;
       lastTime=milliseconds;uniforms.time.value=seconds;
-      near.sphere.rotation.y=seconds*.006;far.sphere.rotation.y=-seconds*.004;
-      moon.sphere.rotation.y=seconds*.003;
+      for(const body of planets)body.sphere.rotation.y=seconds*body.rate;
+      // Orthographic depth alone gives no parallax: compensate each layer's camera pan.
+      delta.copy(viewCamera.position).sub(origin).applyQuaternion(inverse);
+      for(const layer of starLayers){layer.points.position.x=delta.x*(1-layer.parallax);layer.points.position.y=delta.y*(1-layer.parallax);}
     }
   };
 }
@@ -860,7 +910,7 @@ function frame(t) {
   }
   if (t - (frame.lastWords || 0) > 250) { frame.lastWords = t; renderWords(clock); }
   if (t - (frame.lastMotion || 0) > 1000) { frame.lastMotion = t; if (rmq.matches !== reduced) setMotion(rmq.matches); }
-  ambientSky.tick(t,reduced || calm);
+  ambientSky.tick(t,reduced || calm,camera);
   if (!calm) { composer.render(); labels.render(scene, camera); keepRoomFocusVisible(); layoutBubbles(t); }
 }
 
