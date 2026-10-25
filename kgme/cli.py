@@ -26,9 +26,7 @@ import sys
 from pathlib import Path
 
 CLASSES = ("blocking", "transient", "cosmetic", "advisory")
-NOT_BUILT = {
-    "cockpit": "HANDOFF-0037",
-}
+NOT_BUILT: dict[str, str] = {}
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -192,8 +190,24 @@ def main(argv: list[str] | None = None) -> int:
         return run_session(args)
     if args.command in ("merge", "approve"):
         return run_track(args)
+    if args.command == "cockpit":
+        return run_cockpit()
     print(f"kgme {args.command}: not built ({NOT_BUILT[args.command]})", file=sys.stderr)
     return 2
+
+
+def run_cockpit() -> int:
+    """`kgme cockpit` (HANDOFF-0037): serve the read-only timeline on the loopback host and
+    port of `kgme.toml [cockpit]` until interrupted. The Dock icon does not start it."""
+    from cockpit import server
+    from kgme import config, ledger
+
+    settings = config.read_config()
+    try:
+        return server.run_cockpit(settings, ledger.read_default_dirs(settings))
+    except (ValueError, OSError) as error:
+        print(f"kgme cockpit: {error}", file=sys.stderr)
+        return 2
 
 
 def run_lint(args: argparse.Namespace) -> int:

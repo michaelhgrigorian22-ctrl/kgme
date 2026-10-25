@@ -76,7 +76,7 @@ def test_cli_lists_thirteen_subcommands_and_lint_is_a_no_op() -> None:
         "sync",
     }
     assert cli.main(["lint"]) == 0
-    assert cli.main(["cockpit"]) == 2
+    assert cli.NOT_BUILT == {}, "every declared subcommand is built (HANDOFF-0037 the last)"
 
 
 @pytest.mark.advisory
