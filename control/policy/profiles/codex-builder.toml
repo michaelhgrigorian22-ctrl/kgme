@@ -1,0 +1,31 @@
+# Agent profile: Codex CLI as the design track's builder, `codex exec -s workspace-write`
+# with `-C` at the design worktree (HANDOFF-0042 §3; Codex builds the track since 2026-10-16).
+# Codex has no hook layer. Its vendor sandbox fences writes by folder only (`-C` and
+# `--add-dir`, no globs, no exclusions, Codex 0.164.0), so it refuses writes outside the
+# worktree but not writes inside the worktree outside the lanes; those reach `main` only
+# through `kgme merge design`, whose lane gate (HANDOFF-0055) refuses them. Cowork's ruling as
+# arbiter, 2026-10-25: declare the lanes exactly, and measure the gap in the agent tier as
+# advisory (layer missing), as the reviewer's read cells are; the merge gate is the fence. The sandbox also refuses network to the
+# model's shell; the two hosts below are the Codex process's own traffic, as for the reviewer.
+# `read_paths` and `write_paths` are `kgme.toml [tracks.design] lanes` (plus `logs/scratch/`
+# for writes); `tests/policy/test_manifest.py` fails if the two drift.
+name = "codex-builder"
+kind = "agent-profile"
+max_tier = 2
+read_paths = [
+  "docs/design/",
+  "docs/handoff/cockpit-design/",
+  "docs/audit/cockpit-design/",
+  "docs/readers/cockpit-design*.md",
+  "tests/test_design_*.py",
+]
+write_paths = [
+  "docs/design/",
+  "docs/handoff/cockpit-design/",
+  "docs/audit/cockpit-design/",
+  "docs/readers/cockpit-design*.md",
+  "tests/test_design_*.py",
+  "logs/scratch/",
+]
+tools = ["shell"]
+network_destinations = ["chatgpt.com:443", "api.openai.com:443"]

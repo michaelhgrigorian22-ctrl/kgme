@@ -3,7 +3,7 @@ id: READER-COCKPIT-DESIGN
 type: note
 status: active
 created: 2026-10-09T21:50:00-07:00
-modified: 2026-10-22T02:15:00-07:00
+modified: 2026-10-25T15:27:37-07:00
 author: cowork
 source: stated
 tier: 2
@@ -86,8 +86,11 @@ codex exec -s read-only -m gpt-6-astra "$(cat control/review/design-prompt.md)" 
 
 Then Claude Code, on Michou's word, turns the scratch file into `docs/audit/AUDIT-NNNN-design-review-cockpit-v0-cycle-N.md` with report frontmatter, and records the cycle as a ledger note on `design:HANDOFF-0036`.
 
+## What the registration means (HANDOFF-0042)
+The track is registered in `kgme.toml [tracks.design]`: its handoffs carry `CDH-NNNN` and live under `docs/handoff/cockpit-design/`, its reports carry `AUDIT-CDH-NNNN` under `docs/audit/cockpit-design/`, and `kgme lint` blocks a record there with another prefix, or a note in any other subfolder of `docs/handoff/` or `docs/audit/` (schema v1.6). The folder's `README.md` stays exempt. Codex builds the track under `control/policy/profiles/codex-builder.toml`: `codex exec -s workspace-write` in the design worktree, declared to read and write the lanes only (plus `logs/scratch/`), with no network for its shell. Its sandbox fences the worktree, not the lanes: a write inside the worktree but outside the lanes is not refused there, and reaches `main` only through `kgme merge design`, whose lane gate refuses it. The canary matrix records that gap as advisory, layer missing.
+
 ## How to iterate (the loop, for a drawing)
-Work in `~/Projects/Automate-design` on branch `design`, never on `main`. Codex reviews only until HANDOFF-0042, except for the explicitly adopted CDH-0001 and CDH-0003 implementation scopes. There are no binaries committed; captures live under `logs/scratch/design-review/` and identify their source hashes. CDH-0003 delivers local files and its report without committing or publishing; Cowork commits by pathspec at the next authorized checkpoint.
+Work in `~/Projects/KGME/design` on branch `design`, never on `main`. Codex has built the track since 2026-10-16 (CDH-0019 onward), under the codex-builder profile above since HANDOFF-0042; Cowork reviews its builds natively. Before that, Codex reviewed only, except for the explicitly adopted CDH-0001 and CDH-0003 implementation scopes. There are no binaries committed; captures live under `logs/scratch/design-review/` and identify their source hashes. CDH-0003 delivers local files and its report without committing or publishing; Cowork commits by pathspec at the next authorized checkpoint.
 
 1. Astra's findings land in the audit file. Michou reads them and rules: take, reject, or defer each, in one message to Cowork.
 2. Cowork edits the files under `docs/design/cockpit-v0/` (or Claude Code does, on a handoff), commits with `design: cockpit v0, cycle N (HANDOFF-0036)`, and republishes the canvas viewer from the committed files, so the page and the repository stay the same thing.

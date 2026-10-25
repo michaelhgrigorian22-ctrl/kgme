@@ -136,6 +136,12 @@ lanes = [
   "docs/readers/cockpit-design*.md",
   "tests/test_design_*.py",
 ]
+# The track's registration (HANDOFF-0042, schema v1.6): its handoffs and reports carry these id
+# prefixes, and below docs/handoff/ and docs/audit/ only the state folders and these may exist.
+handoff = "CDH"
+audit = "AUDIT-CDH"
+handoff_folder = "docs/handoff/cockpit-design/"
+audit_folder = "docs/audit/cockpit-design/"
 
 [providers]
 # Each provider's data class (HANDOFF-0053 §1): `tier2` may see Tier 2 data; `code` only code and
