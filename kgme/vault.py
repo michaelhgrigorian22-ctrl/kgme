@@ -1,7 +1,8 @@
 """The vault reader, effects half of the validator: which files to lint, and their text.
 
 Purpose: walk the roots `kgme.toml` `[lint]` names, skip the exempt paths the schema lists,
-and hand each note's text to `kgme/lint.py` once, however the roots overlap.
+and hand each note's text to `kgme/lint.py` once, however the roots overlap. By default only
+the commit's files (the index), counting the untracked ones skipped; `--all` the whole walk.
 Inputs: root directories, exempt paths, directory names to skip, the repository root.
 Outputs: `(repo-relative path, text)` pairs, roots in the given order, sorted within each.
 Side effects: reads files. Writes nothing. A root that is not a directory raises
@@ -39,12 +40,11 @@ def is_exempt(path: Path, exempt: list[Path], skip_dirs: tuple[str, ...]) -> boo
     return False
 
 
-def read_notes(
-    roots: list[Path], exempt: list[Path], skip_dirs: tuple[str, ...], repo_root: Path
-) -> list[tuple[str, str]]:
-    """Every `.md` under `roots` minus the exemptions, each file once, as repo-relative path
-    and text."""
-    notes: list[tuple[str, str]] = []
+def read_note_paths(
+    roots: list[Path], exempt: list[Path], skip_dirs: tuple[str, ...]
+) -> list[Path]:
+    """Every `.md` under `roots` minus the exemptions, each file once, roots in order."""
+    found: list[Path] = []
     seen: set[Path] = set()
     for root in roots:
         if not root.is_dir():
@@ -54,12 +54,55 @@ def read_notes(
             if resolved in seen or is_exempt(path, exempt, skip_dirs):
                 continue
             seen.add(resolved)
-            try:
-                rel = path.relative_to(repo_root).as_posix()
-            except ValueError:
-                rel = path.as_posix()
-            notes.append((rel, path.read_text(encoding="utf-8", errors="replace")))
+            found.append(path)
+    return found
+
+
+def read_texts(found: list[Path], repo_root: Path) -> list[tuple[str, str]]:
+    """Each path as repo-relative path and text."""
+    notes: list[tuple[str, str]] = []
+    for path in found:
+        try:
+            rel = path.relative_to(repo_root).as_posix()
+        except ValueError:
+            rel = path.as_posix()
+        notes.append((rel, path.read_text(encoding="utf-8", errors="replace")))
     return notes
+
+
+def read_notes(
+    roots: list[Path], exempt: list[Path], skip_dirs: tuple[str, ...], repo_root: Path
+) -> list[tuple[str, str]]:
+    """Every `.md` under `roots` minus the exemptions, each file once, as repo-relative path
+    and text: the whole working tree, which `kgme lint --all` reads."""
+    return read_texts(read_note_paths(roots, exempt, skip_dirs), repo_root)
+
+
+def read_index(base: Path) -> frozenset[Path] | None:
+    """The files of the commit: every path `git ls-files --cached` lists (tracked and staged),
+    resolved; None outside a git work tree, where the walk is all there is."""
+    done = subprocess.run(
+        ["git", "ls-files", "-z", "--cached"], cwd=base, capture_output=True, check=False
+    )
+    if done.returncode != 0:
+        return None
+    return frozenset((base / p).resolve() for p in done.stdout.decode().split("\0") if p)
+
+
+def read_commit_notes(
+    roots: list[Path], exempt: list[Path], skip_dirs: tuple[str, ...], repo_root: Path
+) -> tuple[list[tuple[str, str]], int]:
+    """`kgme lint`'s default (HANDOFF-0054, 0042): the notes of the commit, and how many
+    walked files under `repo_root` it skipped because the index does not list them. A path
+    outside `repo_root` (a `--root` elsewhere) and every path outside a git work tree are
+    walked, since no index speaks for them."""
+    found = read_note_paths(roots, exempt, skip_dirs)
+    index = read_index(repo_root)
+    if index is None:
+        return read_texts(found, repo_root), 0
+    base = repo_root.resolve()
+    kept = [p for p in found if p.resolve() in index or base not in p.resolve().parents]
+    return read_texts(kept, repo_root), len(found) - len(kept)
 
 
 def with_folders(names: list[str]) -> frozenset[str]:

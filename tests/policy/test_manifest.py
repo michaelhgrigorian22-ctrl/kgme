@@ -27,6 +27,7 @@ JOBS = {
 PROFILES = {
     "claude-builder": ROOT / "control" / "policy" / "profiles" / "claude-builder.toml",
     "codex-reviewer": ROOT / "control" / "policy" / "profiles" / "codex-reviewer.toml",
+    "codex-builder": ROOT / "control" / "policy" / "profiles" / "codex-builder.toml",
 }
 MINIMAL = """
 name = "probe"
@@ -202,3 +203,63 @@ def test_agent_profiles_declare_their_boundaries(planted) -> None:
     assert not check(planted, reviewer, "write", "kgme/new.py").allowed
     assert not check(planted, reviewer, "delete", str(planted.victim)).allowed
     assert check(planted, reviewer, "tool", "shell").allowed
+
+
+@pytest.mark.blocking
+def test_the_codex_builder_profile_is_the_design_lanes() -> None:
+    """HANDOFF-0042 §3: the builder's read paths are `kgme.toml [tracks.design] lanes` and its
+    write paths the lanes plus `logs/scratch/`, so the profile and the merge gate cannot drift."""
+    from kgme import config
+
+    lanes = list(config.read_config()["tracks"]["design"]["lanes"])
+    builder = policy.read_manifest(PROFILES["codex-builder"])
+    assert list(builder.read_paths) == lanes
+    assert list(builder.write_paths) == [*lanes, "logs/scratch/"]
+    assert set(builder.network_destinations) == {"chatgpt.com:443", "api.openai.com:443"}
+    assert builder.tools == ("shell",)
+
+
+@pytest.mark.blocking
+def test_the_codex_builder_profile_refuses_every_probe_and_the_never_list(
+    planted, test_dirs, run_id, settings_sha, fast_matrix, fingerprints
+) -> None:
+    """The probes every manifest refuses, as matrix cells, and the handoff's never-list
+    (`memory/`, `kgme/`, `control/`, `.claude/`, `CLAUDE.md`, the ADRs) for reads and writes;
+    the lanes and `logs/scratch/` are writable."""
+    builder = policy.read_manifest(PROFILES["codex-builder"])
+    for probe, (op, target) in probes(planted).items():
+        verdict = check(planted, builder, op, target)
+        detail = verdict.reason if not verdict.allowed else "manifest allowed the probe"
+        canary.write_cell(
+            canary.Cell("codex-builder", probe, "manifest"),
+            canary.Observed(not verdict.allowed, detail),
+            test_dirs,
+            run_id,
+            settings_sha,
+            fast_matrix,
+            fingerprints,
+        )
+        assert not verdict.allowed, (probe, verdict)
+    never = (
+        "memory/notes/x.md",
+        "kgme/new.py",
+        "control/policy/profiles/codex-builder.toml",
+        ".claude/settings.json",
+        "CLAUDE.md",
+        "docs/adr/ADR-001-x.md",
+        "docs/readers/sessions.md",
+        "tests/test_lint.py",
+    )
+    for target in never:
+        for op in ("read", "write"):
+            assert not check(planted, builder, op, target).allowed, (op, target)
+    for target in (
+        "docs/design/canvas/x.md",
+        "docs/handoff/cockpit-design/x.md",
+        "docs/audit/cockpit-design/x.md",
+        "docs/readers/cockpit-design-x.md",
+        "tests/test_design_x.py",
+        "logs/scratch/design-review/x.png",
+    ):
+        assert check(planted, builder, "write", target).allowed, target
+    assert check(planted, builder, "network", "https://api.openai.com/v1/responses").allowed

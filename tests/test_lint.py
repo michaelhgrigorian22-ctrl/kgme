@@ -5,10 +5,12 @@ exempt paths are skipped and overlapping roots read a file once; datetimes are j
 raw text and nulls are refused where the schema requires an instant; provenance needs real
 names; duplicate keys are caught however they are spelled; a boolean key does not stop the
 scan; a mistyped root is an error; a `README.md` is skipped by name and `CDH` ids are a
-family (v1.4); the real `memory/` and `docs/` carry no blocking finding.
+family (v1.4); the registered tracks' folders and prefixes hold (v1.6), and the default lints
+the commit, counting the untracked files it skips (HANDOFF-0042); the real `memory/` and
+`docs/` carry no blocking finding.
 Inputs: `tests/fixtures/vault/`, inline notes, the real repository roots, `kgme.toml`.
 Outputs: pytest assertions.
-Side effects: none. Reads only.
+Side effects: git repositories under `tmp_path`; otherwise reads only.
 """
 
 from pathlib import Path
@@ -187,14 +189,19 @@ def test_a_yaml_error_renders_as_one_line_and_a_validator_error_is_a_finding() -
 
 @pytest.mark.blocking
 def test_the_real_vault_and_docs_carry_no_blocking_finding() -> None:
-    settings = config.read_config()["lint"]
-    notes = vault.read_notes(
+    """With the registered tracks (schema v1.6, HANDOFF-0042): every current file under the
+    track folders passes unchanged."""
+    full = config.read_config()
+    settings = full["lint"]
+    # the commit's files, as `kgme lint` reads them by default: an untracked file on this
+    # machine must not turn `make check` red (HANDOFF-0042 review cycle 1 F1)
+    notes, _ = vault.read_commit_notes(
         [paths.resolve(r) for r in settings["roots"]],
         [paths.resolve(p) for p in settings["exempt"]],
         tuple(settings["skip_dirs"]),
         paths.root(),
     )
-    findings = lint.lint_files(notes)
+    findings = lint.lint_files(notes, lint.read_tracks(full))
     blocking = [f.line() for f in findings if f.cls == "blocking"]
     assert blocking == [], "\n".join(blocking)
     assert len(notes) > 50
@@ -215,3 +222,135 @@ def test_cli_exit_codes(capsys) -> None:
     assert code == 1 and out.splitlines()[-1].startswith("kgme lint: 18 notes")
     assert out.count("unique-id") == 1, "only the planted duplicate, not a file against itself"
     assert cli.main(["lint"]) == 0
+
+
+TRACK = lint.Track(
+    "design", "CDH", "AUDIT-CDH", "docs/handoff/cockpit-design", "docs/audit/cockpit-design"
+)
+
+
+def record(kind: str, identifier: str) -> str:
+    """A valid handoff or report with the given id."""
+    fields = {
+        "handoff": "from: cowork\nto: claude-code\n",
+        "report": "author: codex\nsource: stated\nhandoff: CDH-0001\nperiod: 2026-10-25\n",
+    }[kind]
+    status = "open" if kind == "handoff" else "final"
+    return (
+        f"---\nid: {identifier}\ntype: {kind}\ncreated: 2026-10-25T12:00:00-07:00\n"
+        f"status: {status}\ntier: 2\n{fields}---\nbody\n"
+    )
+
+
+def track_rules(text: str, rel_path: str) -> list[tuple[str, str]]:
+    found = lint.lint_note(text, rel_path, {}, (TRACK,))
+    return [(f.rule, f.cls) for f in found if f.rule.startswith("track")]
+
+
+@pytest.mark.blocking
+def test_tracks_are_read_whole_or_not_at_all() -> None:
+    """HANDOFF-0042 §1: a `[tracks.*]` table with only `lanes` registers nothing; a partial
+    registration is an error, never silently ignored."""
+    assert lint.read_tracks({}) == ()
+    assert lint.read_tracks({"tracks": {"design": {"lanes": ["docs/design/"]}}}) == ()
+    full = {
+        "handoff": "CDH",
+        "audit": "AUDIT-CDH",
+        "handoff_folder": "docs/handoff/cockpit-design/",
+        "audit_folder": "docs/audit/cockpit-design/",
+    }
+    assert lint.read_tracks({"tracks": {"design": full}}) == (TRACK,)
+    partial = {key: value for key, value in full.items() if key != "audit_folder"}
+    with pytest.raises(ValueError, match="audit_folder"):
+        lint.read_tracks({"tracks": {"design": partial}})
+
+
+@pytest.mark.blocking
+def test_a_record_sits_in_a_state_folder_or_a_registered_track_folder() -> None:
+    """Schema v1.6: below docs/handoff/ and docs/audit/, only done/, proposed/, archive/ and the
+    registered track folders; any other subfolder is blocking."""
+    for rel in (
+        "docs/handoff/x.md",
+        "docs/handoff/done/x.md",
+        "docs/handoff/proposed/x.md",
+        "docs/handoff/archive/x.md",
+    ):
+        assert track_rules(record("handoff", "HANDOFF-0001"), rel) == [], rel
+    assert track_rules(record("handoff", "CDH-0001"), "docs/handoff/cockpit-design/x.md") == []
+    assert track_rules(record("report", "AUDIT-CDH-0001"), "docs/audit/cockpit-design/x.md") == []
+    for rel in ("docs/handoff/stray/x.md", "docs/audit/stray/x.md", "docs/audit/done/deep/x.md"):
+        found = track_rules(record("handoff", "HANDOFF-0001"), rel)
+        assert ("track-folder", "blocking") in found or rel == "docs/audit/done/deep/x.md", rel
+    assert lint.lint_note(record("handoff", "HANDOFF-0001"), "docs/handoff/stray/x.md", {}) == [
+        f
+        for f in lint.lint_note(record("handoff", "HANDOFF-0001"), "docs/handoff/stray/x.md", {})
+        if not f.rule.startswith("track")
+    ], "without tracks passed, a single-note caller sees no track rule"
+
+
+@pytest.mark.blocking
+def test_a_record_in_a_track_folder_carries_the_tracks_prefix() -> None:
+    """Schema v1.6: a handoff in the track's handoff folder carries `CDH-`, a report in its
+    audit folder `AUDIT-CDH-`; the main sequence's prefixes there are blocking."""
+    handoff = "docs/handoff/cockpit-design/x.md"
+    audit = "docs/audit/cockpit-design/x.md"
+    assert track_rules(record("handoff", "HANDOFF-0099"), handoff) == [("track-id", "blocking")]
+    assert track_rules(record("report", "AUDIT-0099"), audit) == [("track-id", "blocking")]
+    assert track_rules(record("report", "AUDIT-CDH-0099"), audit) == []
+    assert track_rules(record("handoff", "CDH-0099"), "docs/handoff/x.md") == []
+
+
+def write_repo(tmp_path: Path) -> Path:
+    """Effect: a git repository with the lint roots, one valid committed note, and the
+    planted cases of HANDOFF-0042's acceptance test staged or left untracked."""
+    import subprocess
+
+    repo = tmp_path / "repo"
+    for rel, text in {
+        "memory/notes/kept.md": note(),
+        "docs/handoff/stray/planted.md": record("handoff", "HANDOFF-0098"),
+        "docs/handoff/cockpit-design/wrong-prefix.md": record("handoff", "HANDOFF-0097"),
+    }.items():
+        (repo / rel).parent.mkdir(parents=True, exist_ok=True)
+        (repo / rel).write_text(text)
+    git = ["git", "-c", "user.name=t", "-c", "user.email=t@localhost"]
+    subprocess.run([*git, "init", "-q"], cwd=repo, check=True)
+    subprocess.run([*git, "add", "-A"], cwd=repo, check=True)
+    (repo / "docs" / "untracked.md").write_text("no frontmatter here\n")
+    return repo
+
+
+@pytest.mark.blocking
+def test_the_default_lints_the_commit_and_counts_the_untracked_it_skips(tmp_path: Path) -> None:
+    """HANDOFF-0042 §2: staged files are the commit's and are linted; an untracked file is
+    skipped and counted; `--all` walks it."""
+    repo = write_repo(tmp_path)
+    roots, exempt = [repo / "memory", repo / "docs"], [repo / "memory" / "templates"]
+    notes, skipped = vault.read_commit_notes(roots, exempt, (), repo)
+    assert skipped == 1 and "docs/untracked.md" not in [rel for rel, _ in notes]
+    found = [(f.path, f.rule) for f in lint.lint_files(notes, (TRACK,)) if f.cls == "blocking"]
+    assert ("docs/handoff/stray/planted.md", "track-folder") in found
+    assert ("docs/handoff/cockpit-design/wrong-prefix.md", "track-id") in found
+    walked = vault.read_notes(roots, exempt, (), repo)
+    assert "docs/untracked.md" in [rel for rel, _ in walked]
+    outside, none_skipped = vault.read_commit_notes([tmp_path / "repo" / "docs"], [], (), tmp_path)
+    assert none_skipped == 0 and len(outside) == 3, "no index outside a work tree: the walk"
+
+
+@pytest.mark.blocking
+def test_the_cli_counts_the_untracked_and_all_reports_it(tmp_path: Path, capsys) -> None:
+    import subprocess
+
+    repo = tmp_path / "repo"
+    (repo / "memory" / "notes").mkdir(parents=True)
+    (repo / "memory" / "notes" / "kept.md").write_text(note())
+    (repo / "docs").mkdir()
+    subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+    subprocess.run(["git", "add", "-A"], cwd=repo, check=True)
+    (repo / "docs" / "untracked.md").write_text("no frontmatter here\n")
+    assert cli.main(["lint", "--base", str(repo)]) == 0
+    last = capsys.readouterr().out.splitlines()[-1]
+    assert "1 untracked skipped; `--all` walks them" in last, last
+    assert cli.main(["lint", "--base", str(repo), "--all"]) == 1
+    out = capsys.readouterr().out
+    assert "docs/untracked.md: frontmatter [blocking]" in out and "untracked skipped" not in out

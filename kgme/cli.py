@@ -121,6 +121,9 @@ def build_parser() -> argparse.ArgumentParser:
     lint_parser.add_argument(
         "--base", help="directory the folder rules and exemptions are relative to (repo root)"
     )
+    lint_parser.add_argument(
+        "--all", action="store_true", help="walk the working tree, untracked files included"
+    )
     review_parser = subcommands.add_parser("review", help="run the review loop on the staged diff")
     review_parser.add_argument("--handoff", help="the handoff id under review, e.g. HANDOFF-0029")
     review_parser.add_argument("--reviewer", help="Codex model id; default from kgme.toml [models]")
@@ -208,12 +211,18 @@ def run_lint(args: argparse.Namespace) -> int:
         else [paths.resolve(r, base) for r in section["roots"]]
     )
     exempt = [paths.resolve(p, base) for p in section["exempt"]]
+    skip_dirs = tuple(section["skip_dirs"])
+    skipped = 0
     try:
-        notes = vault.read_notes(roots, exempt, tuple(section["skip_dirs"]), base)
-    except FileNotFoundError as error:
+        tracks = lint.read_tracks(settings)
+        if args.all:
+            notes = vault.read_notes(roots, exempt, skip_dirs, base)
+        else:
+            notes, skipped = vault.read_commit_notes(roots, exempt, skip_dirs, base)
+    except (FileNotFoundError, ValueError) as error:
         print(f"kgme lint: {error}", file=sys.stderr)
         return 2
-    findings = lint.lint_files(notes)
+    findings = lint.lint_files(notes, tracks)
     if not args.root and (base / "CLAUDE.md").is_file():
         from datetime import date
 
@@ -227,9 +236,10 @@ def run_lint(args: argparse.Namespace) -> int:
         if finding.cls != "cosmetic" or args.include_cosmetic:
             print(finding.line())
     tally = lint.counts(findings)
+    untracked = f"; {skipped} untracked skipped; `--all` walks them" if skipped else ""
     print(
         f"kgme lint: {len(notes)} notes, {tally['blocking']} blocking, "
-        f"{tally['advisory']} advisory, {tally['cosmetic']} cosmetic"
+        f"{tally['advisory']} advisory, {tally['cosmetic']} cosmetic{untracked}"
     )
     return 1 if tally["blocking"] else 0
 

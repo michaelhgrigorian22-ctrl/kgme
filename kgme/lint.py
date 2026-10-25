@@ -1,9 +1,10 @@
 """The schema validator, pure half: one note's text and path to a list of classed findings.
 
-Purpose: apply `docs/schema-v1.md` v1.4 to a note (HANDOFF-0031). The tables live in
-`kgme/schema.py`, the YAML loading in `kgme/frontmatter.py`; reading files and printing live
-in `kgme/vault.py` and `kgme/cli.py`.
-Inputs: the note's text, its repo-relative path, and the ids seen so far.
+Purpose: apply `docs/schema-v1.md` to a note (HANDOFF-0031), with the track rules of v1.6
+(HANDOFF-0042) when the registered tracks are passed. The tables live in `kgme/schema.py`, the
+YAML loading in `kgme/frontmatter.py`; reading files and printing live in `kgme/vault.py` and
+`kgme/cli.py`.
+Inputs: the note's text, its repo-relative path, the ids seen so far, the registered tracks.
 Outputs: `Finding` records, each with an ADR-016 class: the schema's checks are `blocking`,
 unknown fields and id-format drift are `advisory`, whitespace is `cosmetic`.
 Side effects: none.
@@ -23,6 +24,40 @@ from kgme.frontmatter import parse_frontmatter
 
 TRAILING_SPACE = re.compile(r"[ \t]+$", re.MULTILINE)
 NULLABLE_INSTANTS = {("task", "due")}
+# Schema v1.6 (HANDOFF-0042): the folders a record may sit in below its root are the state
+# folders and the registered tracks' folders; anything else is blocking.
+RECORD_ROOTS = ("docs/handoff", "docs/audit")
+STATE_FOLDERS = ("done", "proposed", "archive")
+TRACK_KEYS = ("handoff", "audit", "handoff_folder", "audit_folder")
+
+
+@dataclass(frozen=True)
+class Track:
+    """A registered track (`kgme.toml [tracks.<name>]`): the id prefixes its handoffs and
+    reports carry, and the folders they live in, repo-relative without a trailing `/`."""
+
+    name: str
+    handoff: str
+    audit: str
+    handoff_folder: str
+    audit_folder: str
+
+
+def read_tracks(settings: dict) -> tuple[Track, ...]:
+    """Pure: the registered tracks of a parsed `kgme.toml`. A table with none of the four
+    registration keys (only `lanes`, say) registers nothing; one with some but not all is a
+    ValueError, so a half-written registration is loud rather than silently ignored."""
+    found: list[Track] = []
+    for name, table in sorted((settings.get("tracks") or {}).items()):
+        present = [key for key in TRACK_KEYS if key in table]
+        if not present:
+            continue
+        if len(present) < len(TRACK_KEYS):
+            missing = sorted(set(TRACK_KEYS) - set(present))
+            raise ValueError(f"kgme.toml [tracks.{name}] is missing {', '.join(missing)}")
+        folders = {key: str(table[key]).rstrip("/") for key in ("handoff_folder", "audit_folder")}
+        found.append(Track(name, str(table["handoff"]), str(table["audit"]), **folders))
+    return tuple(found)
 
 
 @dataclass(frozen=True)
@@ -54,9 +89,16 @@ def _named(value: object) -> bool:
     return isinstance(value, str) and value.strip() != ""
 
 
-def lint_note(text: str, rel_path: str, ids_seen: dict[str, str]) -> list[Finding]:
+def lint_note(
+    text: str,
+    rel_path: str,
+    ids_seen: dict[str, str],
+    tracks: tuple[Track, ...] | None = None,
+) -> list[Finding]:
     """Every finding for one note. `ids_seen` maps id to the path that first carried it and
-    is updated here, so uniqueness is checked across a whole run."""
+    is updated here, so uniqueness is checked across a whole run. With `tracks` (the run
+    over the repository passes them), the track rules of schema v1.6 apply too; a caller
+    linting one machine-written note passes none."""
     found: list[Finding] = []
 
     def add(rule: str, cls: str, message: str) -> None:
@@ -142,6 +184,8 @@ def lint_note(text: str, rel_path: str, ids_seen: dict[str, str]) -> list[Findin
     if note_type:
         found.extend(_type_fields(data, note_type, rel_path, legacy_report))
         found.extend(_folder(data, note_type, rel_path))
+    if tracks is not None:
+        found.extend(_track(data, note_type, rel_path, tracks))
 
     unknown = sorted(set(data) - schema.KNOWN_FIELDS)
     if unknown:
@@ -212,7 +256,40 @@ def _folder(data: dict, note_type: str, rel_path: str) -> list[Finding]:
     return found
 
 
-def lint_files(files: list[tuple[str, str]]) -> list[Finding]:
+def _track(
+    data: dict, note_type: str | None, rel_path: str, tracks: tuple[Track, ...]
+) -> list[Finding]:
+    """Schema v1.6: a record below `docs/handoff/` or `docs/audit/` sits in a state folder or
+    a registered track's folder, and a handoff or report in a track's folder carries that
+    track's id prefix."""
+    found: list[Finding] = []
+    parts = PurePosixPath(rel_path).parent.parts
+    for root in RECORD_ROOTS:
+        depth = len(PurePosixPath(root).parts)
+        if parts[:depth] != PurePosixPath(root).parts or len(parts) == depth:
+            continue
+        folder = "/".join(parts[: depth + 1])
+        registered = {t.handoff_folder for t in tracks} | {t.audit_folder for t in tracks}
+        if parts[depth] not in STATE_FOLDERS and folder not in registered:
+            message = f"{folder}/ is neither a state folder nor a registered track's folder"
+            found.append(Finding(rel_path, "track-folder", "blocking", message))
+    identifier = str(data.get("id", ""))
+    parent = str(PurePosixPath(rel_path).parent)
+    for track in tracks:
+        for kind, folder, prefix in (
+            ("handoff", track.handoff_folder, track.handoff),
+            ("report", track.audit_folder, track.audit),
+        ):
+            inside = parent == folder or parent.startswith(folder + "/")
+            if note_type == kind and inside and not identifier.startswith(prefix + "-"):
+                message = f"a {kind} in {folder}/ carries the {prefix}- prefix, not `{identifier}`"
+                found.append(Finding(rel_path, "track-id", "blocking", message))
+    return found
+
+
+def lint_files(
+    files: list[tuple[str, str]], tracks: tuple[Track, ...] | None = None
+) -> list[Finding]:
     """Findings for many notes, `(rel_path, text)` pairs, with id uniqueness across all of them.
 
     A note that makes the validator itself raise becomes a blocking finding naming the error,
@@ -221,7 +298,7 @@ def lint_files(files: list[tuple[str, str]]) -> list[Finding]:
     found: list[Finding] = []
     for rel_path, text in files:
         try:
-            found.extend(lint_note(text, rel_path, ids_seen))
+            found.extend(lint_note(text, rel_path, ids_seen, tracks))
         except Exception as error:  # noqa: BLE001 - reported as a blocking finding, not swallowed
             message = f"validator raised {type(error).__name__}: {error}"
             found.append(Finding(rel_path, "validator", "blocking", message))
