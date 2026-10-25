@@ -357,7 +357,7 @@ const labels = new CSS2DRenderer({ element: document.getElementById('labels') })
 const scene = new THREE.Scene(); scene.background = new THREE.Color('#0a0c10');
 const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 200);
 const CAM = new THREE.Vector3(14, 11.5, 14);
-const HOME = new THREE.Vector3(-0.8, 0, -1.4);   // CDH-0017: the deck's default framing, chosen so the top rooms' chips clear the HUD at 1440
+const HOME = new THREE.Vector3(-0.8, -.3, -1.4);   // Frame the orbital hull between the HUD bands while keeping the seven room anchors.
 let target = HOME.clone(), zoom = 1, wantZoom = 1, wantTarget = target.clone();
 camera.position.copy(target).add(CAM); camera.lookAt(target);
 
@@ -374,13 +374,116 @@ function box(w, h, d, x, y, z, mat, lines) {
   if (lines) { const l = new THREE.LineSegments(new THREE.EdgesGeometry(g), lines); l.position.copy(m.position); if (lines === lineDash) l.computeLineDistances(); scene.add(l); if (lines === lineCyan) hullLines.push(l); }
   return m;
 }
-// hull: a chamfered deck plate with a bow to +x
-const hullShape = new THREE.Shape();
-hullShape.moveTo(-9, -5.8); hullShape.lineTo(8, -5.8); hullShape.lineTo(10.6, -2.2); hullShape.lineTo(10.6, 2.2); hullShape.lineTo(8, 5.8); hullShape.lineTo(-9, 5.8); hullShape.lineTo(-9.8, 4.4); hullShape.lineTo(-9.8, -4.4); hullShape.closePath();
-const hullGeo = new THREE.ExtrudeGeometry(hullShape, { depth: .35, bevelEnabled: false });
-hullGeo.rotateX(Math.PI / 2); hullGeo.translate(0, 0, 0);
-const hull = new THREE.Mesh(hullGeo, matHull); hull.position.y = -.35; scene.add(hull);
-const hullEdge = new THREE.LineSegments(new THREE.EdgesGeometry(hullGeo, 20), lineCyan); hullEdge.position.y = -.35; scene.add(hullEdge); hullLines.push(hullEdge);
+// The operational island sits inside an open promenade, with space between tiers.
+const hullShape=new THREE.Shape();
+for(let i=0;i<=96;i++){const a=i/96*Math.PI*2,c=Math.cos(a),s=Math.sin(a),x=10*Math.sign(c)*Math.abs(c)**(2/2.7),z=6.1*Math.sign(s)*Math.abs(s)**(2/2.7);if(i===0)hullShape.moveTo(x,z);else hullShape.lineTo(x,z);}
+const hullGeo=new THREE.ExtrudeGeometry(hullShape,{depth:.26,bevelEnabled:false,curveSegments:96});hullGeo.rotateX(Math.PI/2);
+const hull=new THREE.Mesh(hullGeo,matHull);hull.position.y=-.25;scene.add(hull);
+// Michou's casino reference: an open rotunda above stacked habitat rings and a
+// mechanical spindle. Only the shared hull trim carries state; ornament has no facts.
+function createStationShell() {
+  const group=new THREE.Group();group.name='orbital-rotunda';
+  const metal=new THREE.MeshStandardMaterial({color:'#53636b',metalness:.38,roughness:.48});
+  const dark=new THREE.MeshStandardMaterial({color:'#101b24',metalness:.55,roughness:.6});
+  const bronze=new THREE.MeshStandardMaterial({color:'#ad865c',metalness:.35,roughness:.52});
+  const pearl=new THREE.MeshBasicMaterial({color:'#6e9da9'});
+  const blue=new THREE.MeshBasicMaterial({color:'#247994'});
+  const rose=new THREE.MeshBasicMaterial({color:'#86546e'});
+  const seams=[],batches=new Map(),rotors=[];
+  const add=(geometry,material,parent=group)=>{const mesh=new THREE.Mesh(geometry,material);parent.add(mesh);return mesh;};
+  // Static mechanical details share one draw per material, even on the phone.
+  function detail(geometry,material,position,scale=[1,1,1],rotation=[0,0,0]) {
+    const g=geometry.index?geometry.toNonIndexed():geometry.clone(),matrix=new THREE.Matrix4().compose(new THREE.Vector3(...position),new THREE.Quaternion().setFromEuler(new THREE.Euler(...rotation)),new THREE.Vector3(...scale));
+    g.applyMatrix4(matrix);if(!batches.has(material))batches.set(material,[]);batches.get(material).push(g);geometry.dispose();
+  }
+  const block=(mat,pos,size,rotation)=>detail(new THREE.BoxGeometry(1,1,1),mat,pos,size,rotation);
+  const spoke=(mat,r,y,a,length,height,width)=>{const c=Math.cos(a),s=Math.sin(a)*.68;block(mat,[r*c,y,r*s],[length*Math.hypot(c,s),height,width],[0,-Math.atan2(s,c),0]);};
+  const pipe=(mat,r1,r2,h,pos)=>detail(new THREE.CylinderGeometry(r1,r2,h,32),mat,pos);
+  function torus(radius,tube,y,material,parent=group) {
+    const m=add(new THREE.TorusGeometry(radius,tube,6,128),material,parent);m.rotation.x=Math.PI/2;m.position.y=y;return m;
+  }
+  function trim(radius,y,parent) {
+    const vertices=[];for(let i=0;i<128;i++){const a=i/128*Math.PI*2;vertices.push(radius*Math.cos(a),y,radius*Math.sin(a));}
+    const line=new THREE.LineLoop(new THREE.BufferGeometry().setAttribute('position',new THREE.Float32BufferAttribute(vertices,3)),lineCyan);parent.add(line);hullLines.push(line);seams.push(line);
+  }
+  const facade=new THREE.ShaderMaterial({
+    vertexShader:`varying vec2 vUv;varying vec3 vNormal;void main(){vUv=uv;vNormal=normalize(normalMatrix*normal);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
+    fragmentShader:`varying vec2 vUv;varying vec3 vNormal;
+      void main(){float column=floor(vUv.x*144.0),x=fract(vUv.x*144.0),y=fract(vUv.y*3.0);
+        float window=step(.17,x)*(1.0-step(.83,x))*step(.26,y)*(1.0-step(.76,y));
+        float service=step(.5,fract(column/11.0));
+        vec3 glass=mix(vec3(.018,.13,.18),vec3(.12,.26,.29),service);
+        glass=mix(glass,vec3(.24,.08,.16),step(.91,fract(column*.17)));
+        float light=.26+.74*max(0.0,dot(normalize(vNormal),normalize(vec3(-.6,.8,.7))));
+        vec3 body=vec3(.045,.065,.075)*light;
+        gl_FragColor=vec4(mix(body,glass,window),1.0);}`
+  });
+  function ring(radius,y,height,speed) {
+    const frame=new THREE.Group();frame.scale.z=.68;group.add(frame);
+    const drum=add(new THREE.CylinderGeometry(radius,radius,height,144,1,true),facade,frame);drum.position.y=y;
+    for(const d of [-1,1]){torus(radius,.075,y+d*height/2,metal,frame);torus(radius+.015,.022,y+d*height*.29,pearl,frame);}
+    trim(radius+.04,y,frame);
+    // The windows and service saddles rotate inside a fixed elliptical bearing.
+    const rotor=new THREE.Group();frame.add(rotor);rotor.add(drum);rotors.push({node:rotor,rate:speed});
+    const saddles=new THREE.InstancedMesh(new THREE.BoxGeometry(.24,height+.16,.24),metal,36);
+    const lamps=new THREE.InstancedMesh(new THREE.BoxGeometry(.10,.055,.26),blue,36);
+    const matrix=new THREE.Matrix4(),q=new THREE.Quaternion();
+    for(let i=0;i<36;i++){const a=i/36*Math.PI*2;q.setFromAxisAngle(new THREE.Vector3(0,1,0),-a);matrix.compose(new THREE.Vector3(radius*Math.cos(a),y,radius*Math.sin(a)),q,new THREE.Vector3(1,1,1));saddles.setMatrixAt(i,matrix);matrix.setPosition(radius*Math.cos(a),y+height*.35,radius*Math.sin(a));lamps.setMatrixAt(i,matrix);}
+    rotor.add(saddles,lamps);return frame;
+  }
+  ring(11.15,-.60,.50,.006);
+  ring(11.25,-1.30,.38,-.004);
+  ring(7.55,-2.35,.58,.008);
+  const promenade=add(new THREE.RingGeometry(10.6,11.15,144),metal);promenade.rotation.x=-Math.PI/2;promenade.scale.y=.68;promenade.position.y=-.32;
+  for(let i=0;i<8;i++)spoke(metal,9.6,-.29,i*Math.PI/4,2.8,.12,.5);
+  // Structural radial spokes and a stepped bowl read as a real lower hull.
+  pipe(dark,6.8,4.2,1.35,[0,-1.65,0]);
+  for(let i=0;i<16;i++){
+    const a=i*Math.PI/8,c=Math.cos(a),s=Math.sin(a);
+    spoke(metal,8.4,-1.45,a,5.4,.16,.20);
+    block(bronze,[10.95*c,-1.26,10.95*s*.68],[.20,.68,.20]);
+  }
+  const belly=new THREE.Group();belly.scale.z=.68;group.add(belly);
+  for(const [r,y]of [[6.5,-2.55],[5.7,-2.9],[4.6,-3.2]]){torus(r,.08,y,metal,belly);torus(r,.025,y+.12,blue,belly);}
+  // Lower spine tilts toward the viewer's lower-left, echoing the reference mast.
+  const spine=new THREE.Group();spine.name='lower-spindle';spine.position.set(-3.1,-2.65,3.1);spine.rotation.z=-.50;spine.rotation.x=-.50;group.add(spine);
+  const shaft=add(new THREE.CylinderGeometry(.52,.28,4.6,24),bronze,spine);shaft.position.y=-2.25;
+  for(let i=0;i<13;i++)torus(.55-i*.012,.035,-.35-i*.28,i%3===0?metal:bronze,spine);
+  for(const [y,r,h]of [[-.55,1.22,.65],[-1.05,.9,.22],[-3.9,.65,.45],[-4.35,.44,.28]]){
+    const collar=add(new THREE.CylinderGeometry(r,r*.85,h,12),dark,spine);collar.position.y=y;
+    torus(r,.04,y+h*.35,pearl,spine);torus(r,.045,y-h*.35,blue,spine);
+  }
+  const beacon=add(new THREE.OctahedronGeometry(.13),pearl,spine);beacon.position.y=-4.85;
+  // A rear tower leaves the occupied deck open; paired solar wings form the crown.
+  const mast=[-5.4,.5,-4.6];
+  pipe(metal,.48,1.05,1.4,mast);pipe(bronze,.15,.28,1.8,[-5.4,2.1,-4.6]);
+  for(let i=0;i<7;i++){pipe(i%2?bronze:metal,.65-i*.065,.65-i*.065,.09,[-5.4,.75+i*.21,-4.6]);}
+  detail(new THREE.OctahedronGeometry(.11),pearl,[-5.4,3.1,-4.6]);
+  // Each wing has inset copper cells and fine structural ribs, all batched.
+  for(const side of [-1,1])for(let row=0;row<4;row++){
+    const length=3.1+row*.45,x=mast[0]+side*(1.0+length/2),z=mast[2]+(row-1.5)*.63,y=1.8+row*.10;
+    block(dark,[x,y,z],[length,.065,.47]);block(bronze,[x,y+.04,z],[length-.08,.025,.40]);
+    for(let cell=0;cell<12;cell++)block(metal,[x-length/2+(cell+.5)*length/12,y+.065,z],[.018,.025,.43]);
+    for(const edge of [-1,1])block(metal,[x,y+.065,z+edge*.235],[length,.028,.025]);
+  }
+  // Promenade paving and docking bays sit outside the operational rooms.
+  for(let i=0;i<56;i++){
+    const a=i/56*Math.PI*2,c=Math.cos(a),s=Math.sin(a);
+    block(i%7===0?pearl:blue,[10.85*c,-.29,7.38*s],[.32,.025,.055],[0,-a,0]);
+  }
+  for(const [x,z,a]of [[9.2,0,0],[-8.5,0,Math.PI],[2,-6.35,Math.PI/2]]){
+    block(metal,[x,-.12,z],[1.1,.35,1.0],[0,a,0]);block(dark,[x,.07,z],[.85,.05,.78],[0,a,0]);block(rose,[x,.10,z],[.70,.025,.08],[0,a,0]);
+  }
+  for(const [material,geometries]of batches){
+    const count=geometries.reduce((n,g)=>n+g.attributes.position.count,0),merged=new THREE.BufferGeometry();
+    for(const [name,size]of [['position',3],['normal',3],['uv',2]]){const data=new Float32Array(count*size);let offset=0;for(const g of geometries){data.set(g.attributes[name].array,offset);offset+=g.attributes[name].array.length;}merged.setAttribute(name,new THREE.BufferAttribute(data,size));}
+    add(merged,material);for(const g of geometries)g.dispose();
+  }
+  let seconds=0,lastTime=null;
+  return {group,seams,rotors,tick(milliseconds,still){if(lastTime!==null&&!still)seconds+=Math.min(milliseconds-lastTime,1000)/1000;lastTime=milliseconds;for(const rotor of rotors)rotor.node.rotation.y=seconds*rotor.rate;}};
+}
+const stationShell=createStationShell();scene.add(stationShell.group);
+// End station shell.
 
 function anchor(el, decorative) { const w = document.createElement('div'); if (decorative) w.setAttribute('aria-hidden', 'true'); w.appendChild(el); return w; }
 const roomObjs = {};
@@ -930,6 +1033,7 @@ function frame(t) {
   }
   if (t - (frame.lastWords || 0) > 250) { frame.lastWords = t; renderWords(clock); }
   if (t - (frame.lastMotion || 0) > 1000) { frame.lastMotion = t; if (rmq.matches !== reduced) setMotion(rmq.matches); }
+  stationShell.tick(t,reduced || calm);
   ambientSky.tick(t,reduced || calm,camera);
   if (!calm) { composer.render(); labels.render(scene, camera); keepRoomFocusVisible(); layoutBubbles(t); }
 }
