@@ -3,10 +3,10 @@ id: LESSONS-COCKPIT-DESIGN
 type: note
 status: active
 created: 2026-10-16T00:20:00-07:00
-modified: 2026-10-24T20:04:06-07:00
+modified: 2026-10-25T13:25:00-07:00
 author: codex
 source: inferred
-sources: [CDH-0019, AUDIT-CDH-0018, AUDIT-CDH-0019-CYCLE-1, AUDIT-CDH-0020-REVIEW, AUDIT-CDH-0021-REVIEW, AUDIT-CDH-0022, AUDIT-CDH-0019-CYCLE-2, AUDIT-CDH-0019-CYCLE-2-REVIEW, AUDIT-CDH-0025, AUDIT-CDH-0023-0025-REVIEW, AUDIT-CDH-0026]
+sources: [CDH-0019, AUDIT-CDH-0018, AUDIT-CDH-0019-CYCLE-1, AUDIT-CDH-0020-REVIEW, AUDIT-CDH-0021-REVIEW, AUDIT-CDH-0022, AUDIT-CDH-0019-CYCLE-2, AUDIT-CDH-0019-CYCLE-2-REVIEW, AUDIT-CDH-0025, AUDIT-CDH-0023-0025-REVIEW, AUDIT-CDH-0026, AUDIT-CDH-0024-0026-REVIEW]
 tier: 2
 ---
 # Lessons — the design track (read at the start of every CDH; 40 lines max, condense rather than append)
@@ -30,7 +30,7 @@ Measurement
 - Chromium joins a button's inline spans without spaces when it names it from content; give dense rows an explicit, complete `aria-label`. The visually hidden status region's clipped text box runs past the viewport; leave `.vh` out of overflow measurements. An opaque phone HUD can hide real Tab targets. Check every focused room and the opened pane against the current HUD bounds; following a room changes wrapping and therefore those bounds (CDH-0022 / CDH-0019 cycle 2). A fix applied in the render loop shows on the next frame: measure after rendered frames (rAF), not a fixed delay.
 - An emulated reduced-motion change does not always fire the matchMedia listener; poll once a second as well.
 - A zero-specificity reset (`:where(button)`) keeps component rules in charge; a leaf class must differ from the root class derived from its view (CDH-0026); `.tr-root :where(button)` is still (0,1,0).
-- A legacy state sentinel is not an event count. Separate state from count, label missing counts explicitly, and exclude them from numeric peaks and totals (CDH-0025; Michou confirmed). When a fact moves, check its value as well as its presence (CW31: board 6's alert went from 18/20 to 19/20).
+- A legacy state sentinel is not an event count. Separate state from count, label missing counts explicitly, and exclude them from numeric peaks and totals (CDH-0025; Michou confirmed). When a fact moves, check its value as well as its presence (CW31). A line added to an anchored label widens it: measure label-to-label overlaps at a mid width (800 × 600) too, not only the phone and the design width (CW34).
 
 The loop
 - Codex commits its own three delivery files and takes the next ready row; Cowork applies blocking findings as the next cycle and Michou vetoes after the fact (2026-10-14 00:41). Under ADR-023, checks are run, not asked; judgement calls are scored (stakes × edge ≥ 1.5 asks, batched, with a recommendation) and the scores recorded in the README's open list.
