@@ -4,7 +4,8 @@ Purpose: the enforcement layer ADR-008 named and the first half of the ADR-013 ย
 2026-09-23 (HANDOFF-0032 follow-up, Michou's ruling) it also refuses the file-writing tools on
 the human-authored paths `kgme.toml` `[hooks].human_paths` names: guard rule 4. In loop mode
 (`KGME_LOOP_HANDOFF`, HANDOFF-0045 ยง2) it refuses a file write outside the handoff's
-`Outputs` list, read from `<scratch>/loop/<KGME_LOOP_RUN>/outputs.txt`: guard rule 5.
+`Outputs` list, read from `<scratch>/loop/<KGME_LOOP_RUN>/outputs.txt`: guard rule 5. In the
+cheap lane (`KGME_GUARD_ROOT`, HANDOFF-0053) it judges paths against the export it names.
 Inputs: the hook JSON on stdin; `kgme.toml` `[hooks]` and `[paths]`; `--test-streams` for tests.
 Outputs: exit 0 to let the call proceed under the settings file; exit 2 with one line on
 stderr to block it. Nothing on stdout.
@@ -36,8 +37,17 @@ def main(argv: list[str]) -> int:
         hooks = settings["hooks"]
         tool_name = str(payload["tool_name"])
         tool_input = payload.get("tool_input") or {}
-        cwd = Path(payload.get("cwd") or paths.root())
-        blocklist = [paths.resolve(p) for p in hooks["blocklist"] if not p.startswith("**/")]
+        # this checkout, or the cheap lane's export (HANDOFF-0053); a relative blocklist entry
+        # holds in both
+        root = common.read_guard_root(settings)
+        cwd = Path(payload.get("cwd") or root)
+        bases = dict.fromkeys((paths.root(), root))
+        blocklist = [
+            paths.resolve(p, base)
+            for p in hooks["blocklist"]
+            if not p.startswith("**/")
+            for base in bases
+        ]
         blocklist += paths.tier1_paths(settings)
         name_patterns = [p[3:] for p in hooks["blocklist"] if p.startswith("**/")]
         allow_outside = [paths.resolve(p) for p in hooks.get("allow_outside", [])]
@@ -50,12 +60,14 @@ def main(argv: list[str]) -> int:
             "loop_handoff": handoff,
             "loop_dir": places.scratch / "loop",
         }
-        rule = (cwd, paths.root(), blocklist, name_patterns, allow_outside)
+        rule = (cwd, root, blocklist, name_patterns, allow_outside)
         # First the line alone. Only an allowed line has its scripts opened: every script path
         # is itself a fragment of the line, so a forbidden one is refused before any read.
         decision = guard.decide(tool_name, tool_input, *rule, **fences)
         if decision.allowed:
-            extra, uninspectable = _read_script_fragments(tool_name, tool_input, cwd, allow_outside)
+            extra, uninspectable = _read_script_fragments(
+                tool_name, tool_input, cwd, root, allow_outside
+            )
             if extra or uninspectable:
                 decision = guard.decide(
                     tool_name,
@@ -105,7 +117,7 @@ def main(argv: list[str]) -> int:
 
 
 def _read_script_fragments(
-    tool_name: str, tool_input: dict, cwd: Path, allow_outside: list[Path]
+    tool_name: str, tool_input: dict, cwd: Path, root: Path, allow_outside: list[Path]
 ) -> tuple[tuple[Path, ...], tuple[Path, ...]]:
     """Paths named inside the scripts a Bash line runs, and the scripts the guard may not read.
 
@@ -115,7 +127,6 @@ def _read_script_fragments(
     """
     extra: list[Path] = []
     uninspectable: list[Path] = []
-    root = paths.root()
     for script in guard.script_candidates(tool_name, tool_input, cwd):
         if not script.is_file():
             continue

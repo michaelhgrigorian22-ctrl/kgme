@@ -65,6 +65,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     session_parser.add_argument("level", choices=("tight", "work", "loose"))
     session_parser.add_argument("--handoff", help="the handoff a loose run builds")
+    session_parser.add_argument("--model", help="a code-class [models] key: the cheap lane (0053)")
+    session_parser.add_argument("--red", help="the cheap lane's red command, to make exit 0")
     session_parser.add_argument(
         "--dry-run", action="store_true", help="print the command and settings; start nothing"
     )
@@ -321,8 +323,9 @@ def run_session(args: argparse.Namespace) -> int:
 
     extra = list(args.extra)
     return session.run_session(
-        args.level, args.handoff, extra, paths.root(), config.read_config(), args.dry_run
-    )
+        args.level, args.handoff, extra, paths.root(), config.read_config(), args.dry_run,
+        model_key=args.model, red=args.red,
+    )  # fmt: skip
 
 
 def run_track(args: argparse.Namespace) -> int:

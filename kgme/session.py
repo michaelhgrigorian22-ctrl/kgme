@@ -120,7 +120,7 @@ SKILL = "skills/kgme-atlas/SKILL.md"
 
 
 def read_carried_prompt(
-    main: Path, workspace: Path, settings: dict, handoff: str
+    main: Path, workspace: Path, settings: dict, handoff: str | None, around: tuple = ()
 ) -> tuple[str, dict]:
     """Effect: the one file a `loose` run passes with `--append-system-prompt-file`, in
     order: the main checkout's committed `CLAUDE.md`, the committed `kgme-atlas` skill when
@@ -140,7 +140,7 @@ def read_carried_prompt(
         record["carried"].append(SKILL)
         record["skill_sha256"] = sha256_text(skill)
     try:
-        built = atlas_read.read_slice(workspace, settings, handoff, [], None)
+        built = atlas_read.read_slice(workspace, settings, handoff, list(around), None)
     except (OSError, ValueError, subprocess.CalledProcessError) as error:
         record["slice_error"] = f"{type(error).__name__}: {error}"[:200]
     else:
@@ -215,6 +215,42 @@ def read_workspace(base: Path) -> Path:
                 "loads it, so loose will not start"
             )
     return here
+
+
+def read_route(
+    level: str,
+    handoff: str | None,
+    extra: list[str],
+    settings: dict,
+    model_key: str | None,
+    red: str | None,
+) -> str:
+    """Pure over the config: "cheap" for `work --model <key> --red <command>` where the key's
+    provider has the data class `code`, else the level's own route; `ValueError` for any
+    other use of a `code` model, or of `--model` and `--red` (HANDOFF-0053 §1: a `code`
+    model is launched only through the cheap lane)."""
+    from kgme import cheap
+
+    provider = settings.get("models", {}).get("builder_provider", cheap.PROVIDER_DEFAULT)
+    builder_class = settings.get("providers", {}).get(provider)  # None before [providers]
+    if builder_class == cheap.CODE:
+        raise ValueError("[models] builder is a code-class model; it runs only through --red")
+    if model_key is None:
+        if red is not None:
+            raise ValueError("--red is the cheap lane's: it needs --model <key>")
+        return level
+    data_class = cheap.read_model(settings, model_key)[2]
+    if data_class != cheap.CODE:
+        raise ValueError(
+            f"--model {model_key} is not a code-class model; --model is the cheap lane's"
+        )
+    if level != "work" or handoff or extra:
+        raise ValueError(
+            f"--model {model_key} runs only as `kgme session work --model {model_key} --red ...`"
+        )
+    if not red:
+        raise ValueError(f'--model {model_key} needs --red "<command>": the command it makes green')
+    return "cheap"
 
 
 def read_launch(
@@ -328,10 +364,23 @@ def run_session(
     settings: dict,
     dry_run: bool = False,
     execute: Callable[[str, list[str], dict], None] = os.execvpe,
+    model_key: str | None = None,
+    red: str | None = None,
+    run_claude: Callable | None = None,
 ) -> int:
     """The command: build, record, then replace this process with `claude`. A dry run prints
     the argv, the settings, and any carried file, and records one note; nothing else is
     written."""
+    try:
+        route = read_route(level, handoff, extra, settings, model_key, red)
+    except ValueError as error:
+        print(f"kgme session: {error}", file=sys.stderr)
+        return 2
+    if route == "cheap":  # the one route a `code` provider's model runs by (HANDOFF-0053)
+        from kgme import cheap
+
+        more = {"run_claude": run_claude} if run_claude else {}
+        return cheap.run_cheap(model_key, red, base, settings, dry_run, **more)
     run = events.new_ulid()
     try:
         launch, record = read_launch(level, handoff, extra, base, settings, run)

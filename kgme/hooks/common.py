@@ -4,7 +4,8 @@ Purpose: keep the two hook scripts small and identical where they should be.
 Inputs: stdin JSON from Claude Code; `kgme.toml`.
 Outputs: dicts, strings, a `Places` naming the streams and the scratch directories.
 Side effects: `read_payload` reads stdin. `read_places` reads `kgme.toml`. `read_session_parent`
-reads the ledger. `read_script_text` reads one script file. Nothing here writes.
+reads the ledger. `read_script_text` reads one script file. `read_guard_root` checks that one
+folder exists. Nothing here writes.
 """
 
 import hashlib
@@ -12,10 +13,11 @@ import json
 import os
 import re
 import sys
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
-from kgme import config, ledger, paths
+from kgme import cheap, config, ledger, paths
 
 SUMMARY_BUDGET = 150
 # HANDOFF-0032: the one ambient switch, and only for a canary run id (adopted exception to
@@ -68,6 +70,28 @@ def read_places(argv: list[str]) -> tuple[Places, dict]:
         main,
     )
     return places, settings
+
+
+def read_guard_root(settings: dict, env: Mapping[str, str] = os.environ) -> Path:
+    """The repository the guard judges paths against: this checkout, or the cheap lane's
+    export when its launcher names one in `KGME_GUARD_ROOT` (HANDOFF-0053). The hooks then
+    run this checkout's code, so the session cannot edit them and the ledger stays this
+    checkout's, while its edits are judged inside the export. Honoured only for an existing
+    folder strictly under `kgme.toml [paths] work_dir` and outside this checkout; any other
+    value is a ValueError, and the guard blocks on it. Set on the guard's command line by the
+    launcher, so the session's own tools cannot change it."""
+    named = env.get(cheap.GUARD_ROOT_ENV, "")
+    here = paths.root()
+    if not named:
+        return here
+    root = Path(named).expanduser().resolve()
+    work = cheap.read_work_dir(settings, here).resolve()
+    inside = root != work and root.is_relative_to(work) and root.is_dir()
+    if not inside or root.is_relative_to(here) or here.is_relative_to(root):
+        raise ValueError(
+            f"{cheap.GUARD_ROOT_ENV} names {root}, not a folder under {work} outside {here}"
+        )
+    return root
 
 
 def call_key(payload: dict) -> str:
