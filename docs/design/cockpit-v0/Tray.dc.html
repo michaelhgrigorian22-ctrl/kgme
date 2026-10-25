@@ -35,6 +35,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .tr-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding-bottom:8px}
 .tr-row{width:100%;display:grid;grid-template-columns:24px minmax(0,1fr) auto;grid-template-rows:auto auto;gap:1px 8px;align-items:center;padding:5px 6px;border-top:1px solid #141b22}
 .tr-row .chibi{grid-row:1/3}
+.tr-selection{color:#39d0ff;margin-right:6px}.tr-context-strip{display:flex;gap:8px;align-items:center;padding:8px 10px;background:#0e1a22;border-bottom:1px solid #39d0ff;font-size:11px;min-width:0}.tr-context-copy{display:flex;flex-wrap:wrap;gap:3px 10px;min-width:0}.tr-context-event{flex-basis:100%;overflow-wrap:anywhere;color:#cfe6ef}.tr-context-strip .tr-muted{color:#7a8d9b}
 .tr-row:hover{background:#0f141b}
 .tr-focus,.tr-row.tr-focus:hover{outline:1px solid #39d0ff;outline-offset:-1px;background:#0e1a22}
 .tr-l1{display:flex;gap:8px;min-width:0;font-size:11px;white-space:nowrap;overflow:hidden}
@@ -801,6 +802,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 </defs>
 </svg>
 <div data-calm="{{calm}}" class="{{rootCls}}">
+<sc-if value="{{isContext}}"><div class="tr-context-strip" role="group" aria-label="selected run context"><sc-for list="{{runs}}" as="r"><svg class="chibi portrait actor-{{r.actor}} mode-{{r.mode}} pal-phosphor tone-{{r.tone}}" viewBox="{{r.crop}}" aria-hidden="true" focusable="false"><use href="#chibi-{{r.actor}}"></use></svg><div class="tr-context-copy"><span><span class="tr-selection" role="img" aria-label="{{r.selectionLabel}}">◆</span>{{r.mapping}} · {{r.run}}</span><span class="{{r.lifeCls}}">{{r.lifecycle}}{{r.quietText}}</span><span class="tr-muted">elapsed {{r.elapsed}}</span><span class="tr-context-event">latest: {{r.event}}</span></div></sc-for></div></sc-if>
 <sc-if value="{{isBar}}" hint-placeholder-val="{{ false }}">
 <div class="tr-col">
   <span class="tr-lbl">active runs · <span class="tr-kbd">a</span></span>
@@ -824,7 +826,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
     <sc-for list="{{runs}}" as="r" hint-placeholder-count="3">
       <button type="button" class="tr-row {{r.focusCls}}" aria-label="{{r.label}}">
         <svg class="chibi portrait actor-{{r.actor}} mode-{{r.mode}} pal-phosphor tone-{{r.tone}}" viewBox="{{r.crop}}" aria-hidden="true" focusable="false"><use href="#chibi-{{r.actor}}"></use></svg>
-        <span class="tr-l1"><span class="tr-map">{{r.mapping}}</span><span class="tr-run">{{r.run}}</span></span>
+        <span class="tr-l1"><span class="tr-map"><sc-if value="{{r.selected}}"><span class="tr-selection" role="img" aria-label="{{r.selectionLabel}}">◆</span></sc-if>{{r.mapping}}</span><span class="tr-run">{{r.run}}</span></span>
         <span class="tr-life {{r.lifeCls}}">{{r.lifecycle}}<span class="tr-quiet">{{r.quietText}}</span></span>
         <span class="tr-l2"><span class="tr-el">{{r.elapsed}}</span><span class="tr-ev">{{r.event}}</span></span>
         <span><span class="tr-chip {{r.chipCls}}">{{r.chip}}</span></span>
@@ -870,7 +872,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
         <sc-for list="{{runs}}" as="r" hint-placeholder-count="4">
           <button type="button" class="tr-row {{r.focusCls}}" aria-label="{{r.label}}">
             <svg class="chibi portrait actor-{{r.actor}} mode-{{r.mode}} pal-phosphor tone-{{r.tone}}" viewBox="{{r.crop}}" aria-hidden="true" focusable="false"><use href="#chibi-{{r.actor}}"></use></svg>
-            <span class="tr-l1"><span class="tr-map">{{r.mapping}}</span><span class="tr-run">{{r.run}}</span></span>
+            <span class="tr-l1"><span class="tr-map"><sc-if value="{{r.selected}}"><span class="tr-selection" role="img" aria-label="{{r.selectionLabel}}">◆</span></sc-if>{{r.mapping}}</span><span class="tr-run">{{r.run}}</span></span>
             <span class="tr-life {{r.lifeCls}}">{{r.lifecycle}}<span class="tr-quiet">{{r.quietText}}</span></span>
             <span class="tr-l2"><span class="tr-el">{{r.elapsed}}</span><span class="tr-ev">{{r.event}}</span></span>
             <span><span class="tr-chip {{r.chipCls}}">{{r.chip}}</span></span>
@@ -935,7 +937,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
         <sc-for list="{{runs}}" as="r" hint-placeholder-count="4">
           <button type="button" class="tr-row {{r.focusCls}}" aria-label="{{r.label}}">
             <svg class="chibi portrait actor-{{r.actor}} mode-{{r.mode}} pal-phosphor tone-{{r.tone}}" viewBox="{{r.crop}}" aria-hidden="true" focusable="false"><use href="#chibi-{{r.actor}}"></use></svg>
-            <span class="tr-l1"><span class="tr-map">{{r.mapping}}</span><span class="tr-run">{{r.run}}</span></span>
+            <span class="tr-l1"><span class="tr-map"><sc-if value="{{r.selected}}"><span class="tr-selection" role="img" aria-label="{{r.selectionLabel}}">◆</span></sc-if>{{r.mapping}}</span><span class="tr-run">{{r.run}}</span></span>
             <span class="tr-life {{r.lifeCls}}">{{r.lifecycle}}<span class="tr-quiet">{{r.quietText}}</span></span>
             <span class="tr-l2"><span class="tr-el">{{r.elapsed}}</span><span class="tr-ev">{{r.event}}</span></span>
             <span><span class="tr-chip {{r.chipCls}}">{{r.chip}}</span></span>
@@ -962,7 +964,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 </sc-if>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"view":{"editor":"enum","options":["board","sheet","bar","pane"],"default":"board","section":"Tray"},"calm":{"editor":"boolean","default":false,"section":"Tray"},"runs":{"editor":null},"state":{"editor":null},"lastSeen":{"editor":null},"$preview":{"width":1440,"height":940}}'>
+<script type="text/x-dc" data-dc-script data-props='{"view":{"editor":"enum","options":["board","sheet","bar","pane","context"],"default":"board","section":"Tray"},"calm":{"editor":"boolean","default":false,"section":"Tray"},"runs":{"editor":null},"state":{"editor":null},"lastSeen":{"editor":null},"$preview":{"width":1440,"height":940}}'>
 class Component extends DCLogic {
   crops() {
     return { builder: '35 9 167 167', reviewer: '33 2 183 183', arbiter: '26 0 181 181', guard: '29 0 170 170', scribe: '34 6 164 164', michou: '32 18 169 169', stranger: '25 3 167 167' };
@@ -984,7 +986,7 @@ class Component extends DCLogic {
       elapsed: run.elapsed || '',
       event: run.event || '',
       quietText: run.quiet ? ' · quiet ' + run.quiet : '',
-      focusCls: run.focus ? 'tr-focus' : '',
+      focusCls: run.focus ? 'tr-focus' : '', selected: !!run.focus, selectionLabel: 'selected run ' + (run.run || ''),
       label: (run.mapping || actor) + ' ' + (run.run || '') + ', ' + lifecycle + (run.quiet ? ', quiet ' + run.quiet : '') + ', ' + (run.elapsed || '') + ': ' + (run.event || '') + ' (' + chip + '); Enter filters the timeline to this run'
     };
   }
@@ -1024,7 +1026,7 @@ class Component extends DCLogic {
     return {
       calm, runs,
       rootCls: 'tr-root tr-' + view,
-      isBar: view === 'bar', isPane: view === 'pane', isSheet: view === 'sheet', isBoard: view === 'board',
+      isContext: view === 'context', isBar: view === 'bar', isPane: view === 'pane', isSheet: view === 'sheet', isBoard: view === 'board',
       staleCls: stale ? 'tr-stale' : '',
       summary: sum.summary, sumCls: sum.sumCls, count: sum.count,
       hasRuns: runs.length > 0, noRuns: runs.length === 0,

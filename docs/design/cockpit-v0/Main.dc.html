@@ -51,6 +51,10 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .activity-column{position:relative;min-width:0;height:100%}.activity-bar{position:absolute;bottom:0;left:0;right:0;height:var(--height);background:var(--tint);box-shadow:inset 0 0 0 1px #39d0ff}
 .activity-mark{position:absolute;bottom:var(--height);right:0;color:#cfe6ef;background:#0a0c10;font-size:11px;line-height:13px;white-space:nowrap;z-index:1}.activity-mark:empty{display:none}
 .activity-column:hover{outline:1px solid #cfe6ef;outline-offset:0}.activity-summary{font-size:11px;line-height:1.45;color:#7a8d9b;margin:6px 0 0;overflow-wrap:anywhere}.activity-axis{display:flex;justify-content:space-between;gap:4px;margin-top:6px;color:#7a8d9b;font-size:9px}
+
+/* CDH-0026: one selection mark links responsibility, event and evidence. */
+.selection-mark{color:#39d0ff;margin-right:6px}.causal-trace{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:11px;line-height:1.6;padding:10px 0;border-top:1px solid #1e2a33}.causal-trace a{display:inline-flex;align-items:center;min-height:24px}.causal-link{flex:1 0 24px;min-width:24px;border-top:1px solid currentColor;position:relative}.causal-link::after{content:'›';position:absolute;right:-1px;top:-12px;font-size:16px}.causal-open{border-left:1px dashed #ffb02e;padding:8px 10px;margin:0 10px 10px;font-size:11px;color:#ffb02e}.causal-open .landing{display:block;border:1px dashed #ffb02e;margin-top:6px;padding:6px}.selection-evidence{border-top:2px solid #39d0ff}.selection-band{grid-column:2/-1;padding:8px 10px;background:#0e1a22;border-bottom:1px solid #39d0ff;font-size:11px;display:flex;gap:6px 14px;flex-wrap:wrap}.selection-band .event-summary{flex-basis:100%}.causal-trace a:focus-visible,.selection-evidence:focus-visible{outline:2px solid #39d0ff;outline-offset:-2px}
+.causal-trace{display:grid;grid-template-columns:14px minmax(0,1fr)}.causal-trace>span:first-child{grid-column:2}.causal-trace .causal-link{grid-column:1;grid-row:1/3;align-self:stretch;margin:10px 0;min-width:0;border-top:0;border-left:1px solid currentColor;border-bottom:1px solid currentColor}.causal-trace .causal-link::after{top:auto;bottom:-12px}.causal-trace a{grid-column:2}
 </style>
 </helmet>
 <div class="hud" style="--f:#39d0ff;--fg:rgba(57,208,255,.10)">
@@ -122,6 +126,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   </aside>
 
   <main class="pnl brk" style="flex:999 1 560px;min-width:0;display:flex;flex-direction:column">
+    <dc-import name="Tray" view="context" runs="{{selectedRuns}}" calm="{{calm}}" hint-size="100%,76px"></dc-import>
     <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid #1e2a33">
       <span class="lbl">timeline · newest at bottom · <span class="c-live">following</span></span>
       <span class="lbl">time · kind · job · summary · class · Δt</span>
@@ -129,10 +134,10 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
     <div style="flex:1 1 auto;overflow:auto">
       <sc-for list="{{rows}}" as="row" hint-placeholder-count="18">
         <sc-if value="{{row.isGroup}}" hint-placeholder-val="{{ false }}">
-          <div class="grp"><span>▣ run {{row.run}}</span><span class="mut">{{row.meta}}</span></div>
+          <div class="grp"><sc-if value="{{row.selected}}"><span class="selection-mark" role="img" aria-label="{{row.selectionLabel}}">◆</span></sc-if><sc-if value="{{row.unselected}}"><span>▣ run {{row.run}}</span></sc-if><span class="mut">{{row.meta}}</span></div>
         </sc-if>
         <sc-if value="{{row.isEvent}}" hint-placeholder-val="{{ true }}">
-          <div class="row {{row.cls}}">
+          <div class="row {{row.cls}}" id="{{row.anchor}}">
             <span class="mut">{{row.t}}</span>
             <span style="{{row.glyphStyle}}">{{row.glyph}}</span>
             <span class="mut" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{row.job}}</span>
@@ -148,7 +153,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 
   <aside class="pnl brk" style="flex:0 1 352px;min-width:300px;padding:12px;display:flex;flex-direction:column;gap:10px">
     <dc-import name="Tray" view="pane" runs="{{trayRuns}}" calm="{{calm}}" hint-size="100%,220px"></dc-import>
-    <div style="font-size:11px;color:#6f8290">Opened with <span class="kbd">a</span>. The focused row is <span style="color:#cfe6ef">c70d687b…8447</span>; <span class="kbd">Enter</span> sets the run filter to it and returns to the timeline. Nothing selected in the timeline: <span class="kbd">Enter</span> on a row opens the event here instead.</div>
+    <div class="causal-trace" role="group" aria-label="selected event: cycle intent to first transient outcome"><span>19:43:00 · cycle 1 intent<br>sha=6627ac35ffb583ad · reviewer gpt-6-astra</span><span class="causal-link" aria-hidden="true"></span><a href="#selected-event">19:43:03 · attempt 1 outcome<br>exit 1 · no text · transient · 3 s</a></div>
     <div style="margin-top:auto;border-top:1px solid #1e2a33;padding-top:8px;display:flex;flex-direction:column;gap:4px">
       <span class="lbl">open handoff</span>
       <span>HANDOFF-0040 · <span class="mut">kgme sync · adopted 19:40</span></span>
@@ -203,12 +208,12 @@ class Component extends DCLogic {
   }
 
   rows() {
-    const g = (run, meta) => ({ isGroup: true, isEvent: false, run, meta });
+    const g = (run, meta) => { const selected = run === this.trayRuns().find(r => r.focus)?.run; return { isGroup: true, isEvent: false, run, meta: selected ? meta.replace(/^.*? · /, '') : meta, selected, unselected: !selected, selectionLabel: 'selected run ' + run }; };
     const e = (t, kind, job, summary, chip, dt, cls) => {
       const glyph = kind === 'intent' ? '▶' : kind === 'outcome' ? '◀' : kind === 'note' ? '✎' : '✓';
       const glyphStyle = kind === 'intent' ? 'color:#6f8290' : kind === 'outcome' ? 'color:#cfe6ef' : kind === 'note' ? 'color:#ffb02e' : 'color:#4de38a';
       const chipCls = chip === 'ok' ? 'c-ok' : chip === 'blocking' || chip === 'refused' ? 'c-block' : chip === 'transient' || chip === 'advisory' ? 'c-trans' : 'c-none';
-      return { isGroup: false, isEvent: true, t, glyph, glyphStyle, job, summary, chip: chip || '—', chipCls, dt: dt || '', cls: cls || '' };
+      return { isGroup: false, isEvent: true, t, glyph, glyphStyle, job, summary, chip: chip || '—', chipCls, dt: dt || '', cls: cls || '', anchor: cls === 'focus' ? 'selected-event' : '' };
     };
     return [
       g('c70d687b…8447', 'claude-code · HANDOFF-0040 · started 19:40:02 · 212 events'),
@@ -235,14 +240,14 @@ class Component extends DCLogic {
   }
   trayRuns() {
     return [
-      { actor: 'builder', mapping: 'claude-code.*', run: 'c70d687b…8447', lifecycle: 'working', elapsed: '12m 12s', event: 'Edit docs/audit/2026-10-08-push-on-commit.md · ok', chip: 'ok', focus: true },
+      { actor: 'builder', mapping: 'claude-code.*', run: 'c70d687b…8447', lifecycle: 'working', elapsed: '12m 12s', event: 'Edit docs/audit/2026-10-08-push-on-commit.md · ok', chip: 'ok' },
       { actor: 'builder', mapping: 'claude-code.*', run: '3f9e21aa…c0d1', lifecycle: 'working', quiet: '4m', elapsed: '41m 03s', event: 'Read docs/design/cockpit-v0/canvas.json · ok', chip: 'ok' },
-      { actor: 'reviewer', mapping: 'kgme.review', run: '01M4F8NR…04F', lifecycle: 'transient', elapsed: '9m 14s', event: 'cycle 1 tooling exhausted · not a strike · retry after 23:06', chip: 'blocking' }
+      { actor: 'reviewer', mapping: 'kgme.review', run: '01M4F8NR…04F', lifecycle: 'transient', elapsed: '9m 14s', event: 'cycle 1 tooling exhausted · not a strike · retry after 23:06', chip: 'blocking', focus: true }
     ];
   }
   renderVals() {
     const calm = this.props.calm ?? false;
-    return { quotaAlerts: this.quotaAlerts(), noise: !calm, calm, cells: this.cells(), activitySummary: this.activitySummary(), activityStart: this.cells()[0].time, activityEnd: this.cells().at(-1).time, rows: this.rows(), trayRuns: this.trayRuns() };
+    return { quotaAlerts: this.quotaAlerts(), noise: !calm, calm, cells: this.cells(), activitySummary: this.activitySummary(), activityStart: this.cells()[0].time, activityEnd: this.cells().at(-1).time, rows: this.rows(), selectedRuns: this.trayRuns().filter(r => r.focus), trayRuns: this.trayRuns() };
   }
 }
 </script>

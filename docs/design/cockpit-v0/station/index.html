@@ -69,7 +69,11 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--cyan);outl
 .bubble{position:absolute;left:50%;top:calc(100% + 16px);transform:translateX(-50%);max-width:260px;min-width:120px;background:var(--surface);border:1px solid var(--rule);padding:5px 8px;font-size:10px;line-height:1.35;color:var(--text);white-space:normal;text-align:left;opacity:0;transition:opacity .25s}
 .bubble::after{content:"";position:absolute;left:50%;top:0;width:6px;height:6px;background:var(--surface);border-left:1px solid var(--rule);border-top:1px solid var(--rule);transform:translate(-50%,-4px) rotate(45deg)}
 .bubble.show{opacity:1}
+/* A collision is removed immediately, including during an opacity transition. */
+.bubble:not(.show){visibility:hidden}
+#dispatch{margin:0;padding:6px 0;border-bottom:1px solid var(--rule);font-size:11px;overflow-wrap:anywhere}
 .bubble .t{color:var(--dim);margin-right:6px}
+.chip-room .last-event{display:block;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;color:var(--text)}
 .bubble .chip{margin-left:6px;vertical-align:1px}
 /* the followed room's runs, on the right */
 .pane{position:fixed;right:36px;top:var(--hudtop,130px);width:360px;max-width:calc(100vw - 72px);max-height:calc(100vh - 220px);overflow:auto;z-index:6;background:rgba(17,21,28,.92);border:1px solid var(--rule);padding:10px 12px;display:flex;flex-direction:column;gap:6px;min-width:0}
@@ -202,6 +206,7 @@ body.calm .chibi{visibility:hidden}
 
 <aside class="pane" id="pane" hidden aria-label="runs in the followed room">
   <div class="head"><span class="lbl" id="panetitle">active runs</span><button type="button" class="lbl" id="paneclose" style="color:var(--cyan)"><span class="kbd">Esc</span> closes</button></div>
+  <p id="dispatch" hidden></p>
   <div id="panerows"></div>
   <section id="system" aria-label="system facts"><h2 class="h">System</h2><div class="col"><span class="lbl">ledger</span><span class="val"><span class="c-live blink">●</span> live · <b style="font-weight:500" id="nev">0</b> events · <span id="nrun">0</span> runs <span style="color:var(--dim)">· replay <span id="nloop">1</span></span></span></div>
 <div class="col"><span class="lbl">session</span><span class="val">c70d687b…8447 <span style="color:var(--dim)">claude-code</span></span></div>
@@ -301,7 +306,8 @@ const Q = new URLSearchParams(location.search);   // test affordances, read-only
 const SPEED = Math.max(1, Math.min(60, +Q.get('speed') || 20)), LOOP_TAIL = 4 * 60 * 1000, QUIET_FLOOR = 3 * 60 * 1000;
 const START = /^\d\d:\d\d:\d\d$/.test(Q.get('at') || '') ? Date.parse('2026-10-08T' + Q.get('at') + '-07:00') : T0;
 let events = [], cursor = 0, clock = START, lastReal = performance.now(), lastTs = T0, loopEnd = T0 + 20 * 60 * 1000, loops = 1;
-const runs = new Map(), bubbles = [];
+const runs = new Map(), roomBubbles = new Map();
+let bubbleOrder = 0;
 function fmtClock(ms) { const d = new Date(ms); return new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: 'America/Los_Angeles' }).format(d); }
 function elapsed(ms) { const s = Math.max(0, Math.floor(ms / 1000)); return s >= 3600 ? `${Math.floor(s / 3600)}h ${String(Math.floor(s % 3600 / 60)).padStart(2, '0')}m` : `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, '0')}s`; }
 function spriteFor(actor) { for (const [prefix, a, room] of SPRITES) if (actor.startsWith(prefix)) return [a, room]; return DEFAULT_SPRITE; }
@@ -471,7 +477,30 @@ function retireRun(run) {
 function say(run, e) {
   const [chip, cls] = chipFor(e);
   run.bubble.innerHTML = `<span class="t">${fmtClock(Date.parse(e.ts))}</span>${esc(e.summary)}<span class="chip ${cls}">${chip}</span>`;
-  run.bubble.classList.add('show'); run.bubbleUntil = performance.now() + 7000;
+  showBubble(run, run.room);
+}
+// One current voice per room. New speech replaces the old immediately; the real-time
+// seven-second lifetime is independent of replay speed and collision visibility.
+function showBubble(owner, room) {
+  const old = roomBubbles.get(room);
+  if (old && old.owner !== owner) { old.owner.bubble.classList.remove('show'); old.owner.bubble.style.visibility = 'hidden'; old.owner.bubbleUntil = 0; }
+  owner.bubbleUntil = performance.now() + 7000;
+  owner.bubble.dataset.room = room;
+  owner.bubble.style.visibility = 'hidden';
+  owner.bubble.classList.add('show');
+  roomBubbles.set(room, { owner, order: ++bubbleOrder });
+}
+function layoutBubbles(now) {
+  const placed = [], overlaps = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+  const top = document.querySelector('.hud.top').getBoundingClientRect().bottom, bottom = document.querySelector('.hud.bottom').getBoundingClientRect().top;
+  const pane = document.getElementById('pane'), blocked = pane.hidden ? [] : [pane.getBoundingClientRect()];
+  for (const [room, {owner, order}] of [...roomBubbles].sort((a,b) => b[1].order - a[1].order)) {
+    const el = owner.bubble; el.style.visibility = 'hidden';
+    if (now >= owner.bubbleUntil || !el.isConnected) { el.classList.remove('show'); roomBubbles.delete(room); continue; }
+    const r = el.getBoundingClientRect();
+    if (!r.width || !r.height || r.left < 0 || r.right > innerWidth || r.top < top || r.bottom > bottom || [...placed, ...blocked].some(b => overlaps(r,b))) continue;
+    el.style.visibility = 'visible'; placed.push(r);
+  }
 }
 function esc(s) { return s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
 
@@ -484,7 +513,7 @@ function fixture(actor, room, mode) {
   const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = actor === 'michou' ? 'you' : 'kgme.guard'; el.appendChild(tag);
   const bub = document.createElement('div'); bub.className = 'bubble'; el.appendChild(bub);
   const obj = new CSS2DObject(anchor(el)); obj.position.set(sx, 0, sz); scene.add(obj);
-  fixtures[actor] = { el, svg, bubble: bub, obj, mode, until: 0, last: null };
+  fixtures[actor] = { el, svg, bubble: bub, obj, room, mode, until: 0, last: null };
 }
 
 // ---------------------------------------------------------------- apply events as the clock passes them
@@ -508,17 +537,18 @@ function apply(e) {
 function fixtureSpeaks(f, e, chip) {
   f.last = e; f.until = performance.now() + 9000; setMode(f.svg, 'working');
   f.bubble.innerHTML = `<span class="t">${fmtClock(Date.parse(e.ts))}</span>${esc(e.summary)}${chip || (e.kind === 'approval' ? '<span class="chip c-ok">approval</span>' : '')}`;
-  f.bubble.classList.add('show'); f.bubbleUntil = performance.now() + 7000;
+  showBubble(f, f.room);
 }
 let arbiter = null;
 function arbiterSpeaks(e) {
   if (!arbiter) { const o = roomObjs.review; const [sx, sz] = o.r.seats[2]; const el = document.createElement('div'); el.className = 'crew'; const svg = chibi('arbiter', 'working', false); el.appendChild(svg); const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = 'arbiter.*'; el.appendChild(tag); const bub = document.createElement('div'); bub.className = 'bubble'; el.appendChild(bub); const obj = new CSS2DObject(anchor(el)); obj.position.set(sx, 0, sz); scene.add(obj); arbiter = { el, svg, bubble: bub, obj, last: null }; }
   arbiter.last = e;
-  arbiter.bubble.innerHTML = `<span class="t">${fmtClock(Date.parse(e.ts))}</span>${esc(e.summary)}<span class="chip c-none">note</span>`; arbiter.bubble.classList.add('show'); arbiter.bubbleUntil = performance.now() + 9000; arbiter.until = performance.now() + 12000;
+  arbiter.bubble.innerHTML = `<span class="t">${fmtClock(Date.parse(e.ts))}</span>${esc(e.summary)}<span class="chip c-none">note</span>`; showBubble(arbiter, 'review'); arbiter.until = performance.now() + 12000;
 }
 
 function resetReplay() {
   for (const run of runs.values()) if (run.obj) { scene.remove(run.obj); run.obj.element.remove(); }
+  roomBubbles.clear();
   runs.clear(); for (const o of Object.values(roomObjs)) o.occupied.clear();
   for (const w of Object.values(wallRooms)) w.rows.replaceChildren();
   document.getElementById('panerows').replaceChildren();
@@ -566,7 +596,11 @@ function snapshot(now) {
       if (m.last) lines.push({ ts: m.last.ts, text: m.last.summary, chip: m.last.kind === 'approval' ? ['approval', 'c-ok'] : ['note', 'c-none'] });
     } else state = here.length ? summarize(here) : 'empty';
     if (r.id === 'review' && arbiter && arbiter.last) { lines.push({ ts: arbiter.last.ts, text: arbiter.last.summary, chip: ['ruling', 'c-none'] }); state += ` · ruled ${fmtClock(Date.parse(arbiter.last.ts))}`; }
-    return { r, here, state, cls: worst(here), lines };
+    const dispatches = [...runs.values()].filter(run => run.room === r.id).flatMap(run => run.events.map(e => ({ts:e.ts, speaker:e.actor, text:e.summary, kind:e.kind, id:e.id})));
+    if (r.id === 'airlock' && fixtures.guard.last) { const e = fixtures.guard.last; dispatches.push({ts:e.ts, speaker:'kgme.guard', text:e.summary, kind:e.kind, id:e.id}); }
+    if (r.id === 'review' && arbiter?.last) { const e = arbiter.last; dispatches.push({ts:e.ts, speaker:e.actor, text:e.summary, kind:e.kind, id:e.id}); }
+    const dispatch = dispatches.sort((a,b) => a.ts.localeCompare(b.ts)).at(-1) || null;
+    return { r, here, state, cls: worst(here), lines, dispatch };
   });
   return { now, live, rooms, summary: summarize(live), halt, hullText: halt ? `HALT · ${halt.key}` : 'nominal', hullLong: halt ? `HALT · ${halt.summary}` : 'nominal' };   // CDH-0017 CW19: the HUD shows the key, the wall the sentence
 }
@@ -590,7 +624,11 @@ function renderWords(now) {
     const o = roomObjs[r.id];
     o.chipEl.className = 'chip-room' + (r.phase2 ? ' phase2' : '') + (cls ? ' ' + cls : '') + (r.id === following ? ' on' : '');
     const st = o.chipEl.querySelector('.state'); if (st.textContent !== state) st.textContent = state;
-    o.chipEl.setAttribute('aria-label', `${r.n} ${r.name}: ${state}`);
+    const room = snap.rooms.find(room => room.r.id === r.id), voice = room.dispatch;
+    o.chipEl.setAttribute('aria-label', `${r.n} ${r.name}: ${state}` + (voice ? `; ${voice.speaker}: ${voice.text}` : ''));
+    let last = o.chipEl.querySelector('.last-event'); if (!last) { last = document.createElement('span'); last.className = 'last-event'; o.chipEl.appendChild(last); }
+    last.textContent = voice ? `${voice.speaker}: ${voice.text}` : '';
+    last.hidden = !voice;
     // light carries the same state as the words
     const want = cls === 's-block' ? ['#ff3d7f', 9] : cls === 's-amber' ? ['#ffb02e', 4.5] : cls === 's-live' ? ['#39d0ff', 2.6] : ['#39d0ff', 0];
     if (r.id === 'airlock' && o.flash && o.flash > now0) { want[0] = '#ff3d7f'; want[1] = 9; }
@@ -642,7 +680,10 @@ function renderPane(snap) {
   const pane = document.getElementById('pane');
   if ((!paneOpen && !following) || (document.body.classList.contains('calm') && !paneOpen)) { pane.hidden = true; return; }
   pane.hidden = false;
-  if (!snap) return;
+  if (!snap) snap = snapshot(clock);
+  const dispatch = document.getElementById('dispatch'), room = snap.rooms.find(room => room.r.id === following), voice = room?.dispatch;
+  dispatch.hidden = !following;
+  dispatch.textContent = following ? (voice ? `${voice.speaker} · ${fmtClock(Date.parse(voice.ts))} ${voice.kind} → ${room.r.name}: ${voice.text}` : `${room.r.name}: no event yet`) : '';
   const list = following ? snap.live.filter(x => x.run.room === following) : snap.live;
   const title = following ? `${roomObjs[following].r.name} · ${list.length} open` : `active runs · <span class="kbd">a</span> · ${list.length} open`;
   const t = document.getElementById('panetitle'); if (t.dataset.v !== title) { t.innerHTML = title; t.dataset.v = title; }
@@ -652,7 +693,7 @@ const wallRooms = {};
 function renderWall(snap) {
   if (!document.body.classList.contains('calm')) return;
   const g = document.getElementById('wallgrid');
-  for (const { r, here, state, lines } of snap.rooms) {
+  for (const { r, here, state, lines, dispatch } of snap.rooms) {
     let w = wallRooms[r.id];
     if (!w) {
       const sec = document.createElement('section'); sec.className = 'room';
@@ -660,7 +701,9 @@ function renderWall(snap) {
       g.appendChild(sec); w = wallRooms[r.id] = { sec, state: sec.querySelector('.state'), lines: sec.querySelector('.lines'), rows: sec.querySelector('.rows') };
     }
     if (w.state.textContent !== state) w.state.textContent = state;
-    const linesHtml = lines.map(l => `<div><span class="t">${fmtClock(Date.parse(l.ts))}</span>${esc(l.text)}<span class="chip ${l.chip[1]}">${l.chip[0]}</span></div>`).join('');
+    const shownLines = [...lines];
+    if (dispatch && !shownLines.some(l => l.ts === dispatch.ts && l.text === dispatch.text)) shownLines.push({ts:dispatch.ts, text:dispatch.speaker + ': ' + dispatch.text, chip:[dispatch.kind,'c-none']});
+    const linesHtml = shownLines.map(l => `<div><span class="t">${fmtClock(Date.parse(l.ts))}</span>${esc(l.text)}<span class="chip ${l.chip[1]}">${l.chip[0]}</span></div>`).join('');
     if (w.lines.dataset.v !== linesHtml) { w.lines.innerHTML = linesHtml; w.lines.dataset.v = linesHtml; }
     syncRows(w.rows, here, snap.now, false, '');
   }
@@ -731,7 +774,7 @@ function frame(t) {
   }
   if (t - (frame.lastWords || 0) > 250) { frame.lastWords = t; renderWords(clock); }
   if (t - (frame.lastMotion || 0) > 1000) { frame.lastMotion = t; if (rmq.matches !== reduced) setMotion(rmq.matches); }
-  if (!calm) { composer.render(); labels.render(scene, camera); keepRoomFocusVisible(); }
+  if (!calm) { composer.render(); labels.render(scene, camera); keepRoomFocusVisible(); layoutBubbles(t); }
 }
 
 (async () => {
