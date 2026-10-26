@@ -2,15 +2,15 @@
 id: SCHEMA
 type: schema
 status: draft
-version: 1.6
+version: 1.7
 created: 2026-09-09T19:50:00-07:00
-modified: 2026-10-25T15:27:37-07:00
+modified: 2026-10-25T23:19:41-07:00
 author: cowork
 source: stated
 tier: 2
 ---
 
-# KGME note schema — v1.6 (draft)
+# KGME note schema — v1.7 (draft)
 
 Governs every Markdown file under `memory/` and `docs/`, minus the exemptions in **Scope** below. Defined by ADR-005; widened from `memory/` alone to both roots by Michou's ruling of 2026-09-14 (AUDIT-0011, HANDOFF-0030). Think of the vault as a data frame: each note is a row, the frontmatter is the typed columns, the body is one free-text column, and `type` decides which columns are required. Anything a query or a script needs goes above the line; anything for a human goes below it.
 
@@ -32,7 +32,7 @@ Everything else under the two roots is a note and is validated.
 
 | Field | Type | Rule |
 |---|---|---|
-| `id` | string | Stable, opaque, unique among validated notes. **Never changes**, even if the file is renamed. Two families: vault notes carry a second-resolution timestamp from the template when a human writes them (`20260910T143205`) and a ULID when an agent does; governance documents carry a named id — `ADR-NNN`, `HANDOFF-NNNN`, `AUDIT-NNNN`, `CDH-NNNN` and `AUDIT-CDH-NNNN` (the cockpit design track's own sequence under HANDOFF-0036; v1.4), `PLAN-*`, `READER-*`, or a singleton name (`STATUS`, `ROADMAP`, `CORRECTIONS`). Uniqueness is `blocking`; format drift is `advisory`. Scripts key off `id`, never the filename. |
+| `id` | string | Stable, opaque, unique among validated notes. **Never changes**, even if the file is renamed. Two families: vault notes carry a second-resolution timestamp from the template when a human writes them (`20260910T143205`) and a ULID when an agent does; governance documents carry a named id — `ADR-NNN`, `HANDOFF-NNNN`, `AUDIT-NNNN`, `CDH-NNNN` and `AUDIT-CDH-NNNN` (the cockpit design track's own sequence under HANDOFF-0036; v1.4), `PLAN-*`, `READER-*`, or a singleton name (`STATUS`, `ROADMAP`, `CORRECTIONS`, `TOOLBOX`; v1.7). Uniqueness is `blocking`; format drift is `advisory`. Scripts key off `id`, never the filename. |
 | `type` | enum | One of the ten types below. |
 | `created` | datetime | ISO 8601 with offset: `2026-09-09T14:32:00-07:00`. |
 | `modified` | datetime | Same format. Updated by whoever edits. **Not required on the append-only types** (`decision`, `handoff`, `report`): an append-only record is never modified by construction, so the field would only ever repeat `created`. Permitted while a `decision` or `handoff` is still `proposed`; it stops changing on acceptance or adoption. (v1.2) |
@@ -102,7 +102,8 @@ Email reader about the chapter 2 draft.
 Before any agent writes to `memory/` or `docs/`, the validator (`kgme lint`, the `kgme/lint.py` module of HANDOFF-0031; the first code artefact in KGME after packaging and the ledger) checks: frontmatter present and parseable; all required fields for the type, with the v1.2 exceptions above; `id` unique across both roots minus `docs/archive/`; `type` in the allowed set; type-specific required fields present; `created`, and `modified` where required, are ISO 8601 with offset; `source: fetched` has `origin`; `source: inferred` has `sources`; the file sits in a folder its `type` allows, and a handoff or report under a registered track's folder carries the track's prefix (v1.6); the exempt paths in **Scope** are skipped. Reports created before 2026-09-14, the day v1.2 widened the schema to `docs/`, are held to the fields that existed when they were written: `period`, and `origin` under `source: fetched` or `sources` under `source: inferred`, are required of reports created on or after that date (v1.3). Findings carry an ADR-016 class: the checks above are `blocking`; unknown fields and id-format drift are `advisory`; whitespace is `cosmetic`. Only `blocking` fails the run. The HANDOFF-0002 lint checked only three keys and does not count as validation.
 
 ## Versioning
-This is v1.6 (draft). Changelog:
+This is v1.7 (draft). Changelog:
+- **1.7 (2026-10-25)** — `docs/toolbox.md` is a registered note (`type: note`, the singleton id `TOOLBOX`): the toolbox of ADR-020, one row per third-party package, module, skill, harness, model, API or asset. `kgme lint` checks it (`kgme/toolbox.py`, HANDOFF-0044): every non-standard-library import in `kgme/` and `cockpit/` has a row; no `<script src>` in `cockpit/` names a host; every vendored file and skill has a row whose sha256 is what the tree holds; every row has a source and a sha, and a model or an API an egress host, all `blocking`. A row without a licence is `advisory` in 1.7 and `blocking` from 1.8. No note changes.
 - **1.6 (2026-10-25)** — tracks registered in `kgme.toml [tracks.<name>]` (id prefixes and folders); a record in a track's folder carries its prefix, and an unregistered subfolder below `docs/handoff/` or `docs/audit/` holds no note, both `blocking` (HANDOFF-0042). Every current file of the cockpit design track passes unchanged; no migration. `kgme lint` now validates the commit's files by default and counts the untracked ones it skips; `--all` walks the working tree.
 - **1.5 (2026-10-15)** — handoffs by state: `docs/handoff/done/` and `docs/handoff/archive/` admitted beside the top (open) and `proposed/`; a finished handoff names its report in `report`; the folder must match the status and the report must exist, as coherence checks (HANDOFF-0049; `advisory` for a week, then `blocking`). The record was moved by `git mv` and each finished handoff gained one `report:` line; nothing else in them changed. The track folders proposed as v1.5 by HANDOFF-0042 become v1.6.
 - **1.4 (2026-10-09)** — any `README.md` is exempt by name: the index of its folder, not a note (Michou's ruling, 2026-10-09, same reasoning as the charter exemption; prompted by the handoff-track and design-asset READMEs). Named id families gain `CDH-NNNN` and `AUDIT-CDH-NNNN` for the cockpit design track. No note is edited to fit the schema; the validator follows under HANDOFF-0041. No migration: it only relaxes.

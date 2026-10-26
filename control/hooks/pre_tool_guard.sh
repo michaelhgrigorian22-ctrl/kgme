@@ -6,7 +6,7 @@
 # The environment passes through unchanged: in loop mode `KGME_LOOP_HANDOFF` and `KGME_LOOP_RUN`
 # (set by `kgme review --loop`, HANDOFF-0043) make the guard refuse file writes outside the
 # handoff's Outputs list (guard rule 5, HANDOFF-0045 §2).
-uv run --frozen --project "$CLAUDE_PROJECT_DIR" python -m kgme.hooks.pre_tool_guard
+uv run --frozen --project "$CLAUDE_PROJECT_DIR" python -P -m kgme.hooks.pre_tool_guard
 code=$?
 if [ "$code" -eq 0 ]; then
   exit 0
