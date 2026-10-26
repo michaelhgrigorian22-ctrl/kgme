@@ -143,18 +143,26 @@ def build_name_regex(glob: str) -> str:
     return "^.*/" + re.escape(glob).replace(r"\*", "[^/]*") + "$"
 
 
-def build_red_profile(export: Path, denied: list[Path], names: list[str]) -> str:
+def build_red_profile(export: Path, mains: list[Path], denied: list[Path], names: list[str]) -> str:
     """Pure: the Seatbelt profile the launcher's own run of the red command runs under. That
     run executes code the session wrote, so it gets the session's fence (review F1): no
     network, no read under a denied root or of a file a name pattern covers (cycle 2 F1),
-    writes only to the export, the temporary folders, and `/dev`."""
-    writable = [export, Path("/private/tmp"), Path("/private/var/folders"), Path("/dev")]
-    allowed = " ".join(f"(subpath {quote_sbpl(p)})" for p in writable)
+    writes only to the export, the temporary folders, and `/dev`, and never to a main
+    checkout, wherever it lives (HANDOFF-0057): `mains` are the main checkout the launch is
+    for and the checkout this code runs from, the same folder in use and two in a merge
+    trial's clone, which sits under the temporary folders. In Seatbelt a later rule wins, so
+    the writes are: deny all; allow the temporary folders and `/dev`; deny each main
+    checkout; allow the export last, so an export under a checkout stays writable."""
+    temporary = [Path("/private/tmp"), Path("/private/var/folders"), Path("/dev")]
+    allowed = " ".join(f"(subpath {quote_sbpl(p)})" for p in temporary)
+    checkouts = " ".join(f"(subpath {quote_sbpl(m)})" for m in dict.fromkeys(mains))
     refused = [f"(subpath {quote_sbpl(r)})" for r in denied]
     refused += [f'(regex #"{build_name_regex(n)}")' for n in names]
     return (
         "(version 1)\n(allow default)\n(deny network*)\n(deny file-write*)\n"
-        f"(allow file-write* {allowed})\n(deny file-read* {' '.join(refused)})\n"
+        f"(allow file-write* {allowed})\n(deny file-write* {checkouts})\n"
+        f"(allow file-write* (subpath {quote_sbpl(export)}))\n"
+        f"(deny file-read* {' '.join(refused)})\n"
     )
 
 
@@ -181,7 +189,8 @@ def write_fix(
 
     from kgme import session
 
-    profile = build_red_profile(export.resolve(), denied, read_denied_names(settings))
+    mains = [main.resolve(), paths.root().resolve()]
+    profile = build_red_profile(export.resolve(), mains, denied, read_denied_names(settings))
     argv = [SANDBOX_EXEC, "-p", profile, *read_red_argv(red)]
     try:
         ran = subprocess.run(

@@ -5,7 +5,9 @@ created: 2026-10-25T16:46:06-07:00
 from: michou
 to: claude-code
 tier: 2
-status: open
+status: done
+completed: 2026-10-25T17:27:53-07:00
+report: docs/audit/2026-10-25-fence-the-main-checkout.md
 depends_on: [HANDOFF-0053, HANDOFF-0055]
 plan_ref: PLAN-PHASE-1 step 7d
 ---

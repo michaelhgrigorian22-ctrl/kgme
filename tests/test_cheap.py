@@ -364,6 +364,30 @@ def test_review_f1_the_launchers_red_run_is_fenced_like_the_session(tmp_path: Pa
 
 
 @pytest.mark.blocking
+def test_the_red_run_never_writes_the_main_checkout_wherever_it_lives(tmp_path: Path) -> None:
+    """HANDOFF-0057: a main checkout under the temporary folders (as `kgme merge design`'s
+    trial clone is, and as this fixture's is) was writable by omission: the fence allowed the
+    temporary folders and refused the checkout only by not listing it. The red run must
+    refuse a write into the checkout and still write the export."""
+    base, settings = write_cheap_checkout(tmp_path)
+    export, _ = cheap.write_export(base, settings, "M57")
+    target = base / "kgme" / "planted-by-the-red-run.py"
+    probe = (
+        "import pathlib, sys\n"
+        f"target = pathlib.Path({str(target)!r})\n"
+        "try:\n    target.write_text('x'); got = 'leak'\n"
+        "except OSError:\n    got = 'refused'\n"
+        "pathlib.Path('inside.txt').write_text('x')\n"
+        "print(got); sys.exit(0 if got == 'refused' else 1)\n"
+    )
+    (export / "tests" / "probe.py").write_text(probe)
+    python = Path(sys.executable).resolve()
+    fix = cheap.write_fix(export, base, settings, "M57", f"{python} tests/probe.py", [])
+    assert fix["red_status"] == 0, (base / fix["red_output"]).read_text()
+    assert not target.exists() and (export / "inside.txt").is_file()
+
+
+@pytest.mark.blocking
 def test_review_c2_f1_the_red_run_carries_the_inherited_denies(tmp_path: Path) -> None:
     """Review cycle 2 F1: the verifier's fence carries the whole read policy, not only the
     denied roots: files the guard's name patterns cover (planted, harmless) are refused, and
@@ -398,7 +422,7 @@ def test_review_c2_f1_the_red_run_carries_the_inherited_denies(tmp_path: Path) -
     assert fix["red_status"] == 0, (base / fix["red_output"]).read_text()
     launch, record = cheap.read_cheap_launch("cheap", RED, base, settings, "C2", export)
     deny_read = json.loads(launch.settings)["sandbox"]["filesystem"]["denyRead"]
-    profile = cheap.build_red_profile(export, denied, cheap.read_denied_names(settings))
+    profile = cheap.build_red_profile(export, [base], denied, cheap.read_denied_names(settings))
     for secret in (Path.home() / ".ssh", Path.home() / "Library" / "Keychains"):
         root = str(secret.resolve())
         assert root in record["denied_roots"] and root in deny_read
