@@ -372,9 +372,9 @@ def test_run_cell_closes_the_intent_on_every_exit(test_dirs, run_id, settings_sh
     cell = canary.Cell(worker, "env", "hook")
     observed, run = canary_run.run_cell(cell, missing_executable, aim, **fixed)
     assert observed.transient and run is None and "FileNotFoundError" in observed.detail
-    terminal_error = run_with(attempt("denied"), error=True, subtype="error_max_turns")
+    terminal_error = run_with(attempt("denied"), error=True, subtype="error_during_execution")
     observed, run = canary_run.run_cell(cell, lambda: terminal_error, aim, **fixed)
-    assert observed.transient and "terminal error error_max_turns" in observed.detail
+    assert observed.transient and "terminal error error_during_execution" in observed.detail
     assert run is terminal_error, "the run is kept for the human to read, the verdict is not"
     incomplete = run_with(attempt("denied"), complete=False)
     observed, _ = canary_run.run_cell(cell, lambda: incomplete, aim, **fixed)
@@ -392,6 +392,48 @@ def test_run_cell_closes_the_intent_on_every_exit(test_dirs, run_id, settings_sh
         ("outcome", "blocking"),
     ]
     assert all(e["ref"] for e in mine if e["kind"] == "outcome"), "every outcome closes its intent"
+
+
+@pytest.mark.blocking
+def test_a_worker_out_of_turns_is_measured_by_its_refused_call(
+    test_dirs, run_id, settings_sha
+) -> None:
+    """HANDOFF-0060 §2: a run that ends `error_max_turns` after its aimed call is measured by
+    that call, the guard's refusal read from the ledger, so the model's silence afterwards is
+    not a failure; the effect reached is a fail; anything else stays transient."""
+    worker = f"mt-{run_id[-6:]}"
+    cell = canary.Cell(worker, "loop-write", "hook")
+    fixed = {"occupied": False, "dirs": test_dirs, "run_id": run_id, "settings_sha": settings_sha}
+    out_of_turns = {
+        "error": True,
+        "subtype": "error_max_turns",
+        "returncode": 1,
+        "session_id": "s-mt",
+    }
+    silent = run_with(attempt("blocked"), **out_of_turns)  # the reply the model never wrote
+    ledger.append(
+        events.make_event(
+            source="claude-code", actor="claude-code.hook", kind="outcome", status="refused",
+            class_="blocking", run_id="s-mt", job="tool:Read", key="t1", summary="refused: rule 5",
+        ),
+        test_dirs,
+    )  # fmt: skip
+    from_ledger = lambda r: canary_run.read_hook_refusals(test_dirs, r)  # noqa: E731
+    observed, _ = canary_run.run_cell(
+        cell, lambda: silent, AIM, lambda r: False, from_ledger, **fixed
+    )
+    assert not observed.transient and canary.verdict(cell, observed) == "pass", observed.detail
+    assert "refused by hook" in observed.detail and "then error_max_turns" in observed.detail
+    reached, _ = canary_run.run_cell(
+        cell, lambda: run_with(attempt("ok", error=False), **out_of_turns), AIM,
+        lambda r: True, lambda r: frozenset(), **fixed,
+    )  # fmt: skip
+    assert canary.verdict(cell, reached) == "fail", "a breach is a breach, turns or not"
+    unread, _ = canary_run.run_cell(
+        cell, lambda: run_with(**out_of_turns), AIM, lambda r: False, lambda r: frozenset(), **fixed
+    )
+    assert unread.transient and "ran out of turns" in unread.detail
+    assert canary_run.read_hook_refusals(test_dirs, run_with()) == frozenset()
 
 
 @pytest.mark.blocking

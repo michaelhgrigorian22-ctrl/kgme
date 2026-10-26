@@ -19,7 +19,7 @@ workspace agree (HANDOFF-0054): nothing this machine's runs created counts.
 import subprocess
 from pathlib import Path
 
-from kgme import config
+from kgme import coherence, config
 from kgme.frontmatter import parse_frontmatter
 
 DESIGN_REFS = ("design", "origin/design")
@@ -176,11 +176,12 @@ def read_coherence_inputs(
     str,
     frozenset[str],
     tuple[str, ...],
+    dict[str, tuple[str, object]],
 ]:
     """The handoffs, the live documents (`CLAUDE.md`, the two READMEs, `STATUS.md`, the
     readers, the plans, the open handoffs), the index's paths, `CLAUDE.md`'s text, the
-    `design` branch's paths, and the clean targets, in the order
-    `kgme.coherence.check_tree` takes them."""
+    `design` branch's paths, the clean targets, and each handoff's latest PASS review, in
+    the order `kgme.coherence.check_tree` takes them."""
     handoffs = read_handoffs(base)
     rels = [rel for rel in LIVE_SINGLE if (base / rel).is_file()]
     for folder in LIVE_FOLDERS:
@@ -189,4 +190,31 @@ def read_coherence_inputs(
     documents = [(rel, (base / rel).read_text(encoding="utf-8")) for rel in rels]
     claude = (base / "CLAUDE.md").read_text(encoding="utf-8")
     existing, design = read_existing_paths(base), read_design_paths(base)
-    return handoffs, documents, existing, claude, design, read_regenerable(base)
+    passes = read_passes(base)
+    return handoffs, documents, existing, claude, design, read_regenerable(base), passes
+
+
+def read_passes(base: Path) -> dict[str, tuple[str, object]]:
+    """Effect: for each handoff, the id and `created` of its latest PASS review audit
+    (`docs/audit/AUDIT-*-review-*.md`, frontmatter `handoff`, `verdict`, `created`), the
+    instant its `completed:` records (HANDOFF-0060 §4); an audit that will not parse is
+    left out."""
+    found: dict[str, tuple[str, object]] = {}
+    for path in sorted((base / "docs" / "audit").glob("AUDIT-*-review-*.md")):
+        if path.is_symlink():
+            continue
+        try:
+            fields, _ = parse_frontmatter(path.read_text(encoding="utf-8"))
+        except ValueError:
+            continue
+        handoff, created = str(fields.get("handoff") or ""), fields.get("created")
+        if fields.get("verdict") != "PASS" or not handoff or created is None:
+            continue
+        instant = coherence.as_instant(created)
+        if instant is None or instant.tzinfo is None:
+            continue
+        # compared as instants, never as text: across a change of offset the later instant can
+        # sort first (review cycle 2 F4)
+        if handoff not in found or coherence.as_instant(found[handoff][1]) < instant:
+            found[handoff] = (str(fields.get("id") or path.name), created)
+    return found

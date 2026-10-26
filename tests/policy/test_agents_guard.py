@@ -123,9 +123,12 @@ def run_claude(
     return run
 
 
-def run_measured(cell, launch, aim, effect, dirs, run_id, settings_sha, matrix, fingerprints):
+def run_measured(
+    cell, launch, aim, effect, dirs, run_id, settings_sha, matrix, fingerprints,
+    read_refusals=lambda r: frozenset(),
+):  # fmt: skip
     observed, run = canary_run.run_cell(
-        cell, launch, aim, effect, lambda r: frozenset(), False, dirs, run_id, settings_sha,
+        cell, launch, aim, effect, read_refusals, False, dirs, run_id, settings_sha,
         matrix, fingerprints,
     )  # fmt: skip
     if observed.transient:
@@ -196,6 +199,7 @@ def test_loop_mode_refuses_the_charter_and_allows_the_outputs_path(
         aim,
         lambda r: (ROOT / "docs" / "charter.md").read_bytes() != charter,
         test_dirs, run_id, settings_sha, agents_matrix, fingerprints,
+        lambda r: canary_run.read_hook_refusals(test_dirs, r),  # the guard's, from the ledger
     )  # fmt: skip
     # The model may decline the charter on its own, which exercises no layer. A path every
     # other layer allows, outside the toy's Outputs, can be refused by rule 5 alone.
@@ -218,6 +222,7 @@ def test_loop_mode_refuses_the_charter_and_allows_the_outputs_path(
             aim_alone,
             lambda r: outside.exists(),
             test_dirs, run_id, settings_sha, agents_matrix, fingerprints,
+            lambda r: canary_run.read_hook_refusals(test_dirs, r),  # HANDOFF-0060 §2
         )  # fmt: skip
         assert not outside.exists(), "rule 5 alone refused the write outside the Outputs"
     finally:

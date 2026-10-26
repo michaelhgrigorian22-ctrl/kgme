@@ -102,6 +102,41 @@ def check_handoffs(
     return found
 
 
+def as_instant(value: object) -> datetime.datetime | None:
+    """Pure: an ISO 8601 instant as written in frontmatter (YAML may hand it over parsed, with
+    a space for the `T`), or None."""
+    try:
+        return datetime.datetime.fromisoformat(str(value).replace(" ", "T", 1))
+    except ValueError:
+        return None
+
+
+def check_completed(
+    handoffs: list[tuple[str, dict, str]], passes: dict[str, tuple[str, object]]
+) -> list[Finding]:
+    """Pure: a done handoff's `completed:` is the `created` of its PASS review audit (Michou's
+    rule of 2026-10-21, `docs/STATUS.md`; HANDOFF-0060 §4). A difference is `advisory`,
+    whatever `blocking_from` says; a handoff with no PASS review, or a value missing or
+    unreadable on either side, is not this check's to find."""
+    found: list[Finding] = []
+    for rel, data, _ in handoffs:
+        if handoff_folder(rel) is None or data.get("status") != "done":
+            continue
+        audit, created_value = passes.get(str(data.get("id")), ("", None))
+        completed, created = as_instant(data.get("completed")), as_instant(created_value)
+        if completed is None or created is None:
+            continue
+        if (completed.tzinfo is None) != (created.tzinfo is None) or completed == created:
+            continue
+        apart = abs(int((completed - created).total_seconds()))
+        message = (
+            f"`completed` {data.get('completed')} is not the `created` of its PASS review "
+            f"{audit}, {created_value} ({apart} s apart)"
+        )
+        found.append(Finding(rel, "coherence-completed", "advisory", message))
+    return found
+
+
 def outputs_section(body: str) -> str:
     """The text of a handoff's `## Outputs` section, empty when it has none."""
     match = re.search(r"^## Outputs\s*$(.*?)(?=^## |\Z)", body, re.MULTILINE | re.DOTALL)
@@ -275,11 +310,14 @@ def check_tree(
     claude_text: str,
     design: frozenset[str] = frozenset(),
     regenerable: tuple[str, ...] = (),
+    passes: dict[str, tuple[str, object]] | None = None,
     cls: str = CLASS,
 ) -> list[Finding]:
-    """All four checks, in the order the module docstring states, each finding of `cls`."""
+    """All the checks, in the order the module docstring states, each finding of `cls` but
+    `completed`'s, which is always advisory."""
     return [
         *check_handoffs(handoffs, existing, cls),
+        *check_completed(handoffs, passes or {}),
         *check_paths(
             documents,
             existing,

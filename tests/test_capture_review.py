@@ -16,17 +16,27 @@ for the interruption tests.
 """
 
 import json
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from pathlib import Path
 
 import pytest
 from brieftools import SETTINGS
 from capturetools import read_job, run_capture, run_daily, write_vault
 from cleantools import OsWith
+from clocktools import FROZEN, freeze
 
 from kgme import brief_io, capture_fs, clean_fs, cli, daily, events, ledger
 
-TODAY = datetime.now().astimezone().date().isoformat()
+TODAY = FROZEN.date().isoformat()
+
+
+@pytest.fixture(autouse=True)
+def frozen(monkeypatch) -> None:
+    """Every test reads one clock, frozen at `FROZEN` (HANDOFF-0060 §1): "today" here and in
+    the code are the same day, whenever the run starts or ends."""
+    freeze(monkeypatch)
+
+
 FRICTION = Path("memory/inbox/friction-log.md")
 
 

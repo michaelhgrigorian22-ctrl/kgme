@@ -14,16 +14,23 @@ Side effects: files, a git repository, and ledger lines under `tmp_path` only.
 
 import os
 import subprocess
-from datetime import datetime
 from pathlib import Path
 
 import pytest
 from brieftools import SETTINGS, brief_io_parse
 from capturetools import read_job, run_capture, run_daily, write_vault
+from clocktools import FROZEN, freeze, git_dates
 
 from kgme import capture, daily, events, ledger, lint
 
-TODAY = datetime.now().astimezone().date().isoformat()
+TODAY = FROZEN.date().isoformat()
+
+
+@pytest.fixture(autouse=True)
+def frozen(monkeypatch) -> None:
+    """Every test reads one clock, frozen at `FROZEN` (HANDOFF-0060 §1): "today" here and in
+    the code are the same day, whenever the run starts or ends."""
+    freeze(monkeypatch)
 
 
 def note_path(base: Path, date: str = TODAY) -> Path:
@@ -226,6 +233,7 @@ def test_the_days_commits_and_handoff_moves_come_from_git(tmp_path: Path) -> Non
         "GIT_AUTHOR_EMAIL": "t@example.invalid",
         "GIT_COMMITTER_NAME": "t",
         "GIT_COMMITTER_EMAIL": "t@example.invalid",
+        **git_dates(),  # the commits are the frozen day's (HANDOFF-0060 §1)
     }
 
     def git(*args: str) -> None:

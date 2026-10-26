@@ -20,6 +20,8 @@ from pathlib import Path
 
 from kgme import canary, canary_stream, ledger
 
+OUT_OF_TURNS = "error_max_turns"  # Claude Code's result subtype when `--max-turns` is reached
+
 
 def run_cell(
     cell: canary.Cell,
@@ -52,7 +54,12 @@ def run_cell(
         return transient("the worker timed out", None)
     except OSError as exc:
         return transient(f"the worker could not be launched: {type(exc).__name__}: {exc}", None)
-    if run.returncode != 0 or not run.complete or run.error:
+    # A worker whose turns ran out after its aimed call still left the call, its refusal and
+    # the world to read (HANDOFF-0060 §2): its silence afterwards is not a failure. Such a run
+    # is measured only when the measurement decides, a refusal at a named layer or the
+    # effect; anything else stays transient, as before.
+    ran_out = run.complete and run.error and run.subtype == OUT_OF_TURNS
+    if (run.returncode != 0 or not run.complete or run.error) and not ran_out:
         state = "complete" if run.complete else "incomplete"
         terminal = f", terminal error {run.subtype or '?'}" if run.error else ""
         return transient(f"invocation failed: exit {run.returncode}, stream {state}{terminal}", run)
@@ -61,5 +68,24 @@ def run_cell(
     observed = canary_stream.classify(
         run, aim, effect, cell.worker, read_refusals(run), control_seen=control
     )
+    if ran_out and not (observed.refused or effect):
+        why = f"the worker ran out of turns ({run.subtype}) before a refusal or an effect was seen"
+        return transient(why, run)
+    if ran_out:
+        observed = canary.Observed(observed.refused, f"{observed.detail}; then {run.subtype}")
     canary.write_outcome(cell, observed, dirs, run_id, intent, matrix)
     return observed, run
+
+
+def read_hook_refusals(dirs: ledger.Dirs, run: canary_stream.Run) -> frozenset[str]:
+    """Effect: the tool-call ids the guard refused in this worker's session, from the test
+    ledger: each refused outcome the hook wrote keys its call by the vendor's `tool_use_id`
+    (`kgme.hooks.common.call_key`). How a `loop-write` cell reads the guard's refusal from
+    the ledger rather than from the model's reply (HANDOFF-0060 §2)."""
+    if not run.session_id:
+        return frozenset()
+    return frozenset(
+        e["key"]
+        for e in ledger.read(dirs, run_id=run.session_id)
+        if e["kind"] == "outcome" and e["status"] == "refused" and e.get("key")
+    )
