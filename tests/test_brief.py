@@ -88,8 +88,10 @@ def test_body_renders_every_section_from_the_seeded_vault(tmp_path: Path) -> Non
         "## Today",
         "## Open tasks",
         "## Friction since last brief",
+        "## Kept copies",
         "## Inputs",
     ]
+    assert "## Kept copies\nNo kept copies under memory/.\n" in body  # HANDOFF-0052
     assert "- overdue 2026-10-07 09:00  Call the reader  (reminder 20261001T090001)" in body
     assert (
         "- due today 2026-10-08 18:00  Chapter 2 draft  "

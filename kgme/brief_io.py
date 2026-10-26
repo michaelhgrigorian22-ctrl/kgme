@@ -22,7 +22,7 @@ import os
 import sys
 from pathlib import Path
 
-from kgme import brief, brief_read, brief_reconcile, clean_fs, events, ledger, lint
+from kgme import brief, brief_kept, brief_read, brief_reconcile, clean_fs, events, ledger, lint
 from kgme.brief_read import JOB, Places
 
 ACTOR = "kgme.brief"
@@ -166,7 +166,8 @@ def run_steps(
     rel_dest = destination.relative_to(base).as_posix()
     input_paths, unlisted = brief_read.read_input_paths(base, date)
     inputs, refusals = brief_read.read_inputs(places, input_paths)
-    refusals = unlisted + refusals
+    kept, unlisted_kept = brief_kept.read_kept_copies(places)
+    refusals = unlisted + refusals + unlisted_kept
     selection = brief.select(inputs, date)
     if not refusals and not selection.inputs():
         refusals.append("no inputs under memory/; seed the vault (HANDOFF-0035)")
@@ -175,11 +176,11 @@ def run_steps(
     identity, recorded_body = brief_read.read_identity(places, destination, date, now)
     zone = brief_read.read_zone(settings)
     since = brief_read.read_previous_brief_date(base, date, places.dirs)
-    text = brief.build_brief(selection, date, identity, since, zone)
+    text = brief.build_brief(selection, date, identity, since, zone, kept)
     body = brief.content_hash(text)
     if body != recorded_body:
         identity = brief.Identity(identity.id, identity.created, now)
-        text = brief.build_brief(selection, date, identity, since, zone)
+        text = brief.build_brief(selection, date, identity, since, zone, kept)
         body = brief.content_hash(text)
     invalid = [f for f in lint.lint_note(text, rel_dest, {}) if f.cls == "blocking"]
     if invalid:

@@ -35,6 +35,17 @@ from kgme.capture_record import JOB
 HELD_SUMMARY = "capture daily held "
 
 
+def holds_save(digest: str, recorded: tuple[str, str] | None) -> bool:
+    """Pure: the one rule for a kept copy (the rulings on cycle 6 F13 and F15; `kgme clean
+    kept` and the brief's `Kept copies` reuse it, HANDOFF-0052): it holds a save its file
+    lacks when no capture recorded it, or when its sha256, whole or a prefix, begins neither
+    value its capture recorded."""
+    if recorded is None or not digest:
+        return True
+    digits = min(len(digest), record.KEPT_DIGITS)
+    return digest[:digits] not in (recorded[0][:digits], recorded[1][:digits])
+
+
 def is_held(intent: dict) -> bool:
     """A daily line held until the draft: its words are its summary, verbatim by construction."""
     key, summary = intent["key"] or "", intent["summary"]
@@ -89,7 +100,7 @@ def read_divergent(places: brief_read.Places, path: Path) -> None:
             continue
         recorded = record.read_kept_hashes(places.dirs, match["id"])
         digest = read_kept_digest(places, path, match["id"]) or ""
-        if recorded is None or digest[: record.KEPT_DIGITS] not in recorded:
+        if holds_save(digest, recorded):
             raise clean_fs.Refused(
                 f"{name} beside {rel} holds what {rel} lacks; merge it by hand, then delete it"
             )

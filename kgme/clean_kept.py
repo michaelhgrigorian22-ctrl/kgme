@@ -15,7 +15,7 @@ Side effects: reads the ledger and the planned copies; nothing is written.
 
 from pathlib import Path
 
-from kgme import capture_fs, capture_record, clean_fs, ledger
+from kgme import capture_fs, capture_record, capture_recover, clean_fs, ledger
 from kgme.clean import CleanPlan, Refusal
 
 
@@ -47,6 +47,6 @@ def read_reason(entry, dirs: ledger.Dirs) -> str:
         digest = clean_fs.read_digest(entry.path, entry)
     except (clean_fs.Refused, OSError) as error:
         return f"could not be checked: {error}"
-    if digest not in (recorded[0][: len(digest)], recorded[1][: len(digest)]):
+    if capture_recover.holds_save(digest, recorded):
         return "not what its capture kept; it holds a save: merge it by hand"
     return ""

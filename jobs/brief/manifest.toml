@@ -5,7 +5,9 @@ name = "brief"
 kind = "python-job"
 max_tier = 2
 # Inputs of kgme brief v1 (HANDOFF-0034): human notes, machine notes, the day, the friction log.
-read_paths = ["memory/notes", "memory/agent", "memory/daily", "memory/inbox", "memory/templates", "kgme.toml"]
+# The copies `kgme capture` keeps beside a vault file, wherever under memory/ (HANDOFF-0052):
+# read to name the ones that hold a save, never written or deleted.
+read_paths = ["memory/notes", "memory/agent", "memory/daily", "memory/inbox", "memory/templates", "memory/**/.*.capture-*", "kgme.toml"]
 # The one artefact. Its temp file lives beside it (same directory, then os.replace).
 # Ledger events go through kgme/ledger.py, the trusted writer, and are not declared as job effects.
 write_paths = ["memory/agent/brief"]

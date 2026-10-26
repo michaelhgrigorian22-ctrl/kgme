@@ -4,12 +4,13 @@ Purpose: Loop 0 (HANDOFF-0034), model-free. Given the notes read from the vault,
 the brief is about (open reminders, open and doing tasks, the day's daily note or, until it
 exists, the previous evening's drafted one, the friction log), sort them deterministically
 (due, then priority, then id), and render the artefact: frontmatter per `docs/schema-v1.md`
-(`note`, `inferred`, `sources` naming every input) and the five sections `Due and overdue`,
-`Today`, `Open tasks`, `Friction since last brief`, `Inputs`. A missing daily note and an
-empty section are stated, never omitted.
+(`note`, `inferred`, `sources` naming every input) and the six sections `Due and overdue`,
+`Today`, `Open tasks`, `Friction since last brief`, `Kept copies` (HANDOFF-0052), `Inputs`.
+A missing daily note and an empty section are stated, never omitted.
 Inputs: `Input` records (repo-relative path, id, text, sha256 of the file's bytes,
 frontmatter, body), the day, an `Identity` (id, created, modified) to keep across
-replacements, the previous brief's day, and the zone in which due instants are read
+replacements, the previous brief's day, the kept copies found under `memory/` (`KeptCopy`,
+judged by `kgme.capture_recover.holds_save`), and the zone in which due instants are read
 (`kgme.toml` `[brief] timezone`).
 Outputs: strings; a `Selection`; a content hash that ignores `modified`.
 Side effects: none.
@@ -53,6 +54,18 @@ class Identity:
     id: str
     created: str
     modified: str
+
+
+@dataclass(frozen=True)
+class KeptCopy:
+    """A copy `kgme capture` kept beside a vault file, as the brief found it: whether it holds
+    a save the file lacks (the rule is `capture_recover.holds_save`'s), and why, when it does."""
+
+    rel: str
+    file: str
+    size: int
+    holds_save: bool
+    why: str = ""
 
 
 @dataclass(frozen=True)
@@ -235,12 +248,42 @@ def _friction_section(selection: Selection, since: str | None) -> list[str]:
     return lines
 
 
+def _kept_section(kept: tuple[KeptCopy, ...]) -> list[str]:
+    """Each copy holding a save its file lacks, by name; the copies still as kept, one line
+    with their count, their size and the command that clears them (HANDOFF-0052 §1)."""
+    if not kept:
+        return ["No kept copies under memory/."]
+    lines = []
+    for copy in sorted(kept, key=lambda k: k.rel):
+        if copy.holds_save:
+            why = f" ({copy.why})" if copy.why else ""
+            lines.append(
+                f"- `{copy.rel}` holds a save `{copy.file}` lacks: "
+                f"merge it by hand, then delete it{why}"
+            )
+    still = [k for k in kept if not k.holds_save]
+    if still:
+        count = len(still)
+        what = "copy is" if count == 1 else "copies are"
+        size = sum(k.size for k in still)
+        lines.append(
+            f"- {count} kept {what} still what {'its' if count == 1 else 'their'} capture kept, "
+            f"{size:,} bytes in all: `kgme clean kept --yes` clears them"
+        )
+    return lines
+
+
 def _inputs_section(selection: Selection) -> list[str]:
     return [f"- {i.id} — {i.rel} — sha256 {i.sha256}" for i in selection.inputs()]
 
 
 def build_brief(
-    selection: Selection, date: str, identity: Identity, since: str | None, zone: tzinfo
+    selection: Selection,
+    date: str,
+    identity: Identity,
+    since: str | None,
+    zone: tzinfo,
+    kept: tuple[KeptCopy, ...] = (),
 ) -> str:
     """The whole artefact, frontmatter and body, deterministic for the same inputs and zone."""
     sources = ", ".join(f'"{i.id}"' for i in selection.inputs())
@@ -270,6 +313,9 @@ def build_brief(
         "",
         "## Friction since last brief",
         *_friction_section(selection, since),
+        "",
+        "## Kept copies",
+        *_kept_section(kept),
         "",
         "## Inputs",
         *_inputs_section(selection),
