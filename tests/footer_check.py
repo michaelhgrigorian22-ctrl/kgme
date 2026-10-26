@@ -4,13 +4,14 @@ Purpose: serve this checkout's `cockpit/` over a small temporary ledger, and in 
 WebKit, at 1440 x 900 and at the installed window's height 1440 x 820, cycle desk, wall and
 station and assert that the footer's last key chip (in the station, its own bottom bar's) ends
 at or above the viewport's bottom edge. Chromium is Playwright driving the system Chrome, the
-library the Playwright MCP brings (docs/toolbox.md); WebKit is Safari through the system's
+library the Playwright MCP brings (docs/toolbox.md), used only at the version pinned here
+(`PLAYWRIGHT`), since that row is unpinned; WebKit is Safari through the system's
 `safaridriver` (Safari's "Allow remote automation" must be on). Nothing is downloaded. Not
 collected by pytest (it needs browsers); run by hand:
 `uv run --frozen python tests/footer_check.py`.
 Inputs: this checkout's `cockpit/`; Node with Playwright under `~/.npm/_npx/*`; `safaridriver`.
 Outputs: one line per engine, size and view; exit 0 when every chip is inside, 1 when one is
-not, 2 when an engine cannot run.
+not, 2 when an engine cannot run or the installed Playwright is not the pinned one.
 Side effects: a temporary ledger; one loopback server; one Chrome and one Safari session.
 """
 
@@ -31,6 +32,10 @@ from kgme import events, ledger
 SIZES = ((1440, 900), (1440, 820))
 VIEWS = ("desk", "wall", "station")
 SAFARI_PORT = 4447
+# the Playwright the MCP had installed when this check was written and proven (2026-10-26); a
+# different one refuses the run rather than drive the check with an unproven browser library
+PLAYWRIGHT = "1.64.0-alpha-1790635538000"
+NPX = "~/.npm/_npx/*/node_modules/playwright"
 # the page measures itself: cycle with `w` to the view, then the last key chip against the viewport
 MEASURE = """async (view) => {
   for (let i = 0; i < 4; i++) {
@@ -52,7 +57,8 @@ MEASURE = """async (view) => {
 
 
 def write_ledger(root: Path) -> ledger.Dirs:
-    """A few runs: one open, one with an open intent, one closed, so every bar has its keys."""
+    """Effect: a temporary ledger under `root` holding a closed pair and an open intent, so the
+    key bars carry their states' keys. Returns its directories."""
     dirs = ledger.Dirs(root / "ledger", root / "trace", ("Read",))
     for run, job in (("check-a", "tool:Bash"), ("check-b", "tool:Edit")):
         hook = {"source": "claude-code", "actor": "claude-code.hook", "run_id": run, "job": job}
@@ -66,12 +72,27 @@ def write_ledger(root: Path) -> ledger.Dirs:
     return dirs
 
 
-def chromium(url: str) -> list[dict]:
-    found = sorted(glob.glob(os.path.expanduser("~/.npm/_npx/*/node_modules/playwright")))
-    if not found:
-        raise RuntimeError("no Playwright under ~/.npm/_npx (the Playwright MCP brings it)")
+def read_playwright() -> str:
+    """Effect: the folder of the installed Playwright whose `package.json` is the pinned
+    `PLAYWRIGHT` (review cycle 2 F6); `RuntimeError` naming the versions found otherwise."""
+    found = {}
+    for folder in sorted(glob.glob(os.path.expanduser(NPX))):
+        try:
+            found[folder] = json.loads(Path(folder, "package.json").read_text())["version"]
+        except (OSError, ValueError, KeyError):
+            continue
+    for folder, version in found.items():
+        if version == PLAYWRIGHT:
+            return folder
+    seen = ", ".join(sorted(set(found.values()))) or "none"
+    raise RuntimeError(f"Playwright {PLAYWRIGHT} is not installed under {NPX} (found: {seen})")
+
+
+def run_chromium(url: str) -> list[dict]:
+    """Effect: one Chrome session through the pinned Playwright, at each size and view; the rows
+    the page measured. `RuntimeError` when it cannot run."""
     script = f"""
-const {{ chromium }} = require({json.dumps(found[-1])});
+const {{ chromium }} = require({json.dumps(read_playwright())});
 (async () => {{
   const browser = await chromium.launch({{channel: "chrome"}});
   const page = await browser.newPage();
@@ -95,8 +116,12 @@ const {{ chromium }} = require({json.dumps(found[-1])});
     return json.loads(done.stdout.strip().splitlines()[-1])
 
 
-def webkit(url: str) -> list[dict]:
-    def call(method: str, path: str, body: dict | None = None) -> dict:
+def run_webkit(url: str) -> list[dict]:
+    """Effect: one Safari session through `safaridriver` on `SAFARI_PORT`, at each window size
+    and view; the rows the page measured. The driver is stopped however it ends."""
+
+    def run_webdriver(method: str, path: str, body: dict | None = None) -> dict:
+        """Effect: one WebDriver request to the driver; its `value`."""
         data = json.dumps(body).encode() if body is not None else None
         req = urllib.request.Request(
             f"http://127.0.0.1:{SAFARI_PORT}{path}",
@@ -116,32 +141,33 @@ def webkit(url: str) -> list[dict]:
     rows = []
     try:
         wanted = {"capabilities": {"alwaysMatch": {"browserName": "safari"}}}
-        sid = call("POST", "/session", wanted)["sessionId"]
+        sid = run_webdriver("POST", "/session", wanted)["sessionId"]
         try:
             for w, h in SIZES:
                 # Safari sizes the window, its bars included; the viewport is what the page reports
-                call(
+                run_webdriver(
                     "POST", f"/session/{sid}/window/rect", {"width": w, "height": h, "x": 0, "y": 0}
                 )
-                call("POST", f"/session/{sid}/url", {"url": url})
+                run_webdriver("POST", f"/session/{sid}/url", {"url": url})
                 time.sleep(1.5)
                 for view in VIEWS:
                     script = (
                         "const done = arguments[arguments.length - 1]; "
                         f"({MEASURE})(arguments[0]).then(done);"
                     )
-                    row = call(
+                    row = run_webdriver(
                         "POST", f"/session/{sid}/execute/async", {"script": script, "args": [view]}
                     )
                     rows.append({"size": f"{w}x{h} window", **row})
         finally:
-            call("DELETE", f"/session/{sid}")
+            run_webdriver("DELETE", f"/session/{sid}")
     finally:
         driver.terminate()
     return rows
 
 
 def main() -> int:
+    """Serve, measure in both engines, report; the exit code of the module docstring."""
     with tempfile.TemporaryDirectory() as tmp:
         dirs = write_ledger(Path(tmp))
         httpd = server.run_bind_server(
@@ -151,7 +177,7 @@ def main() -> int:
         url = f"http://127.0.0.1:{httpd.server_address[1]}/"
         outside = 0
         try:
-            for engine, run in (("chromium", chromium), ("webkit", webkit)):
+            for engine, run in (("chromium", run_chromium), ("webkit", run_webkit)):
                 try:
                     rows = run(url)
                 except Exception as error:  # noqa: BLE001 - an engine that cannot run is reported, exit 2

@@ -105,3 +105,12 @@ None is fixed after the PASS; reviewed code is not changed. F5 and F6 are for a 
 - **The handoff closes** with `completed:` set to the PASS review's `created` (AUDIT-0143, 2026-10-26T10:34:40-07:00).
 - **Disclosed: one stray open call.** Session `d64ff424`'s `tool:Bash` intent of 10:04:01 stays in the main ledger with no outcome. It came from my first attempt at the live check in the acceptance clone: the child `claude` inherited this session's `CLAUDE_PROJECT_DIR`, so it ran `main`'s hooks, which then registered neither the failure event nor the batch, and `main`'s SessionEnd ran its usual ledger sync and push. Every check after it ran with a clean environment. The intent is history now, before the backstop's registration; it is left as written, and §4's abandoned-run rule will draw it.
 
+## The review's follow-up (AUDIT-0143 F5, F6, F7), after the close
+One commit, under this report.
+- **F5:** `tests/footer_check.py`'s runners are `run_chromium` and `run_webkit`, its WebDriver helper is `run_webdriver`, and `read_playwright`, `write_ledger` and `main` each say what they read, return and do.
+- **F6:** the check uses Playwright only at the version pinned in it, `PLAYWRIGHT = "1.64.0-alpha-1790635538000"`, the one the Playwright MCP had installed when the check was written and proven. `read_playwright` takes the installed copy whose `package.json` matches and refuses otherwise, naming what it found. Run with a pin that is not installed, the check exits 2 before driving a browser (`logs/scratch/handoff-0061/pin-red.txt`). With the pin, it is green: 0 outside, 12 rows. This is a check before use, not a pin of the MCP itself, whose row stays unpinned and Michou's to decide.
+- **F7:** `logs/scratch/handoff-0061/check_cohort.py` counts the 97 from the frozen measurement (`open-intents.tsv`, the `tool:Bash` rows before the handoff's 09:42:53) and exits 1 unless a claim matches.
+  - **Red on the cycle-1 report's claim:** `97 92 7 3` is refused, because the rows say 89, 7 and 1 (`cohort-check.txt`).
+  - **Green on the corrected claim:** `97 89 7 1`.
+  - **Why there was no red command before:** the corrected count was arithmetic over a measurement already taken; the check now makes it a command.
+
