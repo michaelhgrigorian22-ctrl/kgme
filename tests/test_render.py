@@ -157,6 +157,33 @@ def test_a_run_turns_quiet_on_an_unchanged_ledger_polled_with_the_same_cursor() 
 
 
 @pytest.mark.blocking
+def test_polling_with_the_cursor_never_skips_an_event() -> None:
+    """Review cycle 3 F8: an intent's outcome followed by fifty more events before the next
+    poll used to fall outside the newest fifty, so the page never learned the intent closed.
+    Polling with the cursor now walks every event in order and reaches the outcome."""
+    intent = event(1, "intent", 0)
+    first = render.build_view([intent], [], at(0.1))
+    assert [row["id"] for row in first["events"]] == [intent["id"]]
+    later = [event(2, "outcome", 0.2, ref=intent["id"])]
+    later += [event(3 + n, "note", 0.3 + n / 100) for n in range(55)]
+    seen, cursor = [], first["cursor"]
+    for _ in range(3):
+        page = render.build_view([intent, *later], [], at(2), since=cursor, limit=50)
+        seen += [row["id"] for row in page["events"]]
+        cursor = page["cursor"]
+    assert seen == [e["id"] for e in later], "every event, in order, none skipped"
+    assert seen[0] == later[0]["id"], "the outcome arrives on the first poll after the intent"
+
+
+@pytest.mark.blocking
+def test_the_first_page_is_the_newest_fifty_of_more() -> None:
+    """The acceptance's fifty-event boundary, with more than fifty held."""
+    events_ = [event(n, "note", n / 100) for n in range(1, 61)]
+    page = render.build_view(events_, [], at(2))
+    assert [row["id"] for row in page["events"]] == [e["id"] for e in events_[-50:]]
+
+
+@pytest.mark.blocking
 def test_the_last_fifty_sample_events_in_time_order() -> None:
     sample = read_sample()
     view = render.build_view(sample, [], render.ts_ms(sample[-1]["ts"]))

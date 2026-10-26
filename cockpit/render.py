@@ -8,11 +8,11 @@ names is unmatched, events nest by `parent`, and trace events (the read-only too
 for rule from the station prototype (`docs/design/cockpit-v0/station/index.html`, `lifecycle`
 and `runClosed`; its README states the rules) and tested against the design's sample events,
 so the page shows what `/api/events` returns and never decides a state itself.
-**Provisional:** ported before any `canvas` approval existed, from the station as it stood at
-`997a730`. Before HANDOFF-0037 closes, `tests/station_equivalence.py <approved commit>` must
-report no disagreement against the commit Michou's newest `canvas` approval names, and this
-module and `tests/test_render.py`'s pinned cases follow any difference (the arbiter's ruling
-on review cycle 1 F2, 2026-10-25).
+Checked against the approved canvas (the arbiter's ruling on review cycle 1 F2): ported from
+the station at `997a730` before any approval existed, then compared by
+`tests/station_equivalence.py` with the station at `11b686b`, the commit Michou's `canvas`
+approval of 2026-10-25 names: the same 180000 ms quiet floor, 49 clocks, 255 comparisons, no
+disagreement. Rerun it against any later approval.
 Inputs: ledger and trace events as `kgme.ledger.read` returns them; the time, in epoch ms.
 Outputs: plain dicts, ready for JSON.
 Side effects: none.
@@ -117,7 +117,8 @@ def build_view(
     since: str | None = None,
     limit: int = 50,
 ) -> dict:
-    """What `/api/events` returns: the last `limit` events after `since`, in id order (ULIDs
+    """What `/api/events` returns: without `since`, the newest `limit` events; with it, the
+    oldest `limit` events after it, so successive polls never skip one; in id order (ULIDs
     sort by time), each tagged with its stream, its pairing, its depth, and whether it is
     collapsed (a trace event under a parent); and the state of every run they touch and of
     every run still open, computed over all the events given and at `now_ms`, so a state
@@ -128,7 +129,10 @@ def build_view(
     tagged.sort(key=lambda e: e["id"])
     by_id = {e["id"]: e for e in tagged}
     pairs, unmatched = pair(tagged)
-    shown = [e for e in tagged if since is None or e["id"] > since][-limit:] if limit > 0 else []
+    # the first page is the newest `limit`; after it, the oldest `limit` past the cursor, so a
+    # page polling with its cursor catches up without a gap (review cycle 3 F8)
+    after = [e for e in tagged if since is None or e["id"] > since]
+    shown = (after[-limit:] if since is None else after[:limit]) if limit > 0 else []
     rows = [
         {
             **e,

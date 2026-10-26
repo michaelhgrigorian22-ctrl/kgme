@@ -63,6 +63,16 @@ def read_query(query: str) -> tuple[str | None, int, str]:
     return since, int(raw), stream
 
 
+def read_file(path: str) -> tuple[bytes, str] | None:
+    """Effect: the bytes and content type of one of the page's files (`/`, `/manifest.json`,
+    `/icon.png`) beside this module, or None when the route is not a file or is not built."""
+    if path not in FILES:
+        return None
+    name, content_type = FILES[path]
+    found = HERE / name
+    return (found.read_bytes(), content_type) if found.is_file() else None
+
+
 def read_events(dirs: ledger.Dirs, since: str | None, limit: int, stream: str) -> dict:
     """Effect: the streams asked for, read whole (a run's state needs its history), and the
     view `render.build_view` makes of them."""
@@ -79,6 +89,7 @@ class Handler(BaseHTTPRequestHandler):
     dirs: ledger.Dirs
 
     def __init__(self, *args, dirs: ledger.Dirs, **kwargs) -> None:
+        """One request, served by the base class's constructor; `dirs` are the streams read."""
         self.dirs = dirs
         super().__init__(*args, **kwargs)
 
@@ -120,12 +131,10 @@ class Handler(BaseHTTPRequestHandler):
             view = read_events(self.dirs, since, limit, stream)
             self.write_body(200, json.dumps(view).encode(), "application/json")
             return
-        if url.path in FILES and not url.query:
-            name, content_type = FILES[url.path]
-            path = HERE / name
-            if path.is_file():
-                self.write_body(200, path.read_bytes(), content_type)
-                return
+        found = None if url.query else read_file(url.path)
+        if found:
+            self.write_body(200, *found)
+            return
         self.write_not_found()
 
 

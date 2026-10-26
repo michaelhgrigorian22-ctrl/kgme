@@ -3,7 +3,8 @@
 Purpose: the server binds only to a loopback host; `/api/events` serves the view of the
 streams and an event appended by hand appears on the next poll; a summary holding `<script>`
 comes back as JSON text with `nosniff`; every method but GET, and every other path, is 404,
-including `/` while the page is not built; a connection to the machine's LAN address is
+including `/` when the page file is absent; the page loads nothing remote and writes no
+markup from data, and the Dock files are served; a connection to the machine's LAN address is
 refused; a bad query is 400; nothing a request does writes to the streams.
 Inputs: streams under `tmp_path`; a server on a free loopback port.
 Outputs: pytest assertions.
@@ -12,6 +13,7 @@ Side effects: one loopback server per test, stopped after; files under `tmp_path
 
 import http.client
 import json
+import re
 import socket
 import threading
 from collections.abc import Iterator
@@ -150,3 +152,30 @@ def test_a_connection_to_the_lan_address_is_refused(running) -> None:
         pytest.skip("no LAN address on this machine now")
     with pytest.raises(OSError):
         socket.create_connection((address, running[1]), timeout=3).close()
+
+
+PAGE = Path(server.__file__).with_name("index.html")
+
+
+@pytest.mark.blocking
+def test_the_page_loads_nothing_remote_and_never_writes_markup_from_data() -> None:
+    """HANDOFF-0037 §3: no remote asset (ADR-017), and event text only ever as text."""
+    page = PAGE.read_text()
+    assert not re.search(r"(src|href)\s*=\s*[\"']?(https?:)?//", page), "a remote asset"
+    assert "@import" not in page and "url(http" not in page
+    for sink in ("innerHTML", "outerHTML", "insertAdjacentHTML", "document.write", "eval("):
+        assert sink not in page, sink
+    assert "POLL_MS = 2000" in page and "/api/events" in page
+
+
+@pytest.mark.blocking
+def test_the_dock_files_are_served(running) -> None:
+    status, headers, body = request(running, "GET", "/manifest.json")
+    manifest = json.loads(body)
+    assert status == 200 and manifest["start_url"] == "/" and manifest["display"] == "standalone"
+    assert [icon["src"] for icon in manifest["icons"]] == ["/icon.png"]
+    status, headers, body = request(running, "GET", "/icon.png")
+    assert status == 200 and headers["Content-Type"] == "image/png"
+    assert body[:8] == b"\x89PNG\r\n\x1a\n"
+    status, headers, body = request(running, "GET", "/")
+    assert status == 200 and b'rel="manifest"' in body and b'rel="apple-touch-icon"' in body

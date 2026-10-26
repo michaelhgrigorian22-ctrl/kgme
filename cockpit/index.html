@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0a0c10">
+<title>KGME Cockpit</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon.png">
+<link rel="apple-touch-icon" href="/icon.png">
+<!--
+  KGME cockpit v0: the read-only timeline over the ledger (HANDOFF-0037). Built from the canvas
+  approved at 11b686b (boards 1 to 7, the Tray, docs/readers/cockpit-design.md "Decided").
+  One self-contained file: no remote asset, no web font fetched, no framework. It polls
+  /api/events every two seconds and draws what the server returns; every run state (working,
+  waiting, transient, blocked, quiet, closed) is the server's, computed in cockpit/render.py,
+  never here. Every event string is set with textContent. The Dock icon does not start the
+  server: `kgme cockpit` does, because launchd waits for Phase 3.
+-->
+<style>
+:root{--ground:#0a0c10;--surface:#11151c;--rule:#1e2a33;--rowrule:#141b22;--text:#cfe6ef;--muted:#6f8290;--fmuted:#7a8d9b;--cyan:#39d0ff;--magenta:#ff3d7f;--amber:#ffb02e;--green:#4de38a;--disabled:#3a4650;--f:#39d0ff;--fg:rgba(57,208,255,.10)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%;background:var(--ground);color:var(--text)}
+body{font:12px/1.45 'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+button{font:inherit;color:inherit}
+.hud{position:relative;height:100vh;display:flex;flex-direction:column;isolation:isolate;overflow:hidden}
+.noise>*{position:absolute;pointer-events:none}
+.frame{inset:0;border:1px solid var(--f);box-shadow:inset 0 0 0 1px rgba(0,0,0,.6),inset 0 0 90px var(--fg);z-index:3}
+.scan{inset:0;background:repeating-linear-gradient(0deg,rgba(207,230,239,.035) 0 1px,transparent 1px 3px);z-index:4}
+.vig{inset:0;background:radial-gradient(ellipse at center,transparent 58%,rgba(0,0,0,.55) 100%);z-index:2}
+.sweep{left:0;right:0;height:1px;background:var(--f);opacity:.35;z-index:4;animation:sweep 6s linear infinite;display:none}
+.flood,.static,.strip{display:none}
+.tx{left:28px;right:28px;height:6px;opacity:.45;background:repeating-linear-gradient(90deg,var(--f) 0 1px,transparent 1px 8px)}
+.ty{top:28px;bottom:28px;width:6px;opacity:.45;background:repeating-linear-gradient(0deg,var(--f) 0 1px,transparent 1px 8px)}
+.micro{font-size:9px;letter-spacing:.14em;color:var(--muted)}
+@keyframes sweep{from{top:0}to{top:100%}}
+@keyframes blink{to{opacity:.2}}
+.blink{animation:blink 1.2s steps(2,end) infinite alternate}
+.lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.mut{color:var(--muted)}
+.pnl{background:var(--surface);border:1px solid var(--rule);clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);position:relative}
+.brk::before,.brk::after{content:"";position:absolute;width:10px;height:10px;pointer-events:none}
+.brk::before{top:0;left:0;border-top:1px solid var(--f);border-left:1px solid var(--f)}
+.brk::after{bottom:0;right:0;border-bottom:1px solid var(--f);border-right:1px solid var(--f)}
+.chip{font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:0 6px;border:1px solid currentColor;line-height:15px;border-radius:1px;white-space:nowrap;justify-self:start}
+.kbd{display:inline-block;min-width:16px;padding:0 5px;border:1px solid var(--cyan);color:var(--cyan);font-size:10px;line-height:16px;border-radius:2px;text-align:center}
+.kbd.p2{border-style:dashed;border-color:var(--disabled);color:var(--muted)}
+.c-magenta{color:var(--magenta)}.c-amber{color:var(--amber)}.c-green{color:var(--green)}.c-cyan{color:var(--cyan)}.c-muted{color:var(--muted)}
+header{padding:30px 36px 10px;display:flex;flex-wrap:wrap;gap:12px 22px;align-items:flex-end;z-index:5}
+.clock{font-size:22px;font-weight:700;letter-spacing:.04em}
+.ledgerline{font-size:14px}
+.runsbtn{background:none;border:0;padding:0;cursor:pointer;text-align:left}
+.band{margin:0 36px;padding:12px 14px;border:1px solid #a3b0b8;background:#171c22;display:flex;flex-wrap:wrap;gap:6px 22px;align-items:baseline;z-index:5}
+.band h1{font-size:14px;margin:0;font-weight:700}.band p{font-size:11px;margin:0}.band .full{flex-basis:100%;color:#a3b0b8}
+.boundary{margin:8px 36px 4px;font-size:11px;color:#a3b0b8;z-index:5}
+.body{display:flex;flex-wrap:nowrap;gap:14px;padding:4px 36px 8px;flex:1 1 auto;min-height:0;overflow:hidden;z-index:5}
+@media (max-width:1000px){.body{flex-wrap:wrap;overflow:auto}}
+aside.left{flex:0 1 232px;min-width:200px;display:flex;flex-direction:column;gap:12px;overflow:auto}
+aside.left .pnl{padding:10px}
+main.timeline{flex:999 1 560px;min-width:0;display:flex;flex-direction:column;min-height:0}
+.bar{padding:8px 10px;border-bottom:1px solid var(--rule);display:flex;justify-content:space-between;gap:10px}
+.rows{flex:1 1 auto;overflow:auto;min-height:0}
+aside.right{flex:0 1 352px;min-width:300px;padding:12px;display:flex;flex-direction:column;gap:10px;overflow:auto}
+.detail-open aside.right{flex:1 1 400px;min-width:320px}
+.detail-open main.timeline{flex-basis:480px}
+footer{padding:8px 36px 26px;display:flex;flex-wrap:wrap;gap:8px 18px;font-size:11px;color:var(--muted);z-index:5}
+footer .right{margin-left:auto}
+.row{display:grid;grid-template-columns:70px 16px 112px minmax(0,1fr) 92px 56px;gap:10px;align-items:center;padding:3px 10px;border-bottom:1px solid var(--rowrule);min-height:22px;cursor:default}
+.row:hover{background:#0f141b}
+.row>.ell{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .dt{text-align:right}
+.row.focus{outline:1px solid var(--rc,var(--cyan));outline-offset:-1px;background:var(--rt,#0e1a22)}
+.row.focus .mut{color:var(--fmuted)}
+.grp{display:flex;gap:12px;align-items:baseline;padding:8px 10px 4px;border-bottom:1px solid var(--rule);color:var(--cyan);font-size:11px}
+.cursorrow{padding:3px 10px;display:flex;gap:10px}
+.kv{display:grid;grid-template-columns:96px minmax(0,1fr);gap:3px 10px;font-size:11px}
+.kv dt{color:var(--muted)}.kv dd{margin:0;overflow-wrap:anywhere}
+.trace{display:grid;grid-template-columns:14px minmax(0,1fr);font-size:11px;line-height:1.6}
+.open{border-left:1px dashed var(--amber);padding:8px 10px;margin:0 10px 10px;font-size:11px;color:var(--amber)}
+.landing{border:1px dashed var(--amber);margin-top:6px;padding:6px}
+.filters button{font-size:10px;min-height:24px;padding:2px 8px;background:transparent;border:1px solid var(--rule);margin:0 4px 4px 0;cursor:pointer}
+.filters button.on{background:#0e1a22;color:var(--cyan);border-color:var(--cyan)}
+.counts{display:grid;grid-template-columns:auto 1fr;gap:3px 8px;margin-top:6px}
+.counts span:nth-child(2n){text-align:right}
+.strikes .boxes{display:flex;gap:8px;margin:6px 0}
+.strikes .boxes i{width:34px;height:22px;border:1px dashed var(--rule)}
+.chart{display:flex;align-items:flex-end;gap:1px;height:60px;margin:6px 0}
+.chart i{flex:1;background:var(--cyan);min-height:1px;opacity:.75}
+.chart i.b{background:var(--magenta)}.chart i.p{background:var(--amber)}.chart i.u{background:var(--rule)}
+.filterline{display:none;padding:6px 10px;border-bottom:1px solid var(--rule)}
+.filterline.on{display:flex;gap:8px}
+.filterline input{flex:1;background:#0e1218;border:1px solid var(--cyan);color:var(--text);font:inherit;padding:2px 6px}
+.overlay{position:fixed;inset:24px;background:var(--surface);border:1px solid var(--cyan);z-index:20;padding:24px;overflow:auto;display:none}
+.overlay.on{display:block}
+.overlay h1{font-size:22px;margin:4px 0 16px}
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.legend section{border:1px solid var(--rule);padding:10px}
+.legend dl{display:grid;grid-template-columns:72px minmax(0,1fr);gap:4px 10px;margin:6px 0 0}
+.legend dt{text-align:right}.legend dd{margin:0}
+.system{display:grid;grid-template-columns:minmax(140px,1fr) minmax(0,3fr);gap:4px 12px;max-height:270px;overflow:auto;margin-top:16px}
+.system dt{color:var(--fmuted)}.system dd{margin:0}
+.pane-row{border-bottom:1px solid var(--rowrule);padding:6px 0}
+.vacant{color:var(--fmuted)}
+/* states */
+.s-live .sweep{display:block}
+.s-blocking{--f:#ff3d7f;--fg:rgba(255,61,127,.22)}
+.s-blocking .frame{box-shadow:inset 0 0 0 1px rgba(0,0,0,.6),inset 0 0 140px var(--fg)}
+.s-blocking .flood{display:block;inset:0;z-index:2;background:linear-gradient(90deg,rgba(255,61,127,.16),transparent 18%,transparent 82%,rgba(255,61,127,.16))}
+.s-blocking .tx,.s-blocking .ty{opacity:.6}
+.pending .strip{display:block;left:0;right:0;top:0;height:3px;background:var(--amber);box-shadow:inset 0 40px 60px -40px rgba(255,176,46,.25);z-index:4}
+.s-disconnected{--f:#4a5560;--fg:rgba(120,130,140,.14);--muted:#a3b0b8;--fmuted:#a3b0b8}
+.s-disconnected .scan{display:none}
+.s-disconnected .static{display:block;inset:0;z-index:4;opacity:.5;background:repeating-linear-gradient(0deg,rgba(207,230,239,.06) 0 1px,transparent 1px 2px),repeating-linear-gradient(90deg,rgba(0,0,0,.25) 0 2px,transparent 2px 7px),repeating-linear-gradient(0deg,transparent 0 37px,rgba(207,230,239,.08) 37px 39px)}
+.s-disconnected .vig{background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.7) 100%)}
+.s-disconnected [tabindex]:focus{outline:2px solid #cfe6ef;outline-offset:-3px}
+.calm .noise{display:none}
+@media (prefers-reduced-motion:reduce){.blink,.sweep{animation:none}.scan,.sweep{display:none!important}.s-disconnected .static{opacity:.25}}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+<div class="hud s-empty" id="hud">
+  <div class="noise" aria-hidden="true">
+    <div class="vig"></div><div class="flood"></div><div class="frame"></div><div class="scan"></div><div class="static"></div><div class="sweep"></div><div class="strip"></div>
+    <div class="tx" style="top:16px"></div><div class="tx" style="bottom:16px"></div>
+    <div class="ty" style="left:16px"></div><div class="ty" style="right:16px"></div>
+    <span class="micro" style="top:7px;left:30px" id="microK">KGME</span><span class="micro" style="top:7px;right:30px">· · ·</span>
+    <span class="micro" style="bottom:7px;left:30px">◦ ◦ ◦</span><span class="micro" style="bottom:7px;right:30px">· · ·</span>
+  </div>
+  <header>
+    <div><div class="lbl">clock</div><div><span class="clock" id="clock">--:--:--</span> <span class="mut" id="offset"></span></div></div>
+    <div><div class="lbl">ledger</div><div class="ledgerline" id="ledger"></div></div>
+    <div><div class="lbl">active runs · <span class="kbd">a</span></div><button class="runsbtn" id="runsbtn" type="button"></button></div>
+  </header>
+  <section class="band" id="band" tabindex="0" role="status" hidden>
+    <h1>▯ server unreachable</h1>
+    <p id="bandHost"></p><p id="bandLast"></p><p id="bandRetry"></p>
+    <p class="full">nothing is lost: the ledger is a file · this view will catch up on its own · <span class="kbd">r</span> retry now · <span class="kbd">c</span> calm · <span class="kbd">?</span> when disconnected</p>
+  </section>
+  <p class="boundary" id="boundary" hidden></p>
+  <div class="body" id="body">
+    <aside class="left" id="left">
+      <section class="pnl brk" id="activity"><div class="lbl">runs · events per minute · 60 min</div><div class="chart" id="chart" role="img"></div><div class="mut" id="chartSum" style="font-size:10px"></div></section>
+      <section class="vacant strikes"><div class="lbl">ADR-016 strikes · not in /api/events</div><div class="boxes" aria-hidden="true"><i></i><i></i><i></i></div><div>—</div></section>
+      <section class="pnl brk filters" id="filters"></section>
+      <section class="pnl brk" id="openIntents" hidden style="border-color:var(--amber)"><div class="lbl c-amber">open intents</div><div id="openList"></div></section>
+    </aside>
+    <main class="timeline pnl brk" id="timeline" tabindex="0" aria-label="timeline">
+      <div class="filterline" id="filterline"><span class="kbd">/</span><input id="filterInput" aria-label="filter: run:, kind:, job: or text" placeholder="run: kind: job: or text · Enter applies · Esc closes"></div>
+      <div class="bar"><span class="lbl" id="tlLabel">timeline · newest at bottom</span><span class="lbl">time · kind · job · summary · class · Δt</span></div>
+      <div class="rows" id="rows" role="list"></div>
+    </main>
+    <aside class="right pnl brk" id="right" tabindex="0" aria-label="detail"></aside>
+  </div>
+  <footer id="footer"></footer>
+  <div class="sr" role="status" id="announce"></div>
+</div>
+<div class="overlay" id="overlay" role="dialog" aria-label="keys and system" tabindex="-1"></div>
+<script>
+"use strict";
+const POLL_MS = 2000, LIMIT = 50, HELD_MAX = 500;
+const S = {events: [], byId: new Map(), runs: {}, cursor: null, connected: null, everOk: false,
+  attempt: 0, lastError: "", focus: null, detail: false, follow: true, calm: false,
+  filter: {text: "", run: null, classes: null, open: false}, trace: new Set(), paneRuns: false, paneSel: 0, overlay: false};
+const $ = id => document.getElementById(id);
+function el(tag, cls, text) { const n = document.createElement(tag); if (cls) n.className = cls; if (text !== undefined && text !== null) n.textContent = String(text); return n; }
+function pad(n) { return String(n).padStart(2, "0"); }
+function hms(ts) { const d = new Date(ts); return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; }
+function offset() { const m = -new Date().getTimezoneOffset(), s = m < 0 ? "−" : "+", a = Math.abs(m); return `${s}${pad(Math.floor(a / 60))}:${pad(a % 60)}`; }
+function shortId(id) { return id && id.length > 14 ? `${id.slice(0, 8)}…${id.slice(-4)}` : (id || "—"); }
+function delta(ms) {
+  if (ms < 100) return `${Math.max(0, Math.round(ms))} ms`;
+  const trim = v => v.toFixed(1).replace(/\.0$/, "");
+  if (ms < 10000) return `${trim(ms / 1000)} s`;
+  if (ms < 120000) return `${Math.round(ms / 1000)} s`;
+  return `${trim(ms / 60000)} m`;
+}
+function elapsed(ms) { const s = Math.max(0, Math.floor(ms / 1000)); return `${Math.floor(s / 60)} m ${s % 60} s`; }
+function chipOf(e) {
+  if (e.class === "blocking") return ["blocking", "c-magenta"];
+  if (e.status === "refused") return ["refused", "c-magenta"];
+  if (e.class === "transient") return ["transient", "c-amber"];
+  if (e.class === "advisory") return ["advisory", "c-amber"];
+  if (e.unmatched) return ["pending", "c-amber"];
+  if (e.status === "unknown") return ["unknown", "c-amber"];
+  if (e.status === "ok" || e.kind === "approval") return ["ok", "c-green"];
+  return ["—", "c-muted"];
+}
+const GLYPH = {intent: ["▶", "c-muted"], outcome: ["◀", ""], note: ["✎", "c-amber"], approval: ["✓", "c-green"]};
+const WORD = {working: "c-cyan", waiting: "c-amber", transient: "c-amber", blocked: "c-magenta"};
+const EXPLAIN = {working: "Working: the latest event is inside the quiet limit.", waiting: "Waiting: an intent has no outcome yet.",
+  transient: "Transient: retry scheduled, including an exhausted retry with a reset time; the event class stays separate.",
+  blocked: "Blocked: a blocking outcome or note has stopped this run."};
+const QUIET = "Quiet: no event beyond the median intent gap, with a three-minute minimum; lifecycle remains working.";
+
+// ---------------------------------------------------------------- data: poll, merge, state
+function state() {
+  if (S.connected === false && S.everOk) return "disconnected";
+  if (S.connected === false) return "disconnected";
+  if (!S.events.length) return "empty";
+  if (Object.values(S.runs).some(r => r.word === "blocked")) return "blocking";
+  return "live";
+}
+function openIntents() { return S.events.filter(e => e.unmatched); }
+async function poll() {
+  const url = `/api/events?limit=${LIMIT}` + (S.cursor ? `&since=${encodeURIComponent(S.cursor)}` : "");
+  try {
+    const res = await fetch(url, {cache: "no-store"});
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const view = await res.json();
+    for (const row of view.events) {
+      if (S.byId.has(row.id)) continue;
+      S.events.push(row); S.byId.set(row.id, row);
+    }
+    // an outcome that arrived later answers an intent drawn earlier: the server marks it unmatched
+    // until then; re-mark from the rows it returns (a pairing it states, not one computed here)
+    for (const row of view.events) if (row.kind === "outcome" && row.ref && S.byId.has(row.ref)) {
+      const intent = S.byId.get(row.ref); intent.unmatched = false; intent.outcome_id = row.id;
+    }
+    if (S.events.length > HELD_MAX) { for (const gone of S.events.splice(0, S.events.length - HELD_MAX)) S.byId.delete(gone.id); }
+    Object.assign(S.runs, view.runs);
+    S.cursor = view.cursor || S.cursor;
+    const was = S.connected; S.connected = true; S.everOk = true; S.attempt = 0;
+    if (was === false) announce("connection restored");
+  } catch (err) {
+    if (S.connected !== false) announce("server unreachable");
+    S.connected = false; S.attempt += 1; S.lastError = err && err.message && err.message.startsWith("HTTP") ? err.message : "no response";
+  }
+  draw();
+}
+function announce(text) { $("announce").textContent = text; }
+
+// ---------------------------------------------------------------- filters
+function visible() {
+  const f = S.filter, terms = f.text.trim().split(/\s+/).filter(Boolean);
+  return S.events.filter(e => {
+    // a trace row hides under a held parent until `t` expands it; with no parent held (outside
+    // the window or evicted) it is shown, so no event is unreachable (review cycle 3 F7)
+    if (e.collapsed && S.byId.has(e.parent) && !S.trace.has(e.parent)) return false;
+    if (f.run && e.run_id !== f.run) return false;
+    if (f.open && !e.unmatched) return false;
+    if (f.classes && !f.classes.has(chipOf(e)[0] === "—" ? "unclassed" : (e.class || (e.status === "ok" ? "ok" : chipOf(e)[0])))) return false;
+    for (const t of terms) {
+      const [k, v] = t.includes(":") ? t.split(/:(.*)/) : [null, t];
+      if (k === "run" && !(e.run_id || "").includes(v)) return false;
+      if (k === "kind" && e.kind !== v) return false;
+      if (k === "job" && !(e.job || "").includes(v)) return false;
+      if (!k && !(e.summary || "").toLowerCase().includes(t.toLowerCase())) return false;
+    }
+    return true;
+  });
+}
+function collapsedUnder(id) { return S.events.filter(e => e.collapsed && e.parent === id).length; }
+
+// ---------------------------------------------------------------- drawing
+function draw() {
+  const st = state(), hud = $("hud"), list = visible(), opens = openIntents();
+  hud.className = `hud s-${st}` + (opens.length && st !== "disconnected" ? " pending" : "") + (S.calm ? " calm" : "") + (S.detail ? " detail-open" : "");
+  $("microK").className = "micro " + (st === "blocking" ? "c-magenta" : opens.length ? "c-amber" : "");
+  $("clock").textContent = hms(Date.now()); $("offset").textContent = offset();
+  drawLedger(st, opens); drawRunsButton(st); drawBand(st); drawLeft(st, opens); drawRows(st, list, opens); drawRight(st); drawFooter(st, opens);
+  if (S.overlay) drawOverlay(st);
+}
+function drawLedger(st, opens) {
+  const L = $("ledger"); L.textContent = "";
+  const n = S.events.length, r = new Set(S.events.map(e => e.run_id)).size;
+  const counts = `${n} events · ${r} runs`;
+  if (st === "empty") { L.append(el("span", "mut", "○ "), "empty"); return; }
+  if (st === "disconnected") { L.append(el("span", "mut", "○ "), `unreachable · last ${counts}`); return; }
+  if (st === "blocking") { L.append(el("span", "c-magenta blink", "● "), el("span", "c-magenta", "halted"), ` · ${counts}`); }
+  else { L.append(el("span", "c-cyan blink", "● "), `live · ${counts}`); }
+  if (opens.length) L.append(" · ", el("span", "c-amber", `${opens.length} open intent${opens.length > 1 ? "s" : ""}`));
+}
+function openRuns() { return Object.entries(S.runs).filter(([, r]) => !r.closed); }
+function runSummary() {
+  const live = openRuns(); if (!live.length) return null;
+  const c = {}; let quiet = 0;
+  for (const [, r] of live) { c[r.word] = (c[r.word] || 0) + 1; if (r.quiet) quiet++; }
+  return ["working", "waiting", "transient", "blocked"].filter(w => c[w]).map(w => w === "working" && quiet ? `${c[w]} working (${quiet} quiet)` : `${c[w]} ${w}`).join(" · ");
+}
+function drawRunsButton(st) {
+  const b = $("runsbtn"), sum = runSummary();
+  b.textContent = sum ? sum : "idle"; b.className = "runsbtn" + (sum ? "" : " mut");
+  if (st === "disconnected" && S.events.length) b.textContent = `stale · ${sum || "idle"} · as of ${hms(S.events[S.events.length - 1].ts)}`;
+  b.setAttribute("aria-expanded", String(S.paneRuns));
+}
+function drawBand(st) {
+  const on = st === "disconnected";
+  $("band").hidden = !on; $("boundary").hidden = !(on && S.events.length);
+  if (!on) return;
+  const last = S.events.length ? S.events[S.events.length - 1] : null;
+  $("bandHost").textContent = `${location.host} · ${S.lastError}`;
+  $("bandLast").textContent = last ? `last event ${hms(last.ts)} ${offset()} · ${elapsed(Date.now() - Date.parse(last.ts))} ago` : "no event drawn yet";
+  $("bandRetry").textContent = `retry every 2 s · attempt ${S.attempt}`;
+  if (last) $("boundary").textContent = `Snapshot as of ${hms(last.ts)} ${offset()}`;
+}
+function drawLeft(st, opens) {
+  $("activity").hidden = st === "empty";
+  const chart = $("chart"); chart.textContent = "";
+  const now = Date.now(), start = now - 3600000, oldest = S.events.length ? Date.parse(S.events[0].ts) : now;
+  const buckets = Array.from({length: 60}, () => ({n: 0, b: false, p: false}));
+  for (const e of S.events) { const t = Date.parse(e.ts); if (t < start) continue; const k = Math.min(59, Math.floor((t - start) / 60000)); const B = buckets[k]; B.n++; if (e.class === "blocking") B.b = true; if (e.unmatched) B.p = true; }
+  let peak = 0, total = 0;
+  buckets.forEach((B, k) => {
+    const from = start + k * 60000, known = from + 60000 >= oldest;
+    const i = el("i", known ? (B.b ? "b" : B.p ? "p" : "") : "u");
+    i.style.height = known ? `${Math.max(1, Math.min(5, B.n) * 12)}px` : "1px";
+    i.title = known ? `${hms(from).slice(0, 5)}: ${B.n} events${B.b ? ", blocking" : ""}${k === 59 ? " (partial minute)" : ""}` : `${hms(from).slice(0, 5)}: count unavailable`;
+    chart.append(i); peak = Math.max(peak, B.n); total += B.n;
+  });
+  chart.setAttribute("aria-label", `events per minute over the last 60 minutes: peak ${peak}, total ${total}`);
+  const blockTimes = S.events.filter(e => e.class === "blocking").map(e => hms(e.ts));
+  $("chartSum").textContent = `peak ${peak}/min · ${total} events · blocking ${blockTimes.length ? blockTimes.join(", ") : "none"}`;
+  const F = $("filters"); F.textContent = "";
+  F.append(el("div", "lbl", "filters"));
+  if (st === "empty") { F.append(el("div", "mut", "nothing to filter")); }
+  else {
+    const btns = [["run", "r", !!S.filter.run], ["kind", "/", !!S.filter.text], ["class", "1–4", !!S.filter.classes], ["trace", "t", S.trace.size > 0], ["open", "o", S.filter.open]];
+    const wrap = el("div"); for (const [name, key, on] of btns) { const b = el("button", on ? "on" : "", `${name} `); b.type = "button"; b.append(el("span", "kbd", key)); b.tabIndex = -1; wrap.append(b); }
+    F.append(wrap);
+    const counts = el("div", "counts"), tally = {ok: 0, blocking: 0, transient: 0, advisory: 0, unclassed: 0};
+    for (const e of S.events) { const c = e.class || (e.status === "ok" ? "ok" : "unclassed"); tally[c in tally ? c : "unclassed"]++; }
+    for (const [k, v] of Object.entries(tally)) { const [, cls] = chipOf({class: k === "ok" || k === "unclassed" ? null : k, status: k === "ok" ? "ok" : null}); counts.append(el("span", `chip ${k === "unclassed" ? "c-muted" : cls}`, k), el("span", "", v)); }
+    F.append(counts);
+  }
+  const O = $("openIntents"); O.hidden = !opens.length || st === "empty";
+  const list = $("openList"); list.textContent = "";
+  for (const e of opens) { const r = el("div", "pane-row"); r.append(el("span", "", e.job || "—"), " ", el("span", "chip c-amber", "pending"), el("div", "mut", e.summary)); list.append(r); }
+}
+function rowFor(e) {
+  const r = el("div", "row"); r.setAttribute("role", "listitem"); r.dataset.id = e.id; r.tabIndex = -1;
+  const g = GLYPH[e.kind] || ["·", "c-muted"], [chip, ccls] = chipOf(e);
+  let dt = "";
+  if (e.kind === "outcome" && e.ref && S.byId.has(e.ref)) dt = delta(Date.parse(e.ts) - Date.parse(S.byId.get(e.ref).ts));
+  const summary = el("span", "ell");
+  if (e.depth > 0) { summary.append(el("span", "mut", "└ ")); summary.style.paddingLeft = `${Math.min(e.depth, 8) * 12}px`; }
+  summary.append(e.summary || "");
+  const n = collapsedUnder(e.id); if (n && !S.trace.has(e.id)) summary.append(el("span", "mut", `  ▸ ${n} trace event${n > 1 ? "s" : ""} collapsed`));
+  r.append(el("span", "mut", hms(e.ts)), el("span", g[1], g[0]), el("span", "mut ell", e.job || "—"), summary, el("span", `chip ${ccls}`, chip), el("span", "mut dt", dt));
+  r.setAttribute("aria-label", `${hms(e.ts)} ${e.kind} ${e.job || ""} ${e.summary || ""} ${chip} ${dt}`);
+  if (S.focus === e.id) {
+    r.classList.add("focus");
+    const tint = ccls === "c-magenta" ? ["var(--magenta)", "#1c0f16"] : ccls === "c-amber" ? ["var(--amber)", "#1a150c"] : ["var(--cyan)", "#0e1a22"];
+    r.style.setProperty("--rc", tint[0]); r.style.setProperty("--rt", tint[1]);
+  }
+  r.addEventListener("click", () => { S.focus = e.id; S.follow = false; draw(); });
+  r.addEventListener("dblclick", () => { S.focus = e.id; S.detail = true; draw(); });
+  return r;
+}
+function drawRows(st, list, opens) {
+  const R = $("rows"), atBottom = R.scrollTop + R.clientHeight >= R.scrollHeight - 4;
+  R.textContent = "";
+  const lab = $("tlLabel"); lab.textContent = "timeline · newest at bottom";
+  if (st === "blocking") lab.append(" · ", el("span", "c-magenta", "stopped"));
+  else if (st === "live" && S.follow) lab.append(" · ", el("span", "c-cyan", "following"));
+  if (st === "disconnected") lab.textContent = "timeline";
+  if (st === "empty") { R.append(emptyBody()); return; }
+  let current = null; const seen = new Set();
+  for (const e of list) {
+    if (e.run_id !== current) {
+      const run = S.runs[e.run_id] || {}, n = S.events.filter(x => x.run_id === e.run_id).length;
+      const h = el("div", "grp"); h.setAttribute("role", "listitem");
+      const selected = S.focus && S.byId.get(S.focus) && S.byId.get(S.focus).run_id === e.run_id;
+      if (selected) { const m = el("span", "c-cyan", "◆"); m.setAttribute("aria-label", `selected run ${e.run_id}`); h.append(m); }
+      else h.append(el("span", "", `▣ run ${shortId(e.run_id)}`));
+      const meta = seen.has(e.run_id) ? `${run.actor || e.actor} · resumed ${hms(e.ts)}` : `${run.actor || e.actor} · ${run.job || e.job || "—"} · started ${hms(run.first_ts || e.ts)} · ${n} events`;
+      const word = run.word ? ` · ${run.word}${run.quiet ? " · " + run.quiet : ""}${run.closed ? " · closed" : ""}` : "";
+      h.append(el("span", "mut", meta), el("span", WORD[run.word] || "mut", word));
+      R.append(h); seen.add(e.run_id); current = e.run_id;
+    }
+    R.append(rowFor(e));
+  }
+  for (const e of opens) {
+    if (!list.includes(e)) continue;
+    const box = el("div", "open"); box.append(el("div", "", `└ intent ${shortId(e.id)} · ${hms(e.ts)}`));
+    const land = el("div", "landing"); land.append(el("div", "", `◀ outcome lands here · ref=${shortId(e.id)}`), el("div", "", `pending · none yet · elapsed ${elapsed(Date.now() - Date.parse(e.ts))} · ${hms(Date.now())}`));
+    box.append(land); R.append(box);
+  }
+  if (st === "live") { const c = el("div", "cursorrow"); c.append(el("span", "mut", hms(Date.now())), el("span", "c-cyan blink", "▮"), el("span", "mut", "waiting for the next event…")); R.append(c); }
+  if (S.follow && st !== "disconnected") R.scrollTop = R.scrollHeight;
+  else if (atBottom && S.follow) R.scrollTop = R.scrollHeight;
+  if (S.focus) { const f = R.querySelector(".row.focus"); if (f && !S.follow) f.scrollIntoView({block: "nearest"}); }
+}
+function emptyBody() {
+  const b = el("div"); b.style.cssText = "padding:24px 10px;max-width:520px";
+  const h = el("div"); h.style.cssText = "font-size:22px;font-weight:700"; h.className = "mut";
+  const mark = el("span", "", "▮ "); mark.setAttribute("aria-hidden", "true"); h.append(mark, "nothing recorded yet");
+  b.append(h, el("div", "", "0 events · 0 runs · no activity reading"), el("p", "", "The ledger has nothing to show. It fills the first time a hook fires or a job writes an intent. Three ways that happens:"));
+  for (const [chip, cmd, rest] of [["session", "open Claude Code in the repository with kgme-claude", " · every tool call writes an intent and an outcome"], ["job", "kgme brief --dry-run", " · Loop 0 reads the vault and writes nothing but its own events"], ["review", "kgme review --handoff HANDOFF-00NN", " · one intent per cycle, one outcome bound to the diff hash"]]) {
+    const line = el("div"); line.style.margin = "4px 0"; const c = el("span", "chip c-cyan", chip); c.style.cssText = "display:inline-block;min-width:54px;margin-right:8px"; line.append(c, el("span", "c-cyan", cmd), rest); b.append(line);
+  }
+  const foot = el("p", "mut", "This page never launches any of them. It polls /api/events every two seconds and draws what it finds."); foot.style.fontSize = "11px"; b.append(foot);
+  return b;
+}
+function kvList(rows) { const dl = el("dl", "kv"); for (const [k, v, cls] of rows) { dl.append(el("dt", "", k)); const dd = el("dd", cls || ""); if (v instanceof Node) dd.append(v); else dd.textContent = v === null || v === undefined ? "null" : String(v); dl.append(dd); } return dl; }
+function drawRight(st) {
+  const P = $("right"); P.textContent = "";
+  const e = S.focus ? S.byId.get(S.focus) : null;
+  if (S.detail && e) {
+    const [chip, ccls] = chipOf(e), head = el("div"); head.style.cssText = "display:flex;justify-content:space-between";
+    const suffix = e.class === "blocking" && e.kind === "note" ? " · halt" : e.unmatched ? " · no outcome yet" : "";
+    head.append(el("span", `lbl ${e.class === "blocking" ? "c-magenta" : e.unmatched ? "c-amber" : ""}`, `detail · ${e.kind}${suffix}`), el("span", "lbl", "Esc closes · p payload"));
+    P.style.borderColor = e.class === "blocking" ? "var(--magenta)" : e.unmatched ? "var(--amber)" : "";
+    const parent = e.parent ? S.byId.get(e.parent) : null, pv = el("span");
+    if (e.parent) { pv.append(el("span", "c-cyan", e.parent), el("span", "mut", parent ? ` · ${parent.kind} · ${parent.summary} · u jumps up` : " · not held · u jumps up")); }
+    P.append(head, kvList([["id", e.id], ["ts", e.ts], ["run_id", e.run_id], ["source · actor", `${e.source} · ${e.actor}`], ["kind · class", el("span", `chip ${ccls}`, e.class || chip)], ["status", e.status],
+      ["job", e.job], ["key", e.key], ["ref", e.ref], ["parent", e.parent ? pv : null], ["payload_ref", e.payload_ref], "payload_sha256" in e ? ["payload_sha256", e.payload_sha256] : ["payload_sha256", "not supplied by /api/events", "mut"],
+      ["summary", e.summary], ["stream", e.stream], ["outcome_id", e.outcome_id], ["depth", e.depth]]));
+    P.append(causal(e));
+    if (e.unmatched) { const d = el("details"); d.append(el("summary", "", "Enter intent detail"), el("div", "lbl", "what happens if it never returns"), el("p", "", "If the outcome never arrives, the job reconciles the open intent on its next start and writes an outcome with status unknown; it closes amber, never green."), el("p", "mut", "The cockpit draws this state; it never writes it.")); P.append(d); }
+    return;
+  }
+  P.style.borderColor = "";
+  if (S.paneRuns || st !== "empty") P.append(runsPane());
+  if (e) P.append(causal(e));
+  else if (st === "disconnected") P.append(el("div", "lbl", "detail"), el("div", "mut", "Last selection kept."));
+  else if (st === "empty") { P.append(el("div", "lbl", "detail · Esc closes"), el("p", "", "Select a row with j k and press Enter.")); const d = el("details"); d.append(el("summary", "", "Enter event shape"), el("p", "", "ADR-019: id, ts, run, actor, kind, class, status, job, key, ref, parent, summary, payload_ref, payload_sha256.")); P.append(d); }
+  const foot = el("div"); foot.style.cssText = "margin-top:auto;border-top:1px solid var(--rule);padding-top:8px";
+  foot.append(kvList([["open handoff", "—", "mut"], ["last review", "—", "mut"]])); P.append(foot);
+}
+function runsPane() {
+  const box = el("section"), live = openRuns();
+  box.append(el("div", "lbl", `active runs · a · ${live.length} open`));
+  if (!live.length) { box.append(el("p", "mut", "No open run.")); return box; }
+  S.paneSel = Math.min(S.paneSel, live.length - 1);
+  live.forEach(([id, r], index) => {
+    const row = el("div", "pane-row"), latest = [...S.events].reverse().find(x => x.run_id === id);
+    row.append(el("div", "", `${r.actor} ${shortId(id)}`));
+    const w = el("div"); w.append(el("span", WORD[r.word] || "", r.word)); if (r.quiet) w.append(el("span", "mut", ` · ${r.quiet}`)); w.append(el("span", "mut", ` · ${elapsed(Date.now() - Date.parse(r.first_ts))}`));
+    row.append(w, el("div", "mut", r.quiet ? QUIET : EXPLAIN[r.word] || ""));
+    if (latest) { const l = el("div"); l.append(el("span", "mut", "Latest event: "), latest.summary || "", " ", el("span", `chip ${chipOf(latest)[1]}`, chipOf(latest)[0])); row.append(l); }
+    if (S.paneRuns && index === S.paneSel) { row.setAttribute("aria-selected", "true"); row.style.cssText = "outline:1px solid var(--cyan);outline-offset:-1px;background:#0e1a22;padding:6px"; row.prepend(el("span", "c-cyan", "◆ ")); }
+    row.addEventListener("click", () => { S.paneSel = index; S.paneRuns = true; draw(); });
+    box.append(row);
+  });
+  if (S.paneRuns) box.append(el("div", "mut", "j k move · Enter jumps to the run · r filter · Esc closes"));
+  return box;
+}
+function causal(e) {
+  const intent = e.kind === "outcome" && e.ref ? S.byId.get(e.ref) : e, outcome = intent && intent.outcome_id ? S.byId.get(intent.outcome_id) : null;
+  const box = el("div", "trace"); if (!intent) return box;
+  box.append(el("span", "mut", "›"), el("span", "", `${hms(intent.ts)} · ${intent.summary}`));
+  if (outcome) box.append(el("span", "mut", "└"), el("span", "c-cyan", `${hms(outcome.ts)} · ${outcome.summary} · ${chipOf(outcome)[0]} · ${delta(Date.parse(outcome.ts) - Date.parse(intent.ts))}`));
+  return box;
+}
+function drawFooter(st, opens) {
+  const F = $("footer"); F.textContent = "";
+  const keys = {empty: [["j k", "move"], ["/", "filter"], ["Enter", "detail"], ["Esc", "back"], ["t", "trace"], ["g G", "oldest / newest"], ["f", "follow"], ["c", "calm"], ["?", "keys + system"]],
+    live: [["j k", "move"], ["/", "filter"], ["Enter", "detail"], ["Esc", "back"], ["t", "trace"], ["g G", "oldest / newest"], ["f", "follow"], ["a", "runs"], ["c", "calm"], ["?", "keys + system"]],
+    blocking: [["j k", "move"], ["/", "filter"], ["Enter", "detail"], ["Esc", "back"], ["u", "parent"], ["p", "payload"], ["2", "blocking only"], ["c", "calm"], ["?", "keys + system"]],
+    disconnected: [["r", "retry"], ["c", "calm"], ["?", "keys + system"]]}[st];
+  if (st !== "disconnected" && opens.length) keys.splice(4, 0, ["o", "open intents"]);
+  for (const [k, v] of keys) { const s = el("span"); s.append(el("span", "kbd", k), ` ${v}`); F.append(s); }
+  let right = el("span", "right", "vim keys transfer · nothing here launches a process");
+  if (st === "blocking") right = el("span", "right c-magenta", "halted");
+  else if (opens.length && st !== "disconnected") right = el("span", "right c-amber", `${opens.length} intent${opens.length > 1 ? "s" : ""} awaiting ${opens.length > 1 ? "their outcomes" : "its outcome"}`);
+  else if (st === "disconnected") right = el("span", "right", "");
+  F.append(right);
+}
+const MAP = {Move: [["j", "next row"], ["k", "previous row"], ["g G", "oldest / newest event"], ["Enter", "open the selected event in detail"], ["Esc", "close detail, then clear the filter"], ["u", "jump to the event's parent"], ["Tab", "runs → timeline → detail"], ["f", "follow newest; moving unfollows"]],
+  Filter: [["/", "filter line: run:, kind:, job: or text"], ["1–4", "ok, blocking, transient, advisory"], ["0", "every class"], ["r", "this run → all; retry while disconnected"], ["t", "expand or collapse trace under its parent"], ["o", "only intents without an outcome"], ["a", "open runs pane; Enter there filters to that run"], ["x", "clear every filter"]],
+  View: [["c", "calm: drop decoration, data unchanged"], ["p", "payload path of the selected event"], ["?", "this map and the system section"]],
+  "Approved · deferred": [["w", "desk → wall → station · approved at 11b686b, unbound until Michou rules on review F11"]],
+  "Reserved · Phase 2": [["b", "/btw side lane, context without history"], ["m", "model selector · optimized mode"], ["y n", "approve / decline a pending approval"], [";", "command line · dispatch a handoff"], ["Space", "queue a message while a turn runs"]]};
+function drawOverlay(st) {
+  const O = $("overlay"); O.textContent = "";
+  O.append(el("div", "lbl", "KGME cockpit v0 · ? keys + system"), el("h1", "", "Keyboard map · Desk"));
+  const legend = el("div", "legend");
+  for (const [name, rows] of Object.entries(MAP)) {
+    const s = el("section"); s.append(el("div", "lbl", name)); const dl = el("dl");
+    for (const [k, v] of rows) { const dt = el("dt"); dt.append(el("span", name.startsWith("Reserved") || name.startsWith("Approved") ? "kbd p2" : "kbd", k)); dl.append(dt, el("dd", "", v)); }
+    s.append(dl); legend.append(s);
+  }
+  O.append(legend, el("p", "mut", "Single-character keys act only while focus is on the cockpit's own surface, never inside a text field. In the filter line only Enter and Esc act. No modifier chords in v0; remapping is Phase 2."),
+    el("p", "mut", "Focus uses a cyan outline and surface tint, never colour alone. Reduced motion keeps the keys and removes blink, sweep and scanlines. Dashed keys are Phase 2: reserved, not bound."));
+  O.append(el("div", "lbl", st === "disconnected" ? "System · Disconnected" : "System · Live"));
+  const ns = "not supplied by /api/events", sys = el("dl", "system");
+  for (const [k, v] of [["session", ns], ["hook latency", ns], ["harnesses", ns], ["Claude Max · week", ns], ["Codex Plus · 5 h window", ns],
+    ["Surface", "KGME · Kuang Grade Mark Eleven · cockpit v0 · read-only"], ["Source", `${location.host} · logs/ledger/ · trace collapsed`],
+    ["Provenance", "ADR-017 view over the ledger · ADR-019 event v1"], ["Policy", "poll 2 s · no remote assets · c calms the edges"],
+    ["Key grammar", "KGME · cockpit v0 · keyboard map · ? opens this as an overlay"], ["", "vim grammar · mirrors Claude Code where a binding transfers"],
+    ["", "no modifier chords in v0 · every action is one key or one key after /"], ["", "dashed keys are Phase 2 · reserved, not bound"]]) { sys.append(el("dt", "", k), el("dd", v === ns ? "mut" : "", v)); }
+  sys.tabIndex = 0; O.append(sys);
+  if (st === "disconnected") { O.append(el("h3", "", "When disconnected")); for (const line of ["To start: kgme cockpit from the repository.", "The Dock icon opens this page; it does not start the server (launchd waits for Phase 3).", "The record is intact in the ledger file above; this view will catch up on its own.", "The grey frame means no signal, never an error in the ledger."]) O.append(el("p", "", line)); }
+  O.append(el("p", "mut", "Esc closes"));
+}
+
+// ---------------------------------------------------------------- keys
+function move(step) {
+  const rows = visible(); if (!rows.length) return;
+  let i = rows.findIndex(e => e.id === S.focus); i = i < 0 ? (step > 0 ? 0 : rows.length - 1) : Math.max(0, Math.min(rows.length - 1, i + step));
+  S.focus = rows[i].id; S.follow = false;
+}
+const CLASS_KEYS = {"1": "ok", "2": "blocking", "3": "transient", "4": "advisory"};
+// swallowed, never bound: the Phase 2 keys, and `w`, approved but deferred (review cycle 3 F11)
+const UNBOUND = new Set(["b", "m", "y", "n", ";", " ", "w"]);
+document.addEventListener("keydown", ev => {
+  if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
+  const t = ev.target, inField = t && t.closest && t.closest("input,textarea,select,[contenteditable]");
+  if (inField) {
+    if (t.id === "filterInput" && ev.key === "Enter") { S.filter.text = t.value; $("filterline").classList.remove("on"); $("timeline").focus(); draw(); ev.preventDefault(); }
+    if (t.id === "filterInput" && ev.key === "Escape") { $("filterline").classList.remove("on"); $("timeline").focus(); ev.preventDefault(); }
+    return;
+  }
+  const k = ev.key; let handled = true;
+  if (S.overlay && k !== "Escape" && k !== "?") return;
+  if (S.paneRuns && (k === "j" || k === "k")) { const n = openRuns().length; if (n) S.paneSel = (S.paneSel + (k === "j" ? 1 : n - 1)) % n; }
+  else if (S.paneRuns && k === "Enter") { const live = openRuns(); if (live.length) { S.filter.run = live[S.paneSel][0]; S.paneRuns = false; } }
+  else if (k === "j") move(1);
+  else if (k === "k") move(-1);
+  else if (k === "g") { const r = visible(); if (r.length) { S.focus = r[0].id; S.follow = false; } }
+  else if (k === "G") { const r = visible(); if (r.length) S.focus = r[r.length - 1].id; }
+  else if (k === "Enter") { if (S.focus) S.detail = true; }
+  else if (k === "Escape") { if (S.overlay) { S.overlay = false; $("overlay").classList.remove("on"); } else if (S.paneRuns) S.paneRuns = false; else if (S.detail) S.detail = false; else S.filter = {text: "", run: null, classes: null, open: false}; }
+  else if (k === "u") { const e = S.focus && S.byId.get(S.focus); if (e && e.parent && S.byId.has(e.parent)) S.focus = e.parent; }
+  else if (k === "f") { S.follow = !S.follow; }
+  else if (k === "/") { $("filterline").classList.add("on"); const i = $("filterInput"); i.value = S.filter.text; i.focus(); }
+  else if (k in CLASS_KEYS) { const c = CLASS_KEYS[k], set = S.filter.classes || new Set(); set.has(c) ? set.delete(c) : set.add(c); S.filter.classes = set.size ? set : null; }
+  else if (k === "0") { S.filter.classes = null; }
+  else if (k === "r") { if (state() === "disconnected") poll(); else { const e = S.focus && S.byId.get(S.focus); S.filter.run = S.filter.run ? null : (e ? e.run_id : null); } }
+  else if (k === "t") { const e = S.focus && S.byId.get(S.focus); if (e) { S.trace.has(e.id) ? S.trace.delete(e.id) : S.trace.add(e.id); } }
+  else if (k === "o") { S.filter.open = !S.filter.open; }
+  else if (k === "a") { S.paneRuns = !S.paneRuns; S.paneSel = 0; }
+  else if (k === "x") { S.filter = {text: "", run: null, classes: null, open: false}; S.trace.clear(); }
+  else if (k === "c") { S.calm = !S.calm; try { localStorage.setItem("kgme-calm", S.calm ? "1" : "0"); } catch (e) {} }
+  else if (k === "p") { S.detail = !!S.focus; }
+  else if (k === "?") { S.overlay = !S.overlay; $("overlay").classList.toggle("on", S.overlay); if (S.overlay) $("overlay").focus(); }
+  else if (k === "Tab") { handled = false; }
+  else if (UNBOUND.has(k)) { handled = true; }
+  else handled = false;
+  if (handled) { ev.preventDefault(); draw(); }
+});
+$("runsbtn").addEventListener("click", () => { S.paneRuns = !S.paneRuns; draw(); });
+try { S.calm = localStorage.getItem("kgme-calm") === "1"; } catch (e) {}
+draw(); poll(); setInterval(poll, POLL_MS); setInterval(() => { $("clock").textContent = hms(Date.now()); }, 1000);
+</script>
+</body>
+</html>

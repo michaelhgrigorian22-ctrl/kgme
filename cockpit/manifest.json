@@ -1,0 +1,13 @@
+{
+  "name": "KGME Cockpit",
+  "short_name": "Cockpit",
+  "description": "The read-only timeline over the KGME ledger. The Dock icon does not start the server: run `kgme cockpit` first.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0a0c10",
+  "theme_color": "#0a0c10",
+  "icons": [
+    { "src": "/icon.png", "sizes": "192x192 512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
