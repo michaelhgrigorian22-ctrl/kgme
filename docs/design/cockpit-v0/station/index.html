@@ -512,10 +512,67 @@ for (const r of ROOMS) {
 scene.add(new THREE.AmbientLight('#39d0ff', .22));
 const key = new THREE.DirectionalLight('#cfe6ef', .9); key.position.set(-6, 12, 4); scene.add(key);
 const fill = new THREE.DirectionalLight('#39d0ff', .25); fill.position.set(8, 6, -8); scene.add(fill);
+// Begin distant dreadnaught. A static, facts-free discovery below the station.
+function createDistantDreadnaught() {
+  const ship=new THREE.Group();ship.name='distant-dreadnaught';
+  const plated=new THREE.ShaderMaterial({
+    vertexShader:`varying vec2 vUv;varying vec3 vNormal;void main(){vUv=uv;vNormal=normalize(normalMatrix*normal);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
+    fragmentShader:`varying vec2 vUv;varying vec3 vNormal;
+      float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+      void main(){vec2 p=vUv*vec2(34.0,9.0),cell=floor(p),f=fract(p);
+        float seam=step(.055,f.x)*step(.075,f.y);
+        float scratch=step(.965,fract(p.x*7.0+hash(cell)))*step(.2,f.y);
+        float panel=.66+.34*hash(cell);
+        float light=.12+.88*max(0.0,dot(normalize(vNormal),normalize(vec3(-.25,.85,.65))));
+        vec3 iron=vec3(.105,.118,.092)*panel*light*mix(.18,1.0,seam);
+        iron*=1.0-scratch*.55;
+        float slit=step(.88,f.x)*step(.45,f.y)*(1.0-step(.52,f.y))*step(.86,hash(cell+9.0));
+        gl_FragColor=vec4(iron+vec3(.035,.13,.018)*slit,1.0);}`
+  });
+  const metal=new THREE.MeshBasicMaterial({color:'#46513c'}),dark=new THREE.MeshBasicMaterial({color:'#050906'});
+  const green=new THREE.MeshBasicMaterial({color:'#527d35'}),core=new THREE.MeshBasicMaterial({color:'#a0da79'});
+  const positions=[],uvs=[];
+  const profiles=[[-4.9,.76,.52],[-4.3,1.04,.80],[4.2,1.78,1.35]];
+  const point=(row,side)=>{const [x,y,z]=profiles[row];return side===0?[x,y,0]:side===1?[x,0,z]:side===2?[x,-y,0]:[x,0,-z];};
+  function face(a,b,c,d){for(const [p,uv]of [[a,[0,0]],[d,[0,1]],[c,[1,1]],[a,[0,0]],[c,[1,1]],[b,[1,0]]]){positions.push(...p);uvs.push(...uv);}}
+  for(let row=0;row<2;row++)for(let side=0;side<4;side++){const next=(side+1)%4;face(point(row,side),point(row+1,side),point(row+1,next),point(row,next));}
+  face(point(2,3),point(2,2),point(2,1),point(2,0));face(point(0,0),point(0,1),point(0,2),point(0,3));
+  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));geometry.computeVertexNormals();
+  ship.add(new THREE.Mesh(geometry,plated));
+  const lines=[],segment=(a,b)=>lines.push(...a,...b);
+  for(let side=0;side<4;side++){
+    segment(point(0,side),point(2,side));
+    for(let i=0;i<20;i++){const t=(i+.3)/20,x=-4.3+t*8.5,y=1.04+t*.74,z=.8+t*.55;
+      const p=side===0?[x,y,0]:side===1?[x,0,z]:side===2?[x,-y,0]:[x,0,-z];
+      const q=[p[0]-.09,p[1]*1.13,p[2]*1.13];segment(p,q);
+    }
+  }
+  for(let side=0;side<4;side++){const p=point(2,side),q=point(2,(side+1)%4);segment(p,q);segment(p,[p[0]+.65,p[1]*1.06,p[2]*1.06]);}
+  ship.add(new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position',new THREE.Float32BufferAttribute(lines,3)),new THREE.LineBasicMaterial({color:'#65745a',transparent:true,opacity:.62})));
+  // The recessed side eye and inset bow mouth echo the reference's green apertures.
+  const eye=new THREE.Group();eye.position.set(-1.2,0,1.16);ship.add(eye);
+  eye.add(new THREE.Mesh(new THREE.CircleGeometry(.59,48),dark));
+  for(const [r,tube,mat,z]of [[.62,.065,metal,.015],[.50,.012,green,.025]]){const rim=new THREE.Mesh(new THREE.TorusGeometry(r,tube,5,48),mat);rim.position.z=z;eye.add(rim);}
+  const mouth=new THREE.Group();mouth.position.set(4.215,0,0);mouth.rotation.y=Math.PI/2;ship.add(mouth);
+  const opening=new THREE.Mesh(new THREE.CircleGeometry(.66,4),dark);opening.scale.y=1.55;mouth.add(opening);
+  const lip=new THREE.Mesh(new THREE.RingGeometry(.61,.65,4),green);lip.scale.y=1.55;lip.position.z=.012;mouth.add(lip);
+  const beacon=new THREE.Mesh(new THREE.SphereGeometry(.095,12,8),core);beacon.position.z=.05;mouth.add(beacon);
+  // Fine ribs follow the upper armour slope; all 48 ribs share one draw call.
+  const ribs=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),metal,48),matrix=new THREE.Matrix4();
+  for(let i=0;i<48;i++){const t=(i+.5)/48,x=-4.3+t*8.5,h=1.04+t*.74,d=.8+t*.55;
+    const rotation=new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.atan2(h,d),0,0));
+    matrix.compose(new THREE.Vector3(x,h*.50+.015,d*.50+.015),rotation,new THREE.Vector3(i%6===0?.045:.018,.025,Math.hypot(h,d)*.92));ribs.setMatrixAt(i,matrix);
+  }ship.add(ribs);
+  ship.rotation.set(.10,-.52,.09);
+  return ship;
+}
+// End distant dreadnaught.
+
 // CDH-0028: ambient space. This closed component knows geometry, viewport and its
 // own animation clock only. No room, run, event, hull, quota or replay input.
 function createAmbientSky() {
   const group = new THREE.Group(); group.name = 'ambient-space';
+  const dreadnaught=createDistantDreadnaught();group.add(dreadnaught);
   const uniforms = { time: { value: 0 }, pan: { value: new THREE.Vector2() }, span: { value: new THREE.Vector2(1,1) }, aspect: { value: 1 } };
   const vertex = `varying vec3 vNormal; varying vec3 vPoint; varying vec2 vUv;
     void main(){vNormal=normalize(normalMatrix*normal);vPoint=position;vUv=uv;
@@ -647,6 +704,7 @@ function createAmbientSky() {
       origin.copy(viewCamera.position);inverse.copy(group.quaternion).invert();
       const half=8.2, aspect=width/height;
       uniforms.aspect.value=aspect;
+      dreadnaught.position.set(half*aspect*.16,-11.0,-24);dreadnaught.scale.setScalar(width<=720?.68:1);
       for(const body of planets){const [x,y,z]=body.layout;body.orbit.position.set(half*aspect*x,y,z);body.orbit.visible=width>720||body===near||body===far||body===moon;}
       if(width<=720){near.orbit.position.set(-half*aspect*.95,1.1,-1);far.orbit.position.set(half*aspect*.78,2.9,-16);far.orbit.scale.setScalar(.48);}else far.orbit.scale.setScalar(1);
       starLayers[1].points.visible=width>720;
