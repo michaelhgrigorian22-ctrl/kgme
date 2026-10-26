@@ -6,7 +6,9 @@ from: michou
 to: codex
 model: gpt-6-astra
 tier: 2
-status: proposed
+status: open
+adopted_by: michou
+adopted: 2026-10-26T00:50:00-07:00
 depends_on: [CDH-0030]
 design_track: HANDOFF-0036
 ---
@@ -56,6 +58,12 @@ The one rule stands: the vignette, the frame glow, the scanlines and the tick ra
 - `make check` green with the new tests; 0 blocking lint findings.
 
 Report, close out and commit as for CDH-0023, then stop for Cowork's native pass (the words in the pane at the corners, board 7's captions, the look of the edges with the vignette behind the text).
+
+## Outputs
+
+- `tests/test_design_contrast.py`: the static check of D.8, under `make check`.
+- `docs/audit/cockpit-design/cdh-0032-implementation.md`: the implementation report, with every delivered file's SHA-256, the per-board counts before and after, every check and every score.
+- The changed design files under `docs/design/cockpit-v0/` (the boards, `Tray.dc.html`; the station only if a shared file forces it).
 
 ## Acceptance
 
