@@ -102,7 +102,7 @@ ID_FAMILIES = (
     re.compile(r"^AUDIT-CDH-\d{4}$"),
     re.compile(r"^PLAN-[A-Z0-9-]+$"),
     re.compile(r"^READER-[A-Z0-9-]+$"),
-    re.compile(r"^(STATUS|ROADMAP|CORRECTIONS)$"),
+    re.compile(r"^(STATUS|ROADMAP|CORRECTIONS|TOOLBOX)$"),
 )
 # The schema's example has whole seconds; fractional seconds are still ISO 8601 with an offset
 # and are what the ledger writes, so they are accepted (stated in AUDIT-0022).

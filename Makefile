@@ -1,5 +1,5 @@
 # KGME. `make check` is the gate before any commit (ADR-015). Nothing here needs sudo.
-.PHONY: check setup canary-agents
+.PHONY: check setup canary-agents assets
 
 check:
 	@test "$$(git config --get core.hooksPath)" = "control/git-hooks" || { echo "make check: core.hooksPath is not control/git-hooks, so commits are not pushed; run: make setup (HANDOFF-0040)"; exit 1; }
@@ -19,3 +19,9 @@ canary-agents:
 setup:
 	git config core.hooksPath control/git-hooks
 	@echo "make setup: core.hooksPath = control/git-hooks; every commit on main now pushes (HANDOFF-0040, HANDOFF-0049)"
+
+# Binary assets a toolbox row names (character packs, fonts, models) are never committed: this
+# fetches each by its pinned URL and checks its sha256 into a gitignored folder (ADR-020,
+# HANDOFF-0044). No row needs one yet, so it does nothing.
+assets:
+	@echo "make assets: no toolbox row names a binary asset yet (docs/toolbox.md); nothing to fetch"

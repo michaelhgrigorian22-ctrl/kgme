@@ -246,6 +246,9 @@ def run_lint(args: argparse.Namespace) -> int:
             date.today(), settings.get("coherence", {}).get("blocking_from")
         )
         findings += coherence.check_tree(*vault.read_coherence_inputs(base), cls=cls)
+        from kgme import toolbox_read  # every third-party thing has its row (ADR-020, 0044)
+
+        findings += toolbox_read.read_findings(base)
     for finding in findings:
         if finding.cls != "cosmetic" or args.include_cosmetic:
             print(finding.line())
