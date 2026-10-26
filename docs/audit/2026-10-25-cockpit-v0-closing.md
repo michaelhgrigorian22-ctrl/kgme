@@ -30,7 +30,7 @@ Michou's approval in the ledger: `approve:canvas:11b686baa0eccfbb21832728c4d77d4
 
    It polls `/api/events` every two seconds and displays the server's run states; it decides none. Every event string is set as text: no `innerHTML`, `outerHTML`, `insertAdjacentHTML`, `document.write` or `eval`, as held by `tests/test_server.py`. The page spec drawn from the boards is `logs/scratch/handoff-0037/page-spec.md`; every degradation in it is listed under "Deviations" below.
 2. **`cockpit/manifest.json` and `cockpit/icon.png`** (§4). The manifest is standalone, with `start_url` `/`, the ground colour, and one 512 × 512 icon declared at 192 and 512. The page links the manifest and an `apple-touch-icon` for Safari's "Add to Dock". The manifest's description and the page state that the Dock icon does not start the server.
-3. **`docs/readers/cockpit.md`** (§5), a human path, drafted as `logs/scratch/handoff-0037/cockpit-reader.diff` for Michou. It covers starting the cockpit, installing it to the Dock, reading the timeline, and the keys. **The README sentence** item 4 asks for (the Dock icon does not start the server) is drafted for the front door as `logs/scratch/handoff-0037/readme.diff`.
+3. **`docs/readers/cockpit.md`** (§5), a human path. The builder drafted it, Michou applied it in the checkout, and it is committed with this handoff. It covers starting the cockpit, installing it to the Dock, reading the timeline, and the keys. **The README sentence** item 4 asks for (the Dock icon does not start the server) was drafted the same way, applied by Michou to `README.md`'s `cockpit/` line, and is committed here.
 4. **Cycle 2's cosmetic findings:**
    - **F4:** `do_GET` delegates its file reads to `read_file`, and `Handler.__init__` is documented.
    - **F6:** the closing check pins and checks Node v25.9.0 exactly (nvm), refusing any other version.
@@ -88,13 +88,20 @@ Checked in the browser against a scratch ledger of 61 events: the 40 samples, 20
   - **Michou chooses:** amend 0037 to defer `w` to a follow-up handoff that names the binding in its acceptance (F11 then becomes advisory), or widen 0037 to the wall, the station, their routes and the vendored module.
   - **Meanwhile:** `w` stays unbound, and the `?` map lists it under `Approved · deferred`, not as Phase 2.
   - **Michou's ruling, 2026-10-25 22:50 PDT, on Cowork's recommendation:** HANDOFF-0037's **amendment of 2026-10-25** (committed in `9865a93`) ships `w` unbound, labelled "Approved · deferred (HANDOFF-0058)" in the keyboard map. The wall, the station, their routes and the vendored three.js are **HANDOFF-0058** (`docs/handoff/proposed/2026-10-25-cockpit-wall-and-station.md`), filed with HANDOFF-0044 and built after it, whose acceptance names the desk → wall → station binding as approved. **F11 is advisory on that condition.**
-- **F12 (cosmetic, deferred):** the page is 540 lines in one inline file, and its effects are not named by ADR-015's prefixes. Splitting it means a build step or extra routes, which the handoff's one-file, four-route shape rules out. Left for the weekly review.
+- **F12 (cosmetic, deferred):** the page is 543 lines in one inline file, and its effects are not named by ADR-015's prefixes. Naming and separating the inline functions needs neither routes nor a build step (review cycle 4 corrects the first rationale). It is deferred as cosmetic work for the weekly review. The size exception stands because the handoff asks for one self-contained file.
+
+## Review cycle 4 (AUDIT-0119, BLOCK on F9), fixed
+- **F9:** with an event's detail open, opening the runs pane (by `a` or the header button) changed a hidden selection, because the right column drew the detail first. Opening the pane now closes the detail, and the column draws the pane whenever it is open.
+  - **Red, on the staged pre-fix page:** detail open, then `a` and the button showed no pane and no selection.
+  - **Green, on the fixed page:** `a` showed the pane, `j` selected the next open run, `Enter` filtered the timeline to it, and the button showed the pane too.
+- **F13 (advisory), the evidence for the page's fixes:** the page's logic runs only in a browser, and `make check` has no JavaScript runtime by design (adding one is a toolbox decision, HANDOFF-0044's). So the deterministic commands are browser scripts, recorded with their results in `logs/scratch/handoff-0037/browser-checks.md`. F9's red and green runs are recorded there; for cycle 3's F7, F9 and F10 only the fixed runs were recorded. F7's eviction case shares the tested condition (`S.byId.has(e.parent)`) and was not run separately.
+- **F1 (advisory):** the report's draft-only claims for the reader and the README are corrected above. The Dock install and the evening of use remain Michou's.
 
 ## Deferred, not a gap in the page
 CDH-0030, the WebKit check, has not run. Michou's approval defers it to the Tauri ADR.
 
 ## Left open
-- Michou applies `logs/scratch/handoff-0037/cockpit-reader.diff`, installs the page to the Dock, and uses it for one evening.
+- Michou installs the page to the Dock and uses it for one evening (the handoff's own reviewer step). The handoff closes on review cycle 5 (AUDIT-0120, PASS) on Michou's instruction; its F1 advisory, to record these two before closing, stands open for him.
 - AUDIT-0114 F5's remaining clause is closed by this cycle; F4 and F6 are fixed.
 - Decisions the page spec raised for Michou:
   - whether "halted" should read for any blocked run (the board equates the two);
