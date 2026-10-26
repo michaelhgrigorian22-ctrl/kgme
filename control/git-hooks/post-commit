@@ -7,8 +7,11 @@
 # which sets `core.hooksPath control/git-hooks`; `make check` fails when it is unset.
 #
 # A hook runs with a bare environment: PATH is set here so `uv` (~/.local/bin) and `gh`, the
-# HTTPS credential helper (/opt/homebrew/bin), resolve (lesson of 2026-09-11, AUDIT-0009).
-PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
+# HTTPS credential helper (/opt/homebrew/bin), resolve (lesson of 2026-09-11, AUDIT-0009), and
+# `claude`, which `make check`'s mod step runs in a merge trial (installed through nvm, a native
+# binary; HANDOFF-0062). tests/test_hook_path.py resolves every tool the hook path runs on this
+# line, so a tool that moves (a Node upgrade moves this folder) is red in the shell first.
+PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$HOME/.nvm/versions/node/v25.9.0/bin"
 export PATH
 GIT_TERMINAL_PROMPT=0
 export GIT_TERMINAL_PROMPT
