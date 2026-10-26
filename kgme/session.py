@@ -43,7 +43,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
-from kgme import clean_fs, events, ledger, loop_outputs, paths, review_io
+from kgme import clean_fs, events, ledger, loop_outputs, mods, paths, review_io
 from kgme.frontmatter import parse_frontmatter
 from kgme.session_logic import (  # noqa: F401 - the launcher's pure half, re-exported
     AUTHORS,
@@ -253,6 +253,20 @@ def read_route(
     return "cheap"
 
 
+def read_mod_dirs(base: Path, level: str, settings: dict) -> tuple[Path, ...]:
+    """Effect: the mod folders `kgme.toml [mods]` names for `level` (HANDOFF-0059), each checked
+    to be a mod folder under `mods/`, through no symlink and inside the repository
+    (`mods.read_mod_problem`); `ValueError` names one that is not."""
+    folders = []
+    for name in mods.level_mods(level, settings):
+        folder = base.resolve() / mods.MODS / name
+        problem = mods.read_mod_problem(base.resolve(), folder)
+        if problem:
+            raise ValueError(f"kgme.toml [mods] {level} names {name}: {problem}")
+        folders.append(folder)
+    return tuple(folders)
+
+
 def read_launch(
     level: str, handoff: str | None, extra: list[str], base: Path, settings: dict, run: str
 ) -> tuple[Launch, dict]:
@@ -297,9 +311,15 @@ def read_launch(
     if level == "loose":
         claude_md, carried = read_carried_prompt(main, workspace, settings, handoff)
         claude_path = copy.with_name("CLAUDE.md")
-    argv = build_argv(level, copy, model, caps, extra, claude_path)
+    plugin_dirs = read_mod_dirs(base, level, settings)
+    if plugin_dirs:
+        # the project `/capture`'s `uv run --frozen kgme capture` runs in: the checkout this
+        # level launched from, wherever the terminal stands (review cycle 1 F2)
+        env |= {"UV_PROJECT": str(base.resolve())}
+    argv = build_argv(level, copy, model, caps, extra, claude_path, plugin_dirs)
     record = {
         "level": level,
+        "mods": [folder.name for folder in plugin_dirs],
         "handoff": handoff,
         "workspace": str(workspace),
         "template": template_path.relative_to(base).as_posix(),

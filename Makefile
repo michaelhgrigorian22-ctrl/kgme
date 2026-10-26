@@ -7,6 +7,7 @@ check:
 	uv run ruff check .
 	uv run ruff format --check .
 	uv run kgme lint
+	uv run python -P -m kgme.mods
 	uv run pytest -q tests -m "not agents"
 	@if [ -s logs/scratch/hook-errors.jsonl ]; then echo "make check: logs/scratch/hook-errors.jsonl is not empty; a post-tool hook failed to log (HANDOFF-0028)"; exit 1; fi
 

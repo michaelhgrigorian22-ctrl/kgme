@@ -81,11 +81,15 @@ def build_argv(
     caps: dict,
     extra: list[str],
     claude_md: Path | None = None,
+    plugin_dirs: tuple[Path, ...] = (),
 ) -> list[str]:
     """Pure: the `claude` command line of `level`. `loose` loads no project settings
     (`--setting-sources local`, ADR-022 addendum of 2026-10-21: the project's allows would merge
     into its pinned list), takes the committed `CLAUDE.md` as `claude_md`, and adds the headless
-    hard stops; `tight` and `work` keep `project,local`."""
+    hard stops; `tight` and `work` keep `project,local`. Each of `plugin_dirs` is a mod the
+    level loads (`--plugin-dir`, HANDOFF-0059); `loose` takes none (ADR-024)."""
+    if level == "loose" and plugin_dirs:
+        raise ValueError("loose loads no mod (ADR-024)")
     sources = "local" if level == "loose" else "project,local"
     argv = ["claude", "--setting-sources", sources, "--settings", str(settings_file)]
     argv += ["--permission-mode", LEVELS[level], "--model", model]
@@ -94,6 +98,8 @@ def build_argv(
         argv += ["--max-budget-usd", str(caps["max_budget_usd"])]
     if claude_md is not None:
         argv += ["--append-system-prompt-file", str(claude_md)]
+    for folder in plugin_dirs:
+        argv += ["--plugin-dir", str(folder)]
     return argv + list(extra)
 
 

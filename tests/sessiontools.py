@@ -57,6 +57,7 @@ def write_checkout(tmp_path: Path, handoffs: dict | None = None) -> tuple[Path, 
         **SETTINGS,
         "models": {**SETTINGS["models"], "builder": "claude-opus-5-5"},
         "sessions": {"max_turns": 60, "max_budget_usd": 15},
+        "mods": {},  # a fixture checkout holds no mod folder; a test that loads one sets it
     }
     return base.resolve(), settings
 
