@@ -14,10 +14,10 @@ body{margin:0;background:#0a0c10;color:#cfe6ef;font-family:'JetBrains Mono',ui-m
 a{color:#39d0ff}a:hover{color:#cfe6ef}
 /* CDH-0007 · the active-runs tray. Every class is tr- prefixed so the component can be
    mounted inside boards 3, 4, 5, 6 and 9 without touching their own rules. */
-.tr-lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#6f8290}
+.tr-lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#7a8d9b}
 .tr-kbd{display:inline-block;min-width:16px;padding:0 5px;border:1px solid #39d0ff;color:#39d0ff;font-size:10px;line-height:16px;text-align:center;border-radius:2px}
 .tr-chip{display:inline-block;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:0 6px;border:1px solid currentColor;line-height:15px;border-radius:1px;white-space:nowrap}
-.tr-ok{color:#4de38a}.tr-block{color:#ff3d7f}.tr-amber{color:#ffb02e}.tr-muted{color:#6f8290}.tr-live{color:#39d0ff}.tr-text{color:#cfe6ef}
+.tr-ok{color:#4de38a}.tr-block{color:#ff3d7f}.tr-amber{color:#ffb02e}.tr-muted{color:#7a8d9b}.tr-live{color:#39d0ff}.tr-text{color:#cfe6ef}
 .tr-root :where(button){font:inherit;font-family:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;text-align:left}
 /* CDH-0014: the count's status region (ux-guidelines 118), visually hidden, one atomic sentence; the pane's close button at 24 px (row 104) */
 .tr-vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
@@ -39,15 +39,15 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .tr-row:hover{background:#0f141b}
 .tr-focus,.tr-row.tr-focus:hover{outline:1px solid #39d0ff;outline-offset:-1px;background:#0e1a22}
 .tr-l1{display:flex;gap:8px;min-width:0;font-size:11px;white-space:nowrap;overflow:hidden}
-.tr-l1 .tr-map{flex:none}.tr-l1 .tr-run{color:#6f8290;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.tr-l1 .tr-map{flex:none}.tr-l1 .tr-run{color:#7a8d9b;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .tr-life{font-size:10px;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;text-align:right}
-.tr-life .tr-quiet{color:#6f8290;letter-spacing:0;text-transform:none}
-.tr-l2{display:flex;gap:8px;min-width:0;font-size:10px;color:#6f8290;white-space:nowrap;overflow:hidden}
+.tr-life .tr-quiet{color:#7a8d9b;letter-spacing:0;text-transform:none}
+.tr-l2{display:flex;gap:8px;min-width:0;font-size:10px;color:#7a8d9b;white-space:nowrap;overflow:hidden}
 .tr-l2 .tr-el{flex:none}.tr-l2 .tr-ev{overflow:hidden;text-overflow:ellipsis;min-width:0}
 /* AUDIT-CDH-0008 F1 and AUDIT-CDH-0011 T1: after the base rules, every muted line of the focused row is #7a8d9b, 5.14:1 on #0e1a22 */
 .tr-focus .tr-run,.tr-focus .tr-l2,.tr-focus .tr-quiet,.tr-focus .tr-muted{color:#7a8d9b}
-.tr-foot{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;padding-top:8px;border-top:1px solid #1e2a33;font-size:10px;color:#6f8290}
-.tr-empty{font-size:11px;color:#6f8290;padding:6px 0 10px}
+.tr-foot{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;padding-top:8px;border-top:1px solid #1e2a33;font-size:10px;color:#7a8d9b}
+.tr-empty{font-size:11px;color:#7a8d9b;padding:6px 0 10px}
 /* the sheet: the component drawn for board 1 and for this artboard on its own */
 .tr-sheet{display:flex;flex-direction:column;gap:18px;min-width:0}
 .tr-h{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#39d0ff;margin:0 0 10px}
@@ -55,12 +55,12 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .tr-demo{display:flex;flex-direction:column;gap:8px;min-width:0}
 .tr-demo .tr-col{padding:10px 12px;border:1px solid #1e2a33;background:#0a0c10}
 .tr-demo .tr-sum{white-space:normal}
-.tr-note{margin:0;font-size:11px;color:#6f8290}
+.tr-note{margin:0;font-size:11px;color:#7a8d9b}
 .tr-note b{color:#cfe6ef;font-weight:500}
 .tr-anatomy{display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);gap:18px;align-items:start}
 .tr-anatomy .tr-pane{padding:10px 12px;border:1px solid #1e2a33;background:#11151c}
 .tr-rules{display:grid;grid-template-columns:96px minmax(0,1fr);gap:5px 12px;font-size:11px}
-.tr-rules span:nth-child(odd){color:#6f8290;letter-spacing:.08em;text-transform:uppercase;font-size:10px;padding-top:1px}
+.tr-rules span:nth-child(odd){color:#7a8d9b;letter-spacing:.08em;text-transform:uppercase;font-size:10px;padding-top:1px}
 .tr-board{min-height:100vh;box-sizing:border-box;padding:36px;display:flex;flex-direction:column;gap:22px;background:#0a0c10}
 .tr-pnl{position:relative;background:#11151c;border:1px solid #1e2a33;clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);padding:14px}
 .tr-pnl::before,.tr-pnl::after{content:"";position:absolute;width:10px;height:10px;border:1px solid #39d0ff;pointer-events:none;z-index:1}
@@ -892,7 +892,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
       <div class="tr-lbl">KGME cockpit v0 · CDH-0007 · HANDOFF-0036</div>
       <h1 style="margin:2px 0 0;font-size:22px;font-weight:700;letter-spacing:.04em">Active-runs tray — the cast at work</h1>
     </div>
-    <div style="max-width:760px;font-size:11px;color:#6f8290">Who is working, waiting, retrying or blocked, as one slot in the top bar of every live board, and as a pane under <span class="tr-kbd">a</span>. The text is the signal; the 24 px phosphor portraits from board 10 mirror it. Samples are real event shapes from <code>logs/ledger</code>.</div>
+    <div style="max-width:760px;font-size:11px;color:#7a8d9b">Who is working, waiting, retrying or blocked, as one slot in the top bar of every live board, and as a pane under <span class="tr-kbd">a</span>. The text is the signal; the 24 px phosphor portraits from board 10 mirror it. Samples are real event shapes from <code>logs/ledger</code>.</div>
   </div>
   <section class="tr-pnl">
 <div class="tr-sheet">

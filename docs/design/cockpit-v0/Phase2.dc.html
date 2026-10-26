@@ -15,32 +15,43 @@
 body{margin:0;background:#0a0c10;color:#cfe6ef;font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.45}
 a{color:#39d0ff}a:hover{color:#cfe6ef}
 .hud{position:relative;min-height:100vh;display:flex;flex-direction:column;background:#0a0c10;isolation:isolate;overflow:hidden}
-.frame{position:absolute;inset:0;pointer-events:none;border:1px solid var(--f);box-shadow:inset 0 0 0 1px rgba(0,0,0,.6),inset 0 0 90px var(--fg);z-index:3}
-.scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(207,230,239,.035) 0 1px,transparent 1px 3px);z-index:4}
-.tx{position:absolute;left:28px;right:28px;height:6px;background:repeating-linear-gradient(90deg,var(--f) 0 1px,transparent 1px 8px);opacity:.45;pointer-events:none;z-index:3}
-.ty{position:absolute;top:28px;bottom:28px;width:6px;background:repeating-linear-gradient(180deg,var(--f) 0 1px,transparent 1px 8px);opacity:.45;pointer-events:none;z-index:3}
-.micro{position:absolute;font-size:9px;letter-spacing:.14em;color:#6f8290;text-transform:uppercase;pointer-events:none;z-index:3;white-space:nowrap}
+.frame{position:absolute;inset:0;pointer-events:none;border:1px solid var(--f);box-shadow:inset 0 0 0 1px rgba(0,0,0,.6),inset 0 0 90px var(--fg)}
+.scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(207,230,239,.035) 0 1px,transparent 1px 3px)}
+.tx{position:absolute;left:28px;right:28px;height:6px;background:repeating-linear-gradient(90deg,var(--f) 0 1px,transparent 1px 8px);opacity:.45;pointer-events:none}
+.ty{position:absolute;top:28px;bottom:28px;width:6px;background:repeating-linear-gradient(180deg,var(--f) 0 1px,transparent 1px 8px);opacity:.45;pointer-events:none}
+.micro{position:absolute;font-size:9px;letter-spacing:.14em;color:#7a8d9b;text-transform:uppercase;pointer-events:none;z-index:3;white-space:nowrap}
 .pnl{position:relative;background:#11151c;border:1px solid #1e2a33;clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
-.brk::before,.brk::after{content:"";position:absolute;width:10px;height:10px;border:1px solid var(--f);pointer-events:none;z-index:1}
+.brk::before,.brk::after{content:"";position:absolute;width:10px;height:10px;border:1px solid var(--f);pointer-events:none}
 .brk::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
 .brk::after{bottom:-1px;right:-1px;border-left:0;border-top:0}
-.lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#6f8290}
+.lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#7a8d9b}
 .chip{display:inline-block;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:0 6px;border:1px solid currentColor;line-height:15px;border-radius:1px;white-space:nowrap}
-.c-ok{color:#4de38a}.c-block{color:#ff3d7f}.c-trans{color:#ffb02e}.c-none{color:#6f8290}.c-live{color:#39d0ff}
-.p2{position:relative;border:1px dashed #3a4650;background:rgba(17,21,28,.8);color:#6f8290}
-.p2 .tag{position:absolute;top:-8px;right:10px;font-size:8px;letter-spacing:.14em;text-transform:uppercase;padding:0 6px;background:#0a0c10;border:1px dashed #3a4650;color:#6f8290;line-height:14px}
-.p2 .kbd{color:#6f8290;border-color:#3a4650;border-style:dashed}
+.c-ok{color:#4de38a}.c-block{color:#ff3d7f}.c-trans{color:#ffb02e}.c-none{color:#7a8d9b}.c-live{color:#39d0ff}
+.p2{position:relative;border:1px dashed #3a4650;background:rgba(17,21,28,.8);color:#7a8d9b}
+.p2 .tag{position:absolute;top:-8px;right:10px;font-size:8px;letter-spacing:.14em;text-transform:uppercase;padding:0 6px;background:#0a0c10;border:1px dashed #3a4650;color:#7a8d9b;line-height:14px}
+.p2 .kbd{color:#7a8d9b;border-color:#3a4650;border-style:dashed}
 .row{display:grid;grid-template-columns:70px 16px 112px minmax(0,1fr) 92px 56px;gap:10px;align-items:center;padding:3px 10px;border-bottom:1px solid #141b22;min-height:22px}
 .grp{display:flex;gap:12px;align-items:baseline;padding:8px 10px 4px;border-bottom:1px solid #1e2a33;color:#39d0ff;font-size:11px}
 .kbd{display:inline-block;min-width:16px;padding:0 5px;border:1px solid #39d0ff;color:#39d0ff;font-size:10px;line-height:16px;text-align:center;border-radius:2px}
 .seg{display:flex;gap:2px}.seg i{display:block;width:7px;height:12px;background:#1e2a33}.seg i.on{background:#39d0ff}
-.buf{width:40px;height:26px;border:1px dashed #3a4650;display:flex;align-items:center;justify-content:center;font-size:9px;color:#6f8290}
+.buf{width:40px;height:26px;border:1px dashed #3a4650;display:flex;align-items:center;justify-content:center;font-size:9px;color:#7a8d9b}
 .buf.full{border-style:solid;border-color:#6f8290;background:#161c24;color:#cfe6ef}
 .blink{animation:blink 1.2s steps(2,end) infinite}
 @keyframes blink{50%{opacity:.2}}
 @media (prefers-reduced-motion:reduce){.blink{animation:none}.scan{display:none}}
 .quota-alert{display:flex;align-items:center;gap:8px;min-height:24px;font-size:11px}.quota-track{width:80px;height:7px;border:1px solid currentColor}.quota-track i{display:block;height:100%;background:currentColor}
-.future-path{margin:0 36px 14px;padding:10px 12px;border-left:2px dashed #7a8d9b;font-size:11px;color:#7a8d9b}.future-path p{margin:6px 0 0}.future-role{display:flex;align-items:center;gap:8px;color:#cfe6ef}.future-role .chibi{width:24px;height:24px}.hud[data-calm="true"] .future-role .chibi{visibility:hidden}</style>
+.future-path{margin:0 36px 14px;padding:10px 12px;border-left:2px dashed #7a8d9b;font-size:11px;color:#7a8d9b}.future-path p{margin:6px 0 0}.future-role{display:flex;align-items:center;gap:8px;color:#cfe6ef}.future-role .chibi{width:24px;height:24px}.hud[data-calm="true"] .future-role .chibi{visibility:hidden}
+/* CDH-0032: isolated ground, negative decoration, then normal-flow text (0+). */
+.pnl{isolation:isolate}
+.brk::before,.brk::after{z-index:-1}
+.vig,.flood{z-index:-3}
+.frame,.tx,.ty,.sweep{z-index:-2}
+.scan,.static{z-index:-1}
+.micro{background:#0a0c10}
+/* Repeat the original scan on opaque panel surfaces, behind their words. */
+.hud:has(.scan) .pnl{background-image:repeating-linear-gradient(0deg,rgba(207,230,239,.035) 0 1px,transparent 1px 3px);background-attachment:fixed}
+@media (prefers-reduced-motion:reduce){.hud:has(.scan) .pnl{background-image:none}}
+</style>
 </helmet>
 <div class="hud" data-calm="{{calm}}" style="--f:#39d0ff;--fg:rgba(57,208,255,.10)">
 <sc-if value="{{noise}}" hint-placeholder-val="{{ true }}">
@@ -57,20 +68,20 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 </sc-if>
 
 <header style="position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:12px 22px;align-items:flex-end;padding:30px 36px 10px">
-  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">clock</span><span style="font-size:22px;font-weight:700;letter-spacing:.04em">19:52:14<span style="color:#6f8290;font-size:12px;font-weight:400"> −07:00</span></span></div>
+  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">clock</span><span style="font-size:22px;font-weight:700;letter-spacing:.04em">19:52:14<span style="color:#7a8d9b;font-size:12px;font-weight:400"> −07:00</span></span></div>
   <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">ledger</span><span style="font-size:14px"><span class="c-live blink">●</span> live · <b style="font-weight:500">1 479</b> events</span></div>
   <dc-import name="Tray" view="bar" runs="{{trayRuns}}" calm="{{calm}}" hint-size="300px,38px"></dc-import>
 </header><section class="future-path" aria-label="future interaction"><h2 class="lbl">One future interaction · all dashed controls are inactive</h2><p>1 · Dispatch a handoff. 2 · Its tool request waits at the guard. 3 · You allow once or deny; the arbiter distinguishes that permission from a review ruling. A side question reads the same run through the model route below, without writing to it.</p></section>
 <div style="position:relative;z-index:1;padding:4px 36px 8px;display:flex;flex-wrap:wrap;gap:14px"><div class="p2" style="padding:8px 12px;display:flex;flex-direction:column;gap:4px;min-width:330px">
     <span class="tag">phase 2 · model routing</span>
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span class="lbl" style="color:#6f8290">side-question model · <span class="kbd">m</span></span><span style="font-size:12px">optimized ▾</span></div>
-    <div style="font-size:11px">would answer with <span style="color:#cfe6ef">ollama · qwen3:14b</span> <span style="color:#6f8290">· why: transform, tier 2, no tools · cost ≈ 0 · 1 keystroke overrides</span></div>
-    <div style="display:flex;gap:6px;font-size:10px"><span class="chip" style="color:#6f8290">claude-fable-5-1</span><span class="chip" style="color:#6f8290">claude-opus-5-5</span><span class="chip" style="color:#6f8290">gpt-6-astra</span><span class="chip" style="color:#6f8290">groq</span><span class="chip" style="color:#cfe6ef;border-style:solid">ollama</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span class="lbl" style="color:#7a8d9b">side-question model · <span class="kbd">m</span></span><span style="font-size:12px">optimized ▾</span></div>
+    <div style="font-size:11px">would answer with <span style="color:#cfe6ef">ollama · qwen3:14b</span> <span style="color:#7a8d9b">· why: transform, tier 2, no tools · cost ≈ 0 · 1 keystroke overrides</span></div>
+    <div style="display:flex;gap:6px;font-size:10px"><span class="chip" style="color:#7a8d9b">claude-fable-5-1</span><span class="chip" style="color:#7a8d9b">claude-opus-5-5</span><span class="chip" style="color:#7a8d9b">gpt-6-astra</span><span class="chip" style="color:#7a8d9b">groq</span><span class="chip" style="color:#cfe6ef;border-style:solid">ollama</span></div>
   </div>
 <div class="p2" style="padding:8px 12px;display:flex;flex-direction:column;gap:4px">
     <span class="tag">phase 2 · vs code follow</span>
-    <span class="lbl" style="color:#6f8290">editor is following</span>
-    <span style="font-size:11px">kgme/sync_io.py:88 <span style="color:#6f8290">· code --goto · off with <span class="kbd">v</span></span></span>
+    <span class="lbl" style="color:#7a8d9b">editor is following</span>
+    <span style="font-size:11px">kgme/sync_io.py:88 <span style="color:#7a8d9b">· code --goto · off with <span class="kbd">v</span></span></span>
   </div></div>
 
 <div style="position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:14px;padding:4px 36px 8px;flex:1 1 auto;align-content:flex-start">
@@ -81,44 +92,44 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
     </section>
     <section class="p2" style="padding:12px;display:flex;flex-direction:column;gap:8px">
       <span class="tag">phase 2 · dispatch</span>
-      <span class="lbl" style="color:#6f8290">command line · <span class="kbd">;</span></span>
-      <div style="border:1px dashed #3a4650;padding:4px 8px;font-size:11px;color:#6f8290">; dispatch HANDOFF-0033 → claude-code<span class="blink">▮</span></div>
-      <span style="font-size:10px;color:#6f8290">adopts, launches <code>claude -p</code> under the manifest, writes the intent first.</span>
+      <span class="lbl" style="color:#7a8d9b">command line · <span class="kbd">;</span></span>
+      <div style="border:1px dashed #3a4650;padding:4px 8px;font-size:11px;color:#7a8d9b">; dispatch HANDOFF-0033 → claude-code<span class="blink">▮</span></div>
+      <span style="font-size:10px;color:#7a8d9b">adopts, launches <code>claude -p</code> under the manifest, writes the intent first.</span>
     </section>
     <section class="p2" style="padding:12px;display:flex;flex-direction:column;gap:8px">
       <span class="tag">phase 2 · queued messages</span>
-      <span class="lbl" style="color:#6f8290">buffer · <span class="kbd">Space</span> while a turn runs</span>
+      <span class="lbl" style="color:#7a8d9b">buffer · <span class="kbd">Space</span> while a turn runs</span>
       <div style="display:flex;gap:6px"><div class="buf full">1</div><div class="buf full">2</div><div class="buf"></div><div class="buf"></div><div class="buf"></div></div>
-      <span style="font-size:10px;color:#6f8290">2 queued · delivered in order when the turn ends · Esc interrupts instead</span>
+      <span style="font-size:10px;color:#7a8d9b">2 queued · delivered in order when the turn ends · Esc interrupts instead</span>
     </section>
   </aside>
 
   <main class="pnl brk" style="flex:999 1 480px;min-width:0;display:flex;flex-direction:column">
     <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid #1e2a33"><span class="lbl">timeline · newest at bottom · <span class="c-live">following</span></span><span class="lbl">v0 · unchanged</span></div>
     <div style="flex:1 1 auto;overflow:auto">
-      <div class="grp"><span>▣ run c70d687b…8447</span><span style="color:#6f8290">claude-code · HANDOFF-0040</span></div>
-      <div class="row"><span style="color:#6f8290">19:41:33</span><span style="color:#6f8290">▶</span><span style="color:#6f8290">tool:Bash</span><span>Bash uv run --frozen pytest tests/test_sync.py -q</span><span><span class="chip c-none">—</span></span><span></span></div>
-      <div class="row"><span style="color:#6f8290">19:41:48</span><span>◀</span><span style="color:#6f8290">tool:Bash</span><span>Bash ok · 9 passed</span><span><span class="chip c-ok">ok</span></span><span style="text-align:right;color:#6f8290">15 s</span></div>
-      <div class="row"><span style="color:#6f8290">19:42:40</span><span style="color:#6f8290">▶</span><span style="color:#6f8290">tool:Bash</span><span>Bash git push origin main</span><span><span class="chip c-none">—</span></span><span></span></div>
-      <div class="row" style="border-bottom:0"><span style="color:#6f8290">19:52:14</span><span class="c-live blink">▮</span><span></span><span style="color:#6f8290">waiting for the next event…</span><span></span><span></span></div>
+      <div class="grp"><span>▣ run c70d687b…8447</span><span style="color:#7a8d9b">claude-code · HANDOFF-0040</span></div>
+      <div class="row"><span style="color:#7a8d9b">19:41:33</span><span style="color:#7a8d9b">▶</span><span style="color:#7a8d9b">tool:Bash</span><span>Bash uv run --frozen pytest tests/test_sync.py -q</span><span><span class="chip c-none">—</span></span><span></span></div>
+      <div class="row"><span style="color:#7a8d9b">19:41:48</span><span>◀</span><span style="color:#7a8d9b">tool:Bash</span><span>Bash ok · 9 passed</span><span><span class="chip c-ok">ok</span></span><span style="text-align:right;color:#7a8d9b">15 s</span></div>
+      <div class="row"><span style="color:#7a8d9b">19:42:40</span><span style="color:#7a8d9b">▶</span><span style="color:#7a8d9b">tool:Bash</span><span>Bash git push origin main</span><span><span class="chip c-none">—</span></span><span></span></div>
+      <div class="row" style="border-bottom:0"><span style="color:#7a8d9b">19:52:14</span><span class="c-live blink">▮</span><span></span><span style="color:#7a8d9b">waiting for the next event…</span><span></span><span></span></div>
     </div>
     <div class="p2" style="margin:10px;padding:8px 12px;display:flex;flex-direction:column;gap:4px">
       <span class="tag">phase 2 · /btw side lane</span>
-      <div style="display:flex;gap:10px;align-items:center"><span class="kbd">b</span><span style="flex:1;border:1px dashed #3a4650;padding:4px 8px;font-size:11px;color:#6f8290">/btw why did the reviewer exit 1 three times?</span></div>
-      <span style="font-size:10px;color:#6f8290">reads this run's context, never writes to it, cheapest model, works while a turn runs, across Claude and Codex runs · <span class="kbd">f</span> forks it into a subagent</span>
+      <div style="display:flex;gap:10px;align-items:center"><span class="kbd">b</span><span style="flex:1;border:1px dashed #3a4650;padding:4px 8px;font-size:11px;color:#7a8d9b">/btw why did the reviewer exit 1 three times?</span></div>
+      <span style="font-size:10px;color:#7a8d9b">reads this run's context, never writes to it, cheapest model, works while a turn runs, across Claude and Codex runs · <span class="kbd">f</span> forks it into a subagent</span>
     </div>
   </main>
 
   <aside style="flex:0 1 352px;min-width:300px;display:flex;flex-direction:column;gap:12px">
     <section class="p2" style="padding:12px;display:flex;flex-direction:column;gap:8px">
       <span class="tag">phase 2 · guard request</span><div class="future-role"><svg class="chibi portrait actor-guard mode-waiting pal-phosphor tone-pending" viewBox="29 0 170 170" aria-hidden="true"><use href="#chibi-guard"></use></svg><span>guard · request</span></div>
-      <span class="lbl" style="color:#6f8290">1 pending · the session is waiting</span>
+      <span class="lbl" style="color:#7a8d9b">1 pending · the session is waiting</span>
       <div style="border:1px dashed #3a4650;padding:8px 10px;display:flex;flex-direction:column;gap:4px">
         <span style="font-size:12px;color:#cfe6ef">Bash git push origin main</span>
-        <span style="font-size:10px;color:#6f8290">asks because: network, not in the allow list · guard passed · deny list silent</span>
-        <div style="display:flex;gap:8px;margin-top:4px"><span class="kbd">y</span><span style="font-size:11px">allow once</span><span class="kbd">n</span><span style="font-size:11px">deny</span><span style="margin-left:auto;font-size:10px;color:#6f8290">no "always"</span></div>
+        <span style="font-size:10px;color:#7a8d9b">asks because: network, not in the allow list · guard passed · deny list silent</span>
+        <div style="display:flex;gap:8px;margin-top:4px"><span class="kbd">y</span><span style="font-size:11px">allow once</span><span class="kbd">n</span><span style="font-size:11px">deny</span><span style="margin-left:auto;font-size:10px;color:#7a8d9b">no "always"</span></div>
       </div>
-      <span style="font-size:10px;color:#6f8290">an approval here is a ledger <code>approval</code> event with your name on it, same as <code>kgme ledger note --kind approval</code></span>
+      <span style="font-size:10px;color:#7a8d9b">an approval here is a ledger <code>approval</code> event with your name on it, same as <code>kgme ledger note --kind approval</code></span>
     </section>
     <section class="pnl brk" style="padding:12px;display:flex;flex-direction:column;gap:6px">
       <div class="future-role"><svg class="chibi portrait actor-arbiter mode-idle pal-phosphor tone-live" viewBox="26 0 181 181" aria-hidden="true"><use href="#chibi-arbiter"></use></svg><span>arbiter · ruling</span></div><p style="margin:0;font-size:11px;color:#7a8d9b">A review ruling addresses findings; it does not grant this tool permission. The existing cycle 1 tooling exhaustion is transient, not a strike. The human approval above remains a separate event.</p>
@@ -126,7 +137,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   </aside>
 </div>
 
-<footer style="position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;padding:8px 36px 26px;font-size:11px;color:#6f8290">
+<footer style="position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;padding:8px 36px 26px;font-size:11px;color:#7a8d9b">
   <span><span class="kbd">j</span> <span class="kbd">k</span> move</span>
   <span><span class="kbd">/</span> filter</span>
   <span><span class="kbd">Enter</span> detail</span>

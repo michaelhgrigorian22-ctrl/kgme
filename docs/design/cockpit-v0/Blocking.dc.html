@@ -15,31 +15,31 @@
 body{margin:0;background:#0a0c10;color:#cfe6ef;font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.45}
 a{color:#39d0ff}a:hover{color:#cfe6ef}
 .hud{position:relative;min-height:100vh;display:flex;flex-direction:column;background:#0a0c10;isolation:isolate;overflow:hidden}
-.frame{position:absolute;inset:0;pointer-events:none;border:1px solid var(--f);box-shadow:inset 0 0 0 1px rgba(0,0,0,.6),inset 0 0 140px var(--fg);z-index:3}
-.flood{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(255,61,127,.16),transparent 18%,transparent 82%,rgba(255,61,127,.16));z-index:2}
-.scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(207,230,239,.035) 0 1px,transparent 1px 3px);z-index:4}
-.vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 58%,rgba(0,0,0,.55) 100%);z-index:2}
-.tx{position:absolute;left:28px;right:28px;height:6px;background:repeating-linear-gradient(90deg,var(--f) 0 1px,transparent 1px 8px);opacity:.6;pointer-events:none;z-index:3}
-.ty{position:absolute;top:28px;bottom:28px;width:6px;background:repeating-linear-gradient(180deg,var(--f) 0 1px,transparent 1px 8px);opacity:.6;pointer-events:none;z-index:3}
-.micro{position:absolute;font-size:9px;letter-spacing:.14em;color:#6f8290;text-transform:uppercase;pointer-events:none;z-index:3;white-space:nowrap}
+.frame{position:absolute;inset:0;pointer-events:none;border:1px solid var(--f);box-shadow:inset 0 0 0 1px rgba(0,0,0,.6),inset 0 0 140px var(--fg)}
+.flood{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(255,61,127,.16),transparent 18%,transparent 82%,rgba(255,61,127,.16))}
+.scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(207,230,239,.035) 0 1px,transparent 1px 3px)}
+.vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 58%,rgba(0,0,0,.55) 100%)}
+.tx{position:absolute;left:28px;right:28px;height:6px;background:repeating-linear-gradient(90deg,var(--f) 0 1px,transparent 1px 8px);opacity:.6;pointer-events:none}
+.ty{position:absolute;top:28px;bottom:28px;width:6px;background:repeating-linear-gradient(180deg,var(--f) 0 1px,transparent 1px 8px);opacity:.6;pointer-events:none}
+.micro{position:absolute;font-size:9px;letter-spacing:.14em;color:#7a8d9b;text-transform:uppercase;pointer-events:none;z-index:3;white-space:nowrap}
 .pnl{position:relative;background:#11151c;border:1px solid #1e2a33;clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
-.brk::before,.brk::after{content:"";position:absolute;width:10px;height:10px;border:1px solid var(--f);pointer-events:none;z-index:1}
+.brk::before,.brk::after{content:"";position:absolute;width:10px;height:10px;border:1px solid var(--f);pointer-events:none}
 .brk::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
 .brk::after{bottom:-1px;right:-1px;border-left:0;border-top:0}
-.lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#6f8290}
+.lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#7a8d9b}
 .chip{display:inline-block;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:0 6px;border:1px solid currentColor;line-height:15px;border-radius:1px;white-space:nowrap}
-.c-ok{color:#4de38a}.c-block{color:#ff3d7f}.c-trans{color:#ffb02e}.c-adv{color:#ffb02e}.c-none{color:#6f8290}.c-live{color:#39d0ff}
+.c-ok{color:#4de38a}.c-block{color:#ff3d7f}.c-trans{color:#ffb02e}.c-adv{color:#ffb02e}.c-none{color:#7a8d9b}.c-live{color:#39d0ff}
 .row{display:grid;grid-template-columns:70px 16px 112px minmax(0,1fr) 92px 56px;gap:10px;align-items:center;padding:3px 10px;border-bottom:1px solid #141b22;min-height:22px}
 .row:hover{background:#0f141b}
 .grp{display:flex;gap:12px;align-items:baseline;padding:8px 10px 4px;border-bottom:1px solid #1e2a33;color:#39d0ff;font-size:11px}
 .focus{outline:1px solid #ff3d7f;outline-offset:-1px;background:#1c0f16}
-.mut{color:#6f8290}
+.mut{color:#7a8d9b}
 /* CDH-0017 CW17: the focused row's muted lines read #7a8d9b on the focus tint (5.14:1 on #0e1a22, 5.41:1 on #1c0f16, 5.28:1 on #1a150c) */
 .focus .mut{color:#7a8d9b}
 .kbd{display:inline-block;min-width:16px;padding:0 5px;border:1px solid #39d0ff;color:#39d0ff;font-size:10px;line-height:16px;text-align:center;border-radius:2px}
 .seg{display:flex;gap:2px}.seg i{display:block;width:7px;height:12px;background:#1e2a33}.seg i.on{background:#39d0ff}.seg i.warn{background:#ffb02e}
 .kv{display:grid;grid-template-columns:96px minmax(0,1fr);gap:3px 10px;font-size:11px}
-.kv b{font-weight:400;color:#6f8290}
+.kv b{font-weight:400;color:#7a8d9b}
 .kv span{overflow-wrap:anywhere}
 .blink{animation:blink 1.2s steps(2,end) infinite}
 @keyframes blink{50%{opacity:.2}}
@@ -54,6 +54,17 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 
 /* CDH-0026: one selection mark links responsibility, event and evidence. */
 .selection-mark{color:#39d0ff;margin-right:6px}.causal-trace{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:11px;line-height:1.6;padding:10px 0;border-top:1px solid #1e2a33}.causal-trace a{display:inline-flex;align-items:center;min-height:24px}.causal-link{flex:1 0 24px;min-width:24px;border-top:1px solid currentColor;position:relative}.causal-link::after{content:'›';position:absolute;right:-1px;top:-12px;font-size:16px}.causal-open{border-left:1px dashed #ffb02e;padding:8px 10px;margin:0 10px 10px;font-size:11px;color:#ffb02e}.causal-open .landing{display:block;border:1px dashed #ffb02e;margin-top:6px;padding:6px}.selection-evidence{border-top:2px solid #39d0ff}.selection-band{grid-column:2/-1;padding:8px 10px;background:#0e1a22;border-bottom:1px solid #39d0ff;font-size:11px;display:flex;gap:6px 14px;flex-wrap:wrap}.selection-band .event-summary{flex-basis:100%}.causal-trace a:focus-visible,.selection-evidence:focus-visible{outline:2px solid #39d0ff;outline-offset:-2px}
+
+/* CDH-0032: isolated ground, negative decoration, then normal-flow text (0+). */
+.pnl{isolation:isolate}
+.brk::before,.brk::after{z-index:-1}
+.vig,.flood{z-index:-3}
+.frame,.tx,.ty,.sweep{z-index:-2}
+.scan,.static{z-index:-1}
+.micro{background:#0a0c10}
+/* Repeat the original scan on opaque panel surfaces, behind their words. */
+.hud:has(.scan) .pnl{background-image:repeating-linear-gradient(0deg,rgba(207,230,239,.035) 0 1px,transparent 1px 3px);background-attachment:fixed}
+@media (prefers-reduced-motion:reduce){.hud:has(.scan) .pnl{background-image:none}}
 </style>
 </helmet>
 <div class="hud" style="--f:#ff3d7f;--fg:rgba(255,61,127,.22)">
@@ -115,7 +126,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
             <span class="mut" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{row.job}}</span>
             <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{row.summary}}</span>
             <span><span class="chip {{row.chipCls}}">{{row.chip}}</span></span>
-            <span style="text-align:right;color:#6f8290">{{row.dt}}</span>
+            <span style="text-align:right;color:#7a8d9b">{{row.dt}}</span>
           </div>
         </sc-if>
       </sc-for>
@@ -144,13 +155,13 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
       <span style="font-size:11px">F1 blocking in cycles 1, 2, 3 · root cause: refusal evidence. F1 survivors: write aim counted on target alone; denial without tool-call id matched on tool and target</span>
       <span class="lbl" style="margin-top:4px">To continue after HALT, override from the terminal or reject the staged change.</span>
       <code style="font-size:11px;color:#39d0ff;overflow-wrap:anywhere">kgme review override --handoff HANDOFF-0032 --reason "…"</code>
-      <span style="font-size:11px;color:#6f8290">or <code style="color:#cfe6ef">git restore --staged .</code> to reject. The cockpit records neither; it will show the approval event when it lands.</span>
+      <span style="font-size:11px;color:#7a8d9b">or <code style="color:#cfe6ef">git restore --staged .</code> to reject. The cockpit records neither; it will show the approval event when it lands.</span>
       <button type="button" disabled style="margin-top:4px;align-self:flex-start;font:inherit;font-size:10px;background:transparent;color:#3a4650;border:1px dashed #3a4650;padding:3px 10px">override here · phase 2</button>
     </div>
   </aside>
 </div>
 
-<footer style="position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;padding:8px 36px 26px;font-size:11px;color:#6f8290">
+<footer style="position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;padding:8px 36px 26px;font-size:11px;color:#7a8d9b">
   <span><span class="kbd">j</span> <span class="kbd">k</span> move</span>
   <span><span class="kbd">/</span> filter</span>
   <span><span class="kbd">Enter</span> detail</span>
@@ -192,7 +203,7 @@ class Component extends DCLogic {
     const g = (run, meta) => { const selected = run === this.trayRuns().find(r => r.focus)?.run; return { isGroup: true, isEvent: false, run, meta: selected ? meta.replace(/^.*? · /, '') : meta, selected, unselected: !selected, selectionLabel: 'selected run ' + run }; };
     const e = (t, kind, job, summary, chip, dt, cls) => {
       const glyph = kind === 'intent' ? '▶' : kind === 'outcome' ? '◀' : kind === 'note' ? '✎' : '✓';
-      const glyphStyle = kind === 'intent' ? 'color:#6f8290' : kind === 'outcome' ? 'color:#cfe6ef' : kind === 'note' ? 'color:#ffb02e' : 'color:#4de38a';
+      const glyphStyle = kind === 'intent' ? 'color:#7a8d9b' : kind === 'outcome' ? 'color:#cfe6ef' : kind === 'note' ? 'color:#ffb02e' : 'color:#4de38a';
       const chipCls = chip === 'ok' ? 'c-ok' : chip === 'blocking' || chip === 'refused' ? 'c-block' : chip === 'transient' || chip === 'advisory' ? 'c-trans' : 'c-none';
       return { isGroup: false, isEvent: true, t, glyph, glyphStyle, job, summary, chip: chip || '—', chipCls, dt: dt || '', cls: cls || '', anchor: cls === 'focus' ? 'selected-event' : '' };
     };

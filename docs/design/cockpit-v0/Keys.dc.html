@@ -15,32 +15,43 @@
 body{margin:0;background:#0a0c10;color:#cfe6ef;font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.45}
 a{color:#39d0ff}a:hover{color:#cfe6ef}
 .hud{position:relative;min-height:100vh;display:flex;flex-direction:column;background:#0a0c10;isolation:isolate;overflow:hidden}
-.frame{position:absolute;inset:0;pointer-events:none;border:1px solid var(--f);box-shadow:inset 0 0 0 1px rgba(0,0,0,.6),inset 0 0 90px var(--fg);z-index:3}
-.scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(207,230,239,.035) 0 1px,transparent 1px 3px);z-index:4}
-.tx{position:absolute;left:28px;right:28px;height:6px;background:repeating-linear-gradient(90deg,var(--f) 0 1px,transparent 1px 8px);opacity:.45;pointer-events:none;z-index:3}
-.ty{position:absolute;top:28px;bottom:28px;width:6px;background:repeating-linear-gradient(180deg,var(--f) 0 1px,transparent 1px 8px);opacity:.45;pointer-events:none;z-index:3}
-.micro{position:absolute;font-size:9px;letter-spacing:.14em;color:#6f8290;text-transform:uppercase;pointer-events:none;z-index:3;white-space:nowrap}
+.frame{position:absolute;inset:0;pointer-events:none;border:1px solid var(--f);box-shadow:inset 0 0 0 1px rgba(0,0,0,.6),inset 0 0 90px var(--fg)}
+.scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(207,230,239,.035) 0 1px,transparent 1px 3px)}
+.tx{position:absolute;left:28px;right:28px;height:6px;background:repeating-linear-gradient(90deg,var(--f) 0 1px,transparent 1px 8px);opacity:.45;pointer-events:none}
+.ty{position:absolute;top:28px;bottom:28px;width:6px;background:repeating-linear-gradient(180deg,var(--f) 0 1px,transparent 1px 8px);opacity:.45;pointer-events:none}
+.micro{position:absolute;font-size:9px;letter-spacing:.14em;color:#7a8d9b;text-transform:uppercase;pointer-events:none;z-index:3;white-space:nowrap}
 .pnl{position:relative;background:#11151c;border:1px solid #1e2a33;clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
-.brk::before,.brk::after{content:"";position:absolute;width:10px;height:10px;border:1px solid var(--f);pointer-events:none;z-index:1}
+.brk::before,.brk::after{content:"";position:absolute;width:10px;height:10px;border:1px solid var(--f);pointer-events:none}
 .brk::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
 .brk::after{bottom:-1px;right:-1px;border-left:0;border-top:0}
-.lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#6f8290}
+.lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#7a8d9b}
 .h{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#39d0ff;margin:0 0 8px}
 .kbd{display:inline-block;min-width:16px;padding:0 5px;border:1px solid #39d0ff;color:#39d0ff;font-size:10px;line-height:16px;text-align:center;border-radius:2px}
-.key{width:48px;height:48px;border:1px solid #1e2a33;background:#0e1218;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:3px;color:#3a4650}
-.key b{font-size:13px;font-weight:500;color:#6f8290}
+.key{width:48px;height:48px;border:1px solid #1e2a33;background:#0e1218;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:3px;color:#7a8d9b}
+.key b{font-size:13px;font-weight:500;color:#7a8d9b}
 .key small{font-size:7px;letter-spacing:.06em;text-transform:uppercase;line-height:1;text-align:center}
 .on{border-color:#39d0ff;color:#39d0ff;background:#0e1a22;box-shadow:inset 0 0 12px rgba(57,208,255,.12)}
 .on b{color:#cfe6ef}
 .on small{color:#39d0ff}
 .f2{border-style:dashed;border-color:#3a4650}
-.f2 small{color:#3a4650}
-.f2 b{color:#3a4650}
+.f2 small{color:#7a8d9b}
+.f2 b{color:#7a8d9b}
 .wide{width:72px}.wider{width:96px}.space{width:280px}
 .leg{display:grid;grid-template-columns:72px minmax(0,1fr);gap:4px 12px;font-size:11px;align-items:baseline}
 .leg .k{text-align:right}
 @media (prefers-reduced-motion:reduce){.scan{display:none}}
 .surface-choice{min-height:24px;padding:4px 10px;border:1px solid #1e2a33;background:#0a0c10;color:#cfe6ef;font:inherit}.surface-choice[aria-pressed="true"]{border-color:#39d0ff;text-decoration:underline;text-underline-offset:3px}.surface-choice:focus-visible,.system:focus-visible{outline:2px solid #39d0ff;outline-offset:2px}.system{max-height:270px;overflow:auto;scroll-padding:8px}.system dl{display:grid;grid-template-columns:minmax(140px,1fr) minmax(0,3fr);gap:6px 16px;margin:0;font-size:11px}.system dt{color:#7a8d9b}.system dd{margin:0;overflow-wrap:anywhere}.key .small{font-size:7px}
+
+/* CDH-0032: isolated ground, negative decoration, then normal-flow text (0+). */
+.pnl{isolation:isolate}
+.brk::before,.brk::after{z-index:-1}
+.vig,.flood{z-index:-3}
+.frame,.tx,.ty,.sweep{z-index:-2}
+.scan,.static{z-index:-1}
+.micro{background:#0a0c10}
+/* Repeat the original scan on opaque panel surfaces, behind their words. */
+.hud:has(.scan) .pnl{background-image:repeating-linear-gradient(0deg,rgba(207,230,239,.035) 0 1px,transparent 1px 3px);background-attachment:fixed}
+@media (prefers-reduced-motion:reduce){.hud:has(.scan) .pnl{background-image:none}}
 </style>
 </helmet>
 <div class="hud" style="--f:#39d0ff;--fg:rgba(57,208,255,.08)">
@@ -379,7 +390,7 @@ class Component extends DCLogic {
       surfaces:['desk','wall','station'].map(key=>({name:key,selected:key===surface,pick:()=>this.setState({surface:key})})),
       samples:surface==='desk'?Object.keys(names).filter(k=>k!=='Wall').map(key=>({name:names[key],selected:key===sample,pick:()=>this.setState({sample:key})})):[],
       keyboardRows:rows.map((keys,i)=>({style:'display:flex;gap:6px;padding-left:'+([0,24,40,64,160][i])+'px',keys:keys.map(key=>({key,hint:reserved[key]||hints[key]||'',cls:'key'+(reserved[key]?' f2':hints[key]?' on':'')+(['Esc','Tab'].includes(key)?' wide':key==='Enter'?' wider':key==='Space'?' space':'')}))})),
-      families:families.map(f=>({...f,bindings:f.pairs.map(([key,text])=>({key,text,style:f.reserved?'color:#6f8290;border-color:#3a4650;border-style:dashed':''}))})) };
+      families:families.map(f=>({...f,bindings:f.pairs.map(([key,text])=>({key,text,style:f.reserved?'color:#7a8d9b;border-color:#3a4650;border-style:dashed':''}))})) };
   }
 }
 </script>

@@ -15,14 +15,14 @@
 body{margin:0;background:#0a0c10;color:#cfe6ef;font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.45}
 a{color:#39d0ff}a:hover{color:#cfe6ef}
 .hud{position:relative;min-height:100vh;display:flex;flex-direction:column;background:#0a0c10;isolation:isolate;overflow:hidden}
-.frame{position:absolute;inset:0;pointer-events:none;border:1px solid var(--f);box-shadow:inset 0 0 0 1px rgba(0,0,0,.6),inset 0 0 120px var(--fg);z-index:3}
-.static{position:absolute;inset:0;pointer-events:none;z-index:4;opacity:.5;background:repeating-linear-gradient(0deg,rgba(207,230,239,.06) 0 1px,transparent 1px 2px),repeating-linear-gradient(90deg,rgba(0,0,0,.25) 0 2px,transparent 2px 7px),repeating-linear-gradient(0deg,transparent 0 37px,rgba(207,230,239,.08) 37px 39px)}
-.vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.7) 100%);z-index:2}
-.tx{position:absolute;left:28px;right:28px;height:6px;background:repeating-linear-gradient(90deg,var(--f) 0 1px,transparent 1px 8px);opacity:.45;pointer-events:none;z-index:3}
-.ty{position:absolute;top:28px;bottom:28px;width:6px;background:repeating-linear-gradient(180deg,var(--f) 0 1px,transparent 1px 8px);opacity:.45;pointer-events:none;z-index:3}
+.frame{position:absolute;inset:0;pointer-events:none;border:1px solid var(--f);box-shadow:inset 0 0 0 1px rgba(0,0,0,.6),inset 0 0 120px var(--fg)}
+.static{position:absolute;inset:0;pointer-events:none;opacity:.5;background:repeating-linear-gradient(0deg,rgba(207,230,239,.06) 0 1px,transparent 1px 2px),repeating-linear-gradient(90deg,rgba(0,0,0,.25) 0 2px,transparent 2px 7px),repeating-linear-gradient(0deg,transparent 0 37px,rgba(207,230,239,.08) 37px 39px)}
+.vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.7) 100%)}
+.tx{position:absolute;left:28px;right:28px;height:6px;background:repeating-linear-gradient(90deg,var(--f) 0 1px,transparent 1px 8px);opacity:.45;pointer-events:none}
+.ty{position:absolute;top:28px;bottom:28px;width:6px;background:repeating-linear-gradient(180deg,var(--f) 0 1px,transparent 1px 8px);opacity:.45;pointer-events:none}
 .micro{position:absolute;font-size:9px;letter-spacing:.14em;color:#a3b0b8;text-transform:uppercase;pointer-events:none;z-index:3;white-space:nowrap}
 .pnl{position:relative;background:#11151c;border:1px solid #1e2a33;clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
-.brk::before,.brk::after{content:"";position:absolute;width:10px;height:10px;border:1px solid var(--f);pointer-events:none;z-index:1}
+.brk::before,.brk::after{content:"";position:absolute;width:10px;height:10px;border:1px solid var(--f);pointer-events:none}
 .brk::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
 .brk::after{bottom:-1px;right:-1px;border-left:0;border-top:0}
 .lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#a3b0b8}
@@ -48,6 +48,14 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .activity-mark{position:absolute;bottom:var(--height);right:0;color:#cfe6ef;background:#0a0c10;font-size:11px;line-height:13px;white-space:nowrap;z-index:1}.activity-mark:empty{display:none}
 .activity-column:hover{outline:1px solid #cfe6ef;outline-offset:0}.activity-summary{font-size:11px;line-height:1.45;color:#7a8d9b;margin:6px 0 0;overflow-wrap:anywhere}.activity-axis{display:flex;justify-content:space-between;gap:4px;margin-top:6px;color:#7a8d9b;font-size:9px}
 .snapshot .activity-summary,.snapshot .activity-axis{color:#a3b0b8}
+
+/* CDH-0032: isolated ground, negative decoration, then normal-flow text (0+). */
+.pnl{isolation:isolate}
+.brk::before,.brk::after{z-index:-1}
+.vig,.flood{z-index:-3}
+.frame,.tx,.ty,.sweep{z-index:-2}
+.scan,.static{z-index:-1}
+.micro{background:#0a0c10}
 </style>
 </helmet>
 <div class="hud" style="--f:#4a5560;--fg:rgba(120,130,140,.14)">
