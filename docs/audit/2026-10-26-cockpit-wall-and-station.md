@@ -108,3 +108,16 @@ Then the Safari re-check, and the handoff closes.
 - **The station's `c` view keeps the canvas's name, "the wall",** beside board 9's wall. Stakes 2, edge 0.4, score 0.8.
 - **Portraits from the station's actor-prefix table, not `kgme.toml`.** Stakes 2, edge 0.3, score 0.6. A `[sprites]` table and an API field would make it the server's.
 - **At desk width the 240-bucket chart has columns under a pixel wide.** The spec's alternative is 120 two-minute buckets. Stakes 2, edge 0.3, score 0.6.
+
+## Closed on main, 2026-10-26 morning
+- **Michou's commit `b2ddced`** vendors the 13 three.js files at their rows' paths, with `docs/toolbox.md`'s rows (the two core rows held, the 11 example-module rows added) and the cockpit reader.
+- **The arbiter's F1 condition is met on `main`:**
+  - **Toolbox check:** `kgme lint` reports no `toolbox-pending` and no `toolbox-held` finding, so all 13 held files hash to their rows. Its one toolbox line is the known advisory, the cheap model's missing licence.
+  - **Served-station check:** the committed `cockpit/` folder, served on 127.0.0.1:8657 over the design's demo ledger (`logs/scratch/handoff-0058/serve_real.py`), shown in Chromium at 1440 × 900.
+    - `w` reaches the station, and the iframe draws 26 crew with bloom on.
+    - The station reads `22 working (1 quiet) · 2 waiting · 1 transient`, as the desk does.
+    - All 13 modules load from `/static/vendor/three-0.182.0/` with 200, and nothing else is requested (`station-served-main.png`).
+- **`make check`:** lint 0 blocking, `kgme mods: 2 mod folders, 0 blocking`, 681 passed.
+- **The handoff closes** with `completed:` set to the PASS review's `created` (AUDIT-0128, 2026-10-26T01:30:54-07:00).
+- **Still open, and Michou's:** the Safari re-check of the served station (F5; this session drives Chromium only).
+
