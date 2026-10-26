@@ -93,3 +93,15 @@ None is fixed after the PASS; reviewed code is not changed. F5 and F6 are for a 
 ## For the approval screen
 - **A failed tool call's class is `advisory`** (`transient` for timeouts), not `blocking`. Stakes 3, edge 0.4, score 1.2.
 - **The backstop at `PostToolBatch`,** not the next `PreToolUse` §2 names. It is stronger, guesses nothing, and needs one more registration. Stakes 2, edge 0.3, score 0.6.
+
+## Closed on main, 2026-10-26
+- **Michou's commit `3ca626c`** applies the `session:end` line in `control/hooks/session_end_sync.sh`, registers `PostToolUseFailure` and `PostToolBatch` in `.claude/settings.json` with their two fingerprint lines, and adds the cockpit reader's sentence.
+- **`make check` on `main`:** the policy test accepts the new fingerprints. Lint 0 blocking, `kgme mods: 2 mod folders, 0 blocking`, 690 passed.
+- **The live proof on `main`.** `kgme cockpit` served 8642, and two Haiku sessions were started and ended by hand from the main checkout, with a clean environment, so they ran `main`'s own hooks.
+  - **Session `17a3280b`:** `false` ran and exited 1. Its intent got `error` / `advisory`, "Bash error", through `PostToolUseFailure` 0.6 s later, and the session ended with `session:end`, reason `other`.
+  - **Session `220d95d4`:** the model passed the whole prompt sentence to Bash, and Claude Code refused the command before running it (a parse error), so no post event fired. The batch backstop closed that intent 150 ms later, `error` / `transient`, "no post-tool record; closed at the end of its batch", and the session ended with `session:end`. That is the backstop's own case, proven live.
+  - **The cockpit's next poll** (10:56:40, 19 s after the second session ended) drew both runs closed, in the page's state and in `/api/events`, and neither is listed in the active-runs pane.
+  - The server on 8642 is stopped.
+- **The handoff closes** with `completed:` set to the PASS review's `created` (AUDIT-0143, 2026-10-26T10:34:40-07:00).
+- **Disclosed: one stray open call.** Session `d64ff424`'s `tool:Bash` intent of 10:04:01 stays in the main ledger with no outcome. It came from my first attempt at the live check in the acceptance clone: the child `claude` inherited this session's `CLAUDE_PROJECT_DIR`, so it ran `main`'s hooks, which then registered neither the failure event nor the batch, and `main`'s SessionEnd ran its usual ledger sync and push. Every check after it ran with a clean environment. The intent is history now, before the backstop's registration; it is left as written, and §4's abandoned-run rule will draw it.
+
