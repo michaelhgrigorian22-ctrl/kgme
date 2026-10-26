@@ -6,7 +6,9 @@ from: michou
 to: codex
 model: gpt-6-astra
 tier: 2
-status: open
+status: done
+completed: 2026-10-25T23:43:28-07:00
+report: docs/audit/cockpit-design/cdh-0030-webkit-check.md
 adopted_by: michou
 adopted: 2026-10-25T22:46:35-07:00
 depends_on: [CDH-0029]
