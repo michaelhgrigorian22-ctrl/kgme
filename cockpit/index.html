@@ -462,7 +462,7 @@ function drawFooter(st, opens) {
 const MAP = {Move: [["j", "next row"], ["k", "previous row"], ["g G", "oldest / newest event"], ["Enter", "open the selected event in detail"], ["Esc", "close detail, then clear the filter"], ["u", "jump to the event's parent"], ["Tab", "runs → timeline → detail"], ["f", "follow newest; moving unfollows"]],
   Filter: [["/", "filter line: run:, kind:, job: or text"], ["1–4", "ok, blocking, transient, advisory"], ["0", "every class"], ["r", "this run → all; retry while disconnected"], ["t", "expand or collapse trace under its parent"], ["o", "only intents without an outcome"], ["a", "open runs pane; Enter there filters to that run"], ["x", "clear every filter"]],
   View: [["c", "calm: drop decoration, data unchanged"], ["p", "payload path of the selected event"], ["?", "this map and the system section"]],
-  "Approved · deferred": [["w", "desk → wall → station · approved at 11b686b, unbound until Michou rules on review F11"]],
+  "Approved · deferred (HANDOFF-0058)": [["w", "desk → wall → station · approved at 11b686b; the wall and the station are HANDOFF-0058"]],
   "Reserved · Phase 2": [["b", "/btw side lane, context without history"], ["m", "model selector · optimized mode"], ["y n", "approve / decline a pending approval"], [";", "command line · dispatch a handoff"], ["Space", "queue a message while a turn runs"]]};
 function drawOverlay(st) {
   const O = $("overlay"); O.textContent = "";
@@ -494,7 +494,8 @@ function move(step) {
   S.focus = rows[i].id; S.follow = false;
 }
 const CLASS_KEYS = {"1": "ok", "2": "blocking", "3": "transient", "4": "advisory"};
-// swallowed, never bound: the Phase 2 keys, and `w`, approved but deferred (review cycle 3 F11)
+// swallowed, never bound: the Phase 2 keys, and `w`, approved and deferred to HANDOFF-0058
+// (HANDOFF-0037's amendment of 2026-10-25 on review cycle 3 F11)
 const UNBOUND = new Set(["b", "m", "y", "n", ";", " ", "w"]);
 document.addEventListener("keydown", ev => {
   if (ev.ctrlKey || ev.metaKey || ev.altKey) return;

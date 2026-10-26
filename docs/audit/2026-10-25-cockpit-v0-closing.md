@@ -69,7 +69,7 @@ The five states were each drawn and checked: live with an open intent (`live-2.p
 - **Data not in `/api/events` is named, never guessed:** strike counts, open handoff, last review, quotas and the system facts. Each prints `not supplied by /api/events` or `—`. (`payload_sha256` is in the API, `build_view` keeping every field; the first build wrongly labelled it absent, review cycle 3 F10. The detail now shows the returned hash.)
 - **Header counts** are of the events and runs the page holds, not ledger totals.
 - **Disconnected** prints `<host> · no response`, since a browser cannot tell refused from timed out.
-- **`w`** (desk → wall → station) is approved but unbuilt; see review cycle 3 F11.
+- **`w`** (desk → wall → station) ships unbound, per the amendment; HANDOFF-0058 builds it.
 - **The `?` overlay** draws the key map as board 7's four legend panels, not its drawn 48 px keyboard.
 - **Run state map:** the server returns states only for runs touched or still open (review cycle 1 F3), so the page merges `runs` rather than replacing it, keeping a closed run's header facts.
 
@@ -87,7 +87,7 @@ Checked in the browser against a scratch ledger of 61 events: the 40 samples, 20
   - **The conflict:** HANDOFF-0037 asks for the keyboard map as approved, and the design reader at `11b686b` binds `w` to desk → wall → station. But its scope is a read-only timeline and nothing else, its routes are four, and it loads no remote asset (§3). The station needs three.js, vendored only under HANDOFF-0044, a proposal. Either reading overrides something Michou approved.
   - **Michou chooses:** amend 0037 to defer `w` to a follow-up handoff that names the binding in its acceptance (F11 then becomes advisory), or widen 0037 to the wall, the station, their routes and the vendored module.
   - **Meanwhile:** `w` stays unbound, and the `?` map lists it under `Approved · deferred`, not as Phase 2.
-  - **Michou's decision, 2026-10-25:** defer `w` to a follow-up handoff, filed with or after HANDOFF-0044's adoption, whose acceptance names the binding. The amendment to HANDOFF-0037 is drafted as `logs/scratch/handoff-0037/handoff-amendment-f11.diff` for Cowork. With it applied, F11 is advisory under that condition.
+  - **Michou's ruling, 2026-10-25 22:50 PDT, on Cowork's recommendation:** HANDOFF-0037's **amendment of 2026-10-25** (committed in `9865a93`) ships `w` unbound, labelled "Approved · deferred (HANDOFF-0058)" in the keyboard map. The wall, the station, their routes and the vendored three.js are **HANDOFF-0058** (`docs/handoff/proposed/2026-10-25-cockpit-wall-and-station.md`), filed with HANDOFF-0044 and built after it, whose acceptance names the desk → wall → station binding as approved. **F11 is advisory on that condition.**
 - **F12 (cosmetic, deferred):** the page is 540 lines in one inline file, and its effects are not named by ADR-015's prefixes. Splitting it means a build step or extra routes, which the handoff's one-file, four-route shape rules out. Left for the weekly review.
 
 ## Deferred, not a gap in the page

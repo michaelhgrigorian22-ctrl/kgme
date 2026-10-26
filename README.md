@@ -16,7 +16,7 @@ Michou's local-first, multi-model personal agent system. Everything that matters
 **Engine** — the code
 - `kgme/` — the Python package behind the `kgme` command
 - `jobs/` — one folder per job: what it does, what it may touch, how it runs
-- `cockpit/` — the local app over the ledger
+- `cockpit/` — the local app over the ledger: `kgme cockpit` serves it on `127.0.0.1:8642`; the Dock icon opens the page but does not start the server (launchd waits for Phase 3)
 - `tests/` — the test suites and the policy canaries; `make check` runs them
 
 **Record** — what happened
