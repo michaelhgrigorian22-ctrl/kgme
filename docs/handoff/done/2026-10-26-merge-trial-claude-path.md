@@ -5,7 +5,9 @@ created: 2026-10-26T13:14:00-07:00
 from: michou
 to: claude-code
 tier: 2
-status: open
+status: done
+completed: 2026-10-26T13:42:16-07:00
+report: docs/audit/2026-10-26-merge-trial-claude-path.md
 depends_on: [HANDOFF-0059, HANDOFF-0055, HANDOFF-0057]
 plan_ref: PLAN-PHASE-1 step 10d
 ---

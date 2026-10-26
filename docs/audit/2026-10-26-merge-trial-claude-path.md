@@ -74,3 +74,15 @@ It is `tests/test_hook_path.py` in `logs/scratch/handoff-0062/test_hook_path.dif
 - **No finding left.** The report and the two review audits are committed on `main`. The line and its test stay in the bundle for Michou: `logs/scratch/handoff-0062/post-commit.diff` and `test_hook_path.diff`, one commit, with the test as reviewed in AUDIT-0146.
 - **State:** open, ready, diffs pending. The handoff closes by observation, once the next commit on `main` after Michou's lands the design branch through the hook's trial (or `kgme merge design` by hand). That follow-up names the landing commit and the green trial log.
 
+## Closed by observation, 2026-10-26
+- **Michou's `9f94e7c`** (13:50:45) lands the line and `tests/test_hook_path.py`.
+- **Its post-commit hook,** running under the new line, landed the design branch: `fa14949` "merge: design 70b3412b00bf (kgme merge)", 13:50:48, the six design commits merged into `main` at `8b4a566`. `design` is level with `main` (`git rev-list --count main..design` is 0).
+- **The green trial.** `kgme merge` writes a trial log only for a red trial (`kgme/merge.py`, lines 124–127), so a green one has no `trial-*.log`. Its record is the sync log and the ledger:
+  - `logs/scratch/sync.log`, line 455: "merge design 70b3412b00bf (6 commits) into main 8b4a566d2453: merged as fa14949df4a6; make check green on the trial merge";
+  - the merge job's intent (13:50:48) and `ok` outcome (13:52:59) in the ledger, key `merge:design:70b3412b00bf3ff9f0b2ac9bfa7edafea1374b55`.
+
+  The last red trial before the fix is `trial-69c6c729cf78.log` (13:45:45), still "claude is not on PATH".
+- **A redundant run of mine.** Michou's commit reached my checkout by `git pull`, which runs no hook, and I had not yet seen `fa14949`, so I ran `kgme merge design` by hand under the hook's own `PATH` line. It answered "main holds every design commit; nothing to do" and wrote nothing.
+- **`make check` on `main`,** now with `tests/test_hook_path.py`: lint 0 blocking, `kgme mods: 2 mod folders, 0 blocking`, 743 passed.
+- **The handoff closes** with `completed:` set to the PASS review's `created` (AUDIT-0146, 2026-10-26T13:42:16-07:00).
+
