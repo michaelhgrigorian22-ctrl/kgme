@@ -53,6 +53,12 @@ This row is `ready` after CDH-0030. It is read against the eleven boards, the st
 
 Report, close out and commit as for CDH-0023, then stop for Cowork's native pass, where the response rules are felt in the pane, not only measured.
 
+## Outputs
+
+- `tests/test_design_precision.py`: the checks of C.10, under `make check`.
+- `docs/audit/cockpit-design/cdh-0031-implementation.md`: the implementation report.
+- The changed design files under `docs/design/cockpit-v0/`, `docs/readers/cockpit-design.md` (the Precision section) and board 1's Motion specimen.
+
 ## Acceptance
 
 - Everything sits on the grid, columns share baselines, borders are one line, type is the scale.
