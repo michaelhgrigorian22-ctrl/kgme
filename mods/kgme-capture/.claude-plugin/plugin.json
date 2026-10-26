@@ -1,0 +1,5 @@
+{
+  "name": "kgme-capture",
+  "version": "0.1.0",
+  "description": "/capture <kind> <words>: runs kgme capture with the words as typed and returns what it printed (HANDOFF-0059, HANDOFF-0050)."
+}

@@ -1,0 +1,6 @@
+{
+  "name": "kgme-cockpit",
+  "version": "0.1.0",
+  "description": "A pane beside the chat over the KGME cockpit's /api/events on loopback: runs and their states as the server computes them (HANDOFF-0059).",
+  "types": "./types/index.d.ts"
+}

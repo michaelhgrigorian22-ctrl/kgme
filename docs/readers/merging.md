@@ -6,7 +6,7 @@ created: 2026-10-21T21:10:00-07:00
 modified: 2026-10-22T01:32:53-07:00
 author: claude-code
 source: inferred
-sources: ["HANDOFF-0055", "kgme/merge.py", "kgme/approve.py"]
+sources: ["HANDOFF-0055", "kgme/merge.py", "kgme/merge_rules.py", "kgme/approve.py"]
 tier: 2
 ---
 

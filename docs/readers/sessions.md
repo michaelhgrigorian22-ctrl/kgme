@@ -3,10 +3,10 @@ id: READER-SESSIONS
 type: note
 status: active
 created: 2026-10-21T16:00:00-07:00
-modified: 2026-10-24T20:12:19-07:00
+modified: 2026-10-26T01:25:07-07:00
 author: claude-code
 source: inferred
-sources: ["ADR-022", "HANDOFF-0047", "kgme/session.py"]
+sources: ["ADR-022", "ADR-024", "HANDOFF-0047", "HANDOFF-0059", "kgme/session.py", "kgme/session_read.py", "kgme/mods.py"]
 tier: 2
 ---
 
@@ -37,6 +37,18 @@ Before `claude` starts, one ledger note records the level and the run copy's sha
 
 ## Who changes a level
 The templates and `kgme.toml` are human paths: an agent proposes a change as a diff, and you apply it. Widening a level is a weekly-review ruling; narrowing one may be proposed by anyone.
+
+## Mods: the cockpit pane and `/capture`
+- **What a level loads.** A `work` session loads two mods from `mods/`, each passed as `--plugin-dir`. A `tight` session loads the pane alone. `loose` and the cheap lane load none, whatever `kgme.toml [mods]` says.
+- **The pane** opens beside the chat and shows what `kgme cockpit` serves:
+  - the open runs and their states;
+  - the last events;
+  - an amber line while an intent waits for its outcome;
+  - a magenta line while a run is blocked.
+
+  It decides no state, and it binds no key. Start `kgme cockpit` first. Without it, the pane says the server was not reached and keeps the last snapshot. The status line shows the newest run's state.
+- **`/capture <kind> <words>`** runs `kgme capture` with your words as typed (one pair of quotes around them is dropped) and prints what it printed. It is the only process a mod starts, and its tool call goes through the hooks and the ledger like any other.
+- **What a mod may do** is written in `kgme.toml [mods.allows]`. `make check` validates every mod and blocks one that hooks or calls more (ADR-024).
 
 ## One ledger whatever the checkout
 The ledger, trace, and test streams resolve from the repository's git common directory, so a session in any worktree of this repository writes to the main checkout's `logs/`. Outside a git repository the hooks refuse, as the guard always has.

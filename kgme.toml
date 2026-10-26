@@ -125,6 +125,21 @@ slice_budget = 3000
 max_turns = 60
 max_budget_usd = 15
 
+[mods]
+# KGME's own Claude Code mods (HANDOFF-0059, ADR-024): the folders under mods/ each level
+# loads with --plugin-dir. loose and cheap load none, whatever is written here; emptying a
+# list turns that level's mods off.
+work = ["kgme-cockpit", "kgme-capture"]
+tight = ["kgme-cockpit"]
+loose = []
+cheap = []
+
+[mods.allows]
+# What each mod's handoff names: the events it hooks and the $ nouns it calls. make check
+# runs `claude plugin validate` on every folder under mods/ and blocks a listing with more.
+kgme-cockpit = ["session.start", "ui.render", "$.ui", "$.clock", "$.http", "$.state"]
+kgme-capture = ["session.start", "command.run", "$.command", "$.process"]
+
 [tracks.design]
 # The design track's lanes (HANDOFF-0055 §1): `kgme merge design` lands a design commit on main
 # by itself only when everything it changes is inside them and the trial's `make check` is
