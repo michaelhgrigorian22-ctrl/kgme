@@ -4,7 +4,8 @@ Purpose: the server binds only to a loopback host; `/api/events` serves the view
 streams and an event appended by hand appears on the next poll; a summary holding `<script>`
 comes back as JSON text with `nosniff`; every method but GET, and every other path, is 404,
 including `/` when the page file is absent; the page loads nothing remote and writes no
-markup from data, and the Dock files are served; a connection to the machine's LAN address is
+markup from data, and the Dock files are served; a vendored module is served under
+`/static/vendor/` and nothing else is (HANDOFF-0058); a connection to the machine's LAN address is
 refused; a bad query is 400; nothing a request does writes to the streams.
 Inputs: streams under `tmp_path`; a server on a free loopback port.
 Outputs: pytest assertions.
@@ -179,3 +180,87 @@ def test_the_dock_files_are_served(running) -> None:
     assert body[:8] == b"\x89PNG\r\n\x1a\n"
     status, headers, body = request(running, "GET", "/")
     assert status == 200 and b'rel="manifest"' in body and b'rel="apple-touch-icon"' in body
+
+
+@pytest.fixture
+def vendored(monkeypatch, tmp_path: Path) -> Path:
+    """Effect: a page folder holding one vendored module, a file beside the vendor folder, a
+    file outside the page folder and two symlinks to it, served as the cockpit's folder."""
+    here = tmp_path / "page"
+    module = here / "static" / "vendor" / "lib-1.0" / "lib.js"
+    module.parent.mkdir(parents=True)
+    module.write_text("export const x = 1;\n")
+    (here / "static" / "beside.js").write_text("export const beside = 1;\n")
+    (here / "static" / "vendor" / "notes.txt").write_text("not a module\n")
+    outside = tmp_path / "outside.js"
+    outside.write_text("export const secret = 1;\n")
+    (here / "static" / "vendor" / "linked.js").symlink_to(outside)
+    (here / "static" / "vendor" / "folder").symlink_to(tmp_path)
+    monkeypatch.setattr(server, "HERE", here)
+    return here
+
+
+@pytest.mark.blocking
+def test_a_vendored_module_is_served_read_only_with_the_same_headers(running, vendored) -> None:
+    """HANDOFF-0058 §3 and amendment 3: `GET /static/vendor/<path>`, no-store and nosniff."""
+    status, headers, body = request(running, "GET", "/static/vendor/lib-1.0/lib.js")
+    assert status == 200 and body == b"export const x = 1;\n"
+    assert headers["Content-Type"] == "text/javascript; charset=utf-8"
+    assert headers["Cache-Control"] == "no-store" and headers["X-Content-Type-Options"] == "nosniff"
+    for method in METHODS:
+        assert request(running, method, "/static/vendor/lib-1.0/lib.js")[0] == 404, method
+
+
+@pytest.mark.blocking
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/static/beside.js",  # under static/ but not under vendor/
+        "/static/vendor/../beside.js",
+        "/static/vendor/lib-1.0/../../beside.js",
+        "/static/vendor/%2e%2e/beside.js",
+        "/static/vendor/..%2fbeside.js",
+        "/static/vendor/lib-1.0/./lib.js",
+        "/static/vendor//lib-1.0/lib.js",
+        "/static/vendor/lib-1.0\\lib.js",
+        "/static/vendor/linked.js",  # a symlink out of the folder
+        "/static/vendor/folder/outside.js",  # through a symlinked folder
+        "/static/vendor/notes.txt",  # not a module type
+        "/static/vendor/lib-1.0",  # a folder
+        "/static/vendor/",
+        "/static/vendor",
+        "/static/",
+        "/static/vendor/lib-1.0/missing.js",
+        "/static/vendor/lib-1.0/lib.js?v=1",
+        "/static/../server.py",
+        "/static/vendor/../../server.py",
+    ],
+)
+def test_nothing_outside_the_vendor_folder_is_served(running, vendored, path: str) -> None:
+    status, _, body = request(running, "GET", path)
+    assert status == 404, path
+    assert b"secret" not in body and b"beside" not in body
+
+
+@pytest.mark.blocking
+def test_the_real_vendor_route_never_reaches_the_server_code(running) -> None:
+    """With the real page folder: the server's own files are never served by the route."""
+    for path in ("/static/vendor/../../server.py", "/static/../server.py", "/static/vendor/x.py"):
+        assert request(running, "GET", path)[0] == 404, path
+
+
+@pytest.mark.blocking
+def test_review_c1_f4_a_symlinked_static_folder_serves_nothing(
+    running, monkeypatch, tmp_path: Path
+) -> None:
+    """Review cycle 1 F4: `static/` itself a symlink to a folder outside the page's: both sides of
+    the containment check resolved through it, so a module out there was served."""
+    outside = tmp_path / "elsewhere"
+    (outside / "vendor").mkdir(parents=True)
+    (outside / "vendor" / "lib.js").write_text("export const secret = 1;\n")
+    here = tmp_path / "page"
+    here.mkdir()
+    (here / "static").symlink_to(outside)
+    monkeypatch.setattr(server, "HERE", here)
+    status, _, body = request(running, "GET", "/static/vendor/lib.js")
+    assert status == 404 and b"secret" not in body

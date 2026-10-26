@@ -4,7 +4,9 @@ Purpose: serve the page and the events, nothing else. `http.server.ThreadingHTTP
 to the loopback host and port of `kgme.toml [cockpit]` (refused for any other host), so a
 connection to the machine's LAN address is refused by the operating system. Routes:
 `GET /` (the page), `GET /api/events?since=<ulid>&limit=<n>&stream=both|ledger|trace`,
-`GET /manifest.json`, `GET /icon.png`. Any other method or path is 404. No route writes,
+`GET /manifest.json`, `GET /icon.png`, and `GET /static/vendor/<path>` for the vendored modules
+of `docs/toolbox.md` (HANDOFF-0058; `.js` only, inside `cockpit/static/vendor/`, no `..`, no
+symlink on the way). Any other method or path is 404. No route writes,
 mutates state, or launches a process (`cockpit/manifest.toml`). The Dock icon does not start
 the server: `kgme cockpit` starts it by hand, because launchd waits for Phase 3.
 Inputs: `kgme.toml [cockpit]`; the ledger and trace streams of the main checkout; the page
@@ -33,6 +35,9 @@ FILES = {
 STREAMS = ("both", "ledger", "trace")
 LIMIT_MAX = 500
 LOOPBACK_NAMES = ("localhost",)
+STATIC = "/static/"
+VENDOR = "vendor"
+STATIC_TYPES = {".js": "text/javascript; charset=utf-8"}
 
 
 def read_bind(settings: dict) -> tuple[str, int]:
@@ -73,6 +78,35 @@ def read_file(path: str) -> tuple[bytes, str] | None:
     return (found.read_bytes(), content_type) if found.is_file() else None
 
 
+def read_static(path: str, here: Path | None = None) -> tuple[bytes, str] | None:
+    """Effect: the bytes and content type of one vendored module under `static/vendor/`, or
+    None. The path is taken as sent, never unquoted: every segment must be a plain name (no
+    empty, `.` or `..` segment, no backslash), the first must be `vendor`, no component on the
+    way may be a symlink, the file must be regular, its type known, and it must resolve inside
+    the vendor folder (HANDOFF-0058 amendment 3)."""
+    if not path.startswith(STATIC):
+        return None
+    parts = path[len(STATIC) :].split("/")
+    if parts[0] != VENDOR or len(parts) < 2:
+        return None
+    if any(part in ("", ".", "..") or "\\" in part or "\x00" in part for part in parts):
+        return None
+    root = (here or HERE) / "static"
+    if root.is_symlink():  # the folder itself, before anything under it (review cycle 1 F4)
+        return None
+    found = root
+    for part in parts:
+        found = found / part
+        if found.is_symlink():
+            return None
+    content_type = STATIC_TYPES.get(found.suffix)
+    if content_type is None or not found.is_file():
+        return None
+    if not found.resolve().is_relative_to((root / VENDOR).resolve()):
+        return None
+    return found.read_bytes(), content_type
+
+
 def read_events(dirs: ledger.Dirs, since: str | None, limit: int, stream: str) -> dict:
     """Effect: the streams asked for, read whole (a run's state needs its history), and the
     view `render.build_view` makes of them."""
@@ -83,7 +117,7 @@ def read_events(dirs: ledger.Dirs, since: str | None, limit: int, stream: str) -
 
 
 class Handler(BaseHTTPRequestHandler):
-    """GET on the four routes; 404 for any other path and for every other method."""
+    """GET on the five routes; 404 for any other path and for every other method."""
 
     server_version = "kgme-cockpit"
     dirs: ledger.Dirs
@@ -120,7 +154,7 @@ class Handler(BaseHTTPRequestHandler):
         self.write_body(404, b"not found\n", "text/plain; charset=utf-8")
 
     def do_GET(self) -> None:  # noqa: N802 - the base class's naming
-        """Effect: the four routes; `/api/events` reads the streams through `read_events`."""
+        """Effect: the five routes; `/api/events` reads the streams through `read_events`."""
         url = urlsplit(self.path)
         if url.path == "/api/events":
             try:
@@ -131,7 +165,7 @@ class Handler(BaseHTTPRequestHandler):
             view = read_events(self.dirs, since, limit, stream)
             self.write_body(200, json.dumps(view).encode(), "application/json")
             return
-        found = None if url.query else read_file(url.path)
+        found = None if url.query else read_file(url.path) or read_static(url.path)
         if found:
             self.write_body(200, *found)
             return
