@@ -1,7 +1,7 @@
 ---
 id: ADR-020
 type: decision
-status: proposed
+status: accepted
 created: 2026-10-25T23:50:00-07:00
 author: claude-code
 source: inferred
