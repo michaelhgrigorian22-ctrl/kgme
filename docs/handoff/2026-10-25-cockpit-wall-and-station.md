@@ -2,15 +2,15 @@
 id: HANDOFF-0058
 type: handoff
 created: 2026-10-25T22:46:44-07:00
-from: cowork
+from: michou
 to: claude-code
 tier: 2
-status: proposed
+status: open
 depends_on: [HANDOFF-0037, HANDOFF-0044]
 plan_ref: PLAN-PHASE-1 step 10b
 ---
 
-# Handoff 0058 (proposed) — The cockpit's wall and station: `w` cycles desk → wall → station, from the approved canvas, with three.js vendored through the toolbox
+# Handoff 0058 — The cockpit's wall and station: `w` cycles desk → wall → station, from the approved canvas, with three.js vendored through the toolbox
 
 ## Why
 The canvas Michou approved at `11b686b` binds `w` to desk → wall → station (board 9's wall, the orbital station of CDH-0019 and after). HANDOFF-0037 is the read-only timeline, four routes, no remote asset, and the station's renderer is three.js, which only HANDOFF-0044's toolbox lets into the tree. Review cycle 3 of 0037 found the gap (F11); the arbiter held it outside the mandate and Michou ruled on 2026-10-25: 0037 ships `w` unbound and labelled deferred, and the wall and the station come as this handoff, after 0044.
@@ -22,7 +22,7 @@ The canvas Michou approved at `11b686b` binds `w` to desk → wall → station (
 4. **The keyboard map** drops the "deferred" label; `docs/readers/cockpit.md` gains the two views.
 
 ## Outputs
-`cockpit/index.html`, `cockpit/server.py`, `cockpit/static/vendor/` (new), `docs/toolbox.md` (one row), `tests/test_server.py`, a page check for the three views, `docs/readers/cockpit.md` (human path: a diff).
+`cockpit/index.html`, `cockpit/server.py`, `cockpit/static/vendor/` and `cockpit/static/vendor/three-0.182.0/` (new), `docs/toolbox.md` (one row), `tests/test_server.py`, a page check for the three views, `docs/readers/cockpit.md` (human path: a diff).
 
 ## Acceptance test (under ten minutes)
 With `kgme cockpit` running: `w` cycles desk → wall → station → desk; the station draws the runs `/api/events` returns and decides nothing itself; every script the page loads is served from `127.0.0.1:8642/static/` and its sha matches its toolbox row (`kgme lint` green); a request for a file outside `cockpit/static/vendor/` through that route is 404; the station is checked in Safari as well as Chrome (CDH-0030's check, if it has not run by then, runs here).
@@ -35,3 +35,11 @@ Door: two-way. Blast radius: one page, one route, one vendored folder, one toolb
 
 ## Needs from Michou
 Adoption after HANDOFF-0044 is done and HANDOFF-0037 closed. If the canvas has moved on by then, a new `canvas` approval first; the page is built from the newest one.
+
+## Amendments at adoption (Cowork, 2026-10-26; checked against the tree after HANDOFF-0044)
+1. **The rows exist.** `docs/toolbox.md` already holds two rows for three.js 0.182.0, `three.module.js` and the `three.core.js` it imports, both marked pending for this handoff with their shas taken from the CDN files. This handoff vendors both at the paths the rows name (`cockpit/static/vendor/three-0.182.0/`), clears the rows' pending mark (a `docs/toolbox.md` diff: human path), and `kgme lint`'s toolbox check is the acceptance: the held files hash to the rows.
+2. **CDH-0030 has run** (`5b84c41`, on `main` by `1ec0453`): the Safari audit is done, so the Safari clause of the acceptance test is a re-check of the station view as served, not the audit itself.
+3. **Routes.** `GET /static/<path>` serves files under `cockpit/static/vendor/` only, by a path that resolves inside that folder (no `..`, no symlink), `no-store` and `nosniff` as the rest, everything else 404; `tests/test_server.py` gets the cases.
+4. **The page stays one file** apart from the vendored modules: `cockpit/index.html` imports three.js by its `/static/` path and nothing else is loaded.
+5. **Human paths, as diffs under `logs/scratch/handoff-0058/`:** `docs/toolbox.md` (the two rows), `docs/readers/cockpit.md` (the wall and the station, `w`).
+

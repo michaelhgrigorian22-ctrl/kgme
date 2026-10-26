@@ -2,15 +2,15 @@
 id: HANDOFF-0052
 type: handoff
 created: 2026-10-21T00:50:00-07:00
-from: cowork
+from: michou
 to: claude-code
 tier: 2
-status: proposed
+status: open
 depends_on: [HANDOFF-0050]
 plan_ref: PLAN-PHASE-1 step 9c
 ---
 
-# Handoff 0052 (proposed) — Kept copies in the brief: a save capture kept is named the next morning, and the rest are counted with the command that clears them
+# Handoff 0052 — Kept copies in the brief: a save capture kept is named the next morning, and the rest are counted with the command that clears them
 
 ## Why
 HANDOFF-0050 keeps every file a capture swaps out as `.<name>.capture-<id>` and deletes nothing (the rulings on review cycle 6, F13 and F15, option A). A copy that no longer matches its recorded hashes holds a save of Michou's that the file lacks. Two places find it today: the next capture into the same file, and `kgme clean kept`. A past day's note never gets a next capture, so a save kept beside one is found only when someone runs `kgme clean kept`, which nothing schedules (approval-screen item, cycle 7, score 0.6: copies pile up, one per line added). The brief is read every morning and already reads `memory/daily` and `memory/inbox`; it is where a kept save should surface. Anything checkable becomes a check (ADR-023).
