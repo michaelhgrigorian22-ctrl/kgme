@@ -3,10 +3,10 @@ id: READER-COCKPIT
 type: note
 status: active
 created: 2026-10-25T18:40:00-07:00
-modified: 2026-10-26T01:00:09-07:00
+modified: 2026-10-26T10:05:25-07:00
 author: claude-code
 source: inferred
-sources: ["HANDOFF-0037", "HANDOFF-0058", "ADR-017", "ADR-020", "cockpit/server.py", "cockpit/render.py", "cockpit/index.html", "docs/readers/cockpit-design.md"]
+sources: ["HANDOFF-0037", "HANDOFF-0058", "HANDOFF-0061", "ADR-017", "ADR-020", "cockpit/server.py", "cockpit/render.py", "cockpit/index.html", "docs/readers/cockpit-design.md"]
 tier: 2
 ---
 
@@ -26,7 +26,7 @@ Run `kgme cockpit` from the repository and open `http://127.0.0.1:8642/`. It ser
 
 ## Reading the timeline
 - **Rows:** time, kind (`▶` intent, `◀` outcome, `✎` note, `✓` approval), job, summary, class, and Δt, the time from an intent to its outcome. Rows are grouped by run; the group header carries the run's actor, job, start, event count and state.
-- **Run states** come from the server and are never decided by the page: working, waiting (an intent has no outcome yet), transient (a retry is scheduled), blocked (a blocking outcome or note stopped the run), and quiet within working (no event for longer than the run's median gap between intents, never under three minutes).
+- **Run states** come from the server and are never decided by the page: working, waiting (an intent has no outcome yet), transient (a retry is scheduled), blocked (a blocking outcome or note stopped the run), and quiet within working (no event for longer than the run's median gap between intents, never under three minutes). A Claude Code session's run closes when the session ends, on the `session:end` note its SessionEnd hook writes; a call that failed or was interrupted gets its outcome from Claude Code's failure event, and one with no post-tool record at all is closed when its batch of calls ends, before the next call (HANDOFF-0061).
 - **The frame carries the system's state:** cyan while live, magenta flood when a run is blocked (the ledger line reads `halted`), an amber strip while an intent waits for its outcome, and grey static when the server cannot be reached. Disconnected never hides the record: a band under the header says so, and the last snapshot stays readable.
 - **Read-only trace events** (Read, Grep and the like) are collapsed under their parent; `t` expands them.
 

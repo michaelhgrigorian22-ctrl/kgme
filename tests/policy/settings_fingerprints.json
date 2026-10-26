@@ -59,7 +59,9 @@
   "deny Read(~/.codex/auth.json)": "4135f517165d08b9b72cc10c3ab5cf8fc461897c60b888350a9bd53a328fc644",
   "deny Read(~/.ssh/**)": "6d74ebb8dd48733cf31713f85f13f5933141fb93a0ce6dc22329d782067766b6",
   "deny Read(~/Library/Keychains/**)": "8d11092eedcc3d6affe938555e9930478531dbe91ae1796aac07ca0765d89587",
+  "hook PostToolBatch [*] #0.0": "525cf974164578e6b7096bd9f4872e5a93126e823a54b386b20dd8affd922dd3",
   "hook PostToolUse [*] #0.0": "525cf974164578e6b7096bd9f4872e5a93126e823a54b386b20dd8affd922dd3",
+  "hook PostToolUseFailure [*] #0.0": "525cf974164578e6b7096bd9f4872e5a93126e823a54b386b20dd8affd922dd3",
   "hook PreToolUse [*] #0.0": "b0b1c4a732b52d86e4d520e76c3a3619477bc0288895159b868a7bd14c3d1dd9",
   "hook SessionEnd [*] #0.0": "5f8c19d66347badc40d5cb4dfcb6497c40c7652bd6d7c2b9dc28e2137463b179"
 }
