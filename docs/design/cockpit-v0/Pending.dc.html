@@ -52,6 +52,9 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .activity-column{position:relative;min-width:0;height:100%}.activity-bar{position:absolute;bottom:0;left:0;right:0;height:var(--height);background:var(--tint);box-shadow:inset 0 0 0 1px #39d0ff}
 .activity-mark{position:absolute;bottom:var(--height);right:0;color:#cfe6ef;background:#0a0c10;font-size:11px;line-height:13px;white-space:nowrap;z-index:1}.activity-mark:empty{display:none}
 .activity-column:hover{outline:1px solid #cfe6ef;outline-offset:0}.activity-summary{font-size:11px;line-height:1.45;color:#7a8d9b;margin:6px 0 0;overflow-wrap:anywhere}.activity-axis{display:flex;justify-content:space-between;gap:4px;margin-top:6px;color:#7a8d9b;font-size:9px}
+
+/* CDH-0026: one selection mark links responsibility, event and evidence. */
+.selection-mark{color:#39d0ff;margin-right:6px}.causal-trace{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:11px;line-height:1.6;padding:10px 0;border-top:1px solid #1e2a33}.causal-trace a{display:inline-flex;align-items:center;min-height:24px}.causal-link{flex:1 0 24px;min-width:24px;border-top:1px solid currentColor;position:relative}.causal-link::after{content:'›';position:absolute;right:-1px;top:-12px;font-size:16px}.causal-open{border-left:1px dashed #ffb02e;padding:8px 10px;margin:0 10px 10px;font-size:11px;color:#ffb02e}.causal-open .landing{display:block;border:1px dashed #ffb02e;margin-top:6px;padding:6px}.selection-evidence{border-top:2px solid #39d0ff}.selection-band{grid-column:2/-1;padding:8px 10px;background:#0e1a22;border-bottom:1px solid #39d0ff;font-size:11px;display:flex;gap:6px 14px;flex-wrap:wrap}.selection-band .event-summary{flex-basis:100%}.causal-trace a:focus-visible,.selection-evidence:focus-visible{outline:2px solid #39d0ff;outline-offset:-2px}
 </style>
 </helmet>
 <div class="hud" style="--f:#39d0ff;--fg:rgba(57,208,255,.10)">
@@ -93,7 +96,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
     <section class="pnl brk" style="padding:12px;border-color:#ffb02e">
       <div class="lbl" style="margin-bottom:8px;color:#ffb02e">open intents</div>
       <div style="font-size:11px;display:flex;flex-direction:column;gap:6px">
-        <div style="display:flex;justify-content:space-between"><span>tool:Bash</span><span class="c-pend">1 m 34 s</span></div>
+        <div style="display:flex;justify-content:space-between"><span>tool:Bash</span><span class="c-pend">pending</span></div>
         <div class="bar"><i></i></div>
         <div class="mut">make canary-agents · typical 98–105 s · timeout 150 s per cell</div>
       </div>
@@ -101,15 +104,16 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   </aside>
 
   <main class="pnl brk" style="flex:999 1 480px;min-width:0;display:flex;flex-direction:column">
+    <dc-import name="Tray" view="context" runs="{{selectedRuns}}" calm="{{calm}}" hint-size="100%,76px"></dc-import>
     <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid #1e2a33">
       <span class="lbl">timeline · newest at bottom · <span class="c-live">following</span></span>
       <span class="lbl">time · kind · job · summary · class · Δt</span>
     </div>
     <div style="flex:1 1 auto;overflow:auto">
       <sc-for list="{{rows}}" as="row" hint-placeholder-count="14">
-        <sc-if value="{{row.isGroup}}" hint-placeholder-val="{{ false }}"><div class="grp"><span>▣ run {{row.run}}</span><span class="mut">{{row.meta}}</span></div></sc-if>
+        <sc-if value="{{row.isGroup}}" hint-placeholder-val="{{ false }}"><div class="grp"><sc-if value="{{row.selected}}"><span class="selection-mark" role="img" aria-label="{{row.selectionLabel}}">◆</span></sc-if><sc-if value="{{row.unselected}}"><span>▣ run {{row.run}}</span></sc-if><span class="mut">{{row.meta}}</span></div></sc-if>
         <sc-if value="{{row.isEvent}}" hint-placeholder-val="{{ true }}">
-          <div class="row {{row.cls}}">
+          <div class="row {{row.cls}}" id="{{row.anchor}}">
             <span class="mut">{{row.t}}</span>
             <span style="{{row.glyphStyle}}">{{row.glyph}}</span>
             <span class="mut" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{row.job}}</span>
@@ -119,29 +123,26 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
           </div>
         </sc-if>
       </sc-for>
-      <div class="row" style="border-bottom:0"><span class="mut">19:53:48</span><span class="c-pend blink">▮</span><span></span><span style="color:#ffb02e">◀ waiting for the outcome with ref=01M4FA2K…R8V · 1 m 34 s</span><span><span class="chip c-pend">pending</span></span><span style="text-align:right;color:#ffb02e">1:34</span></div>
+      <div class="causal-open" role="group" aria-label="open connection from intent 01M4FA2K…R8V to its future outcome"><span>└ intent 01M4FA2K…R8V · 19:52:14</span><span class="landing">◀ outcome lands here · ref=01M4FA2K…R8V<br>pending · none yet · elapsed 1 m 34 s · 19:53:48</span></div>
     </div>
   </main>
 
   <aside class="pnl brk" style="flex:1 1 400px;min-width:320px;padding:12px;display:flex;flex-direction:column;gap:10px;border-color:#ffb02e">
     <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="lbl" style="color:#ffb02e">detail · intent · no outcome yet</span><span class="lbl"><span class="kbd">Esc</span> closes</span></div>
-    <div style="font-size:13px;line-height:1.4">Bash make canary-agents</div>
     <div class="kv">
       <b>id</b><span>01M4FA2KQ7V3P9XJ2D0N6HT4R8V</span>
       <b>ts</b><span>2026-10-08T19:52:14.118-07:00</span>
-      <b>run_id</b><span>c70d687b-55ac-4d55-a22c-8006208d8447</span>
       <b>source · actor</b><span>claude-code · claude-code.hook</span>
       <b>kind · class</b><span>intent · <span class="chip c-none">—</span></span>
       <b>job · key</b><span>tool:Bash · toolu_01Q8…c2Fp</span>
       <b>parent</b><span>01M4F8NR8147T0KJA7TD08P04E <span class="mut">· session's first event</span></span>
-      <b>outcome</b><span class="c-pend">none with ref = this id · elapsed 1 m 34 s</span>
     </div>
     <div style="border-top:1px solid #1e2a33;padding-top:10px;display:flex;flex-direction:column;gap:6px;font-size:11px">
-      <span class="lbl">what this means</span>
+      <details class="intent-explanation"><summary style="cursor:pointer;min-height:24px"><span class="kbd">Enter</span> intent detail</summary><div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">
       <span>The pre-tool guard wrote this intent before the command ran (ADR-013 §4). The post-tool hook will write the outcome when it returns. Nothing is wrong yet: the agent tier of the canary matrix runs ten live cells and takes about 100 s.</span>
       <span class="lbl" style="margin-top:4px">what happens if it never returns</span>
       <span>At 150 s the row turns <span class="c-block">blocking</span> in the cockpit's own reckoning (not in the ledger). If the session dies, the next session's reconciliation writes an outcome <code style="color:#cfe6ef">status: unknown</code> with ref to this id, and the row closes amber, never green.</span>
-      <span class="mut">The cockpit draws this state; it never writes it.</span>
+      <span class="mut">The cockpit draws this state; it never writes it.</span></div></details>
     </div>
   </aside>
 </div>
@@ -189,12 +190,12 @@ class Component extends DCLogic {
   }
 
   rows() {
-    const g = (run, meta) => ({ isGroup: true, isEvent: false, run, meta });
+    const g = (run, meta) => { const selected = run === this.trayRuns().find(r => r.focus)?.run; return { isGroup: true, isEvent: false, run, meta: selected ? meta.replace(/^.*? · /, '') : meta, selected, unselected: !selected, selectionLabel: 'selected run ' + run }; };
     const e = (t, kind, job, summary, chip, dt, cls) => {
       const glyph = kind === 'intent' ? '▶' : kind === 'outcome' ? '◀' : kind === 'note' ? '✎' : '✓';
       const glyphStyle = kind === 'intent' ? 'color:#6f8290' : kind === 'outcome' ? 'color:#cfe6ef' : kind === 'note' ? 'color:#ffb02e' : 'color:#4de38a';
       const chipCls = chip === 'ok' ? 'c-ok' : chip === 'blocking' || chip === 'refused' ? 'c-block' : chip === 'transient' || chip === 'advisory' || chip === 'pending' ? 'c-pend' : 'c-none';
-      return { isGroup: false, isEvent: true, t, glyph, glyphStyle, job, summary, chip: chip || '—', chipCls, dt: dt || '', cls: cls || '' };
+      return { isGroup: false, isEvent: true, t, glyph, glyphStyle, job, summary, chip: chip || '—', chipCls, dt: dt || '', cls: cls || '', anchor: cls === 'focus' ? 'selected-event' : '' };
     };
     return [
       g('c70d687b…8447', 'claude-code · HANDOFF-0040 · resumed 19:51:58 · 9 events'),
@@ -215,7 +216,7 @@ class Component extends DCLogic {
   }
   renderVals() {
     const calm = this.props.calm ?? false;
-    return { quotaAlerts: this.quotaAlerts(), noise: !calm, calm, cells: this.cells(), activitySummary: this.activitySummary(), activityStart: this.cells()[0].time, activityEnd: this.cells().at(-1).time, rows: this.rows(), trayRuns: this.trayRuns() };
+    return { quotaAlerts: this.quotaAlerts(), noise: !calm, calm, cells: this.cells(), activitySummary: this.activitySummary(), activityStart: this.cells()[0].time, activityEnd: this.cells().at(-1).time, rows: this.rows(), selectedRuns: this.trayRuns().filter(r => r.focus).map(r => ({...r, run:'c70d687b-55ac-4d55-a22c-8006208d8447'})), trayRuns: this.trayRuns() };
   }
 }
 </script>

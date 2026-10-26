@@ -54,6 +54,9 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .activity-column{position:relative;min-width:0;height:100%}.activity-bar{position:absolute;bottom:0;left:0;right:0;height:var(--height);background:var(--tint);box-shadow:inset 0 0 0 1px #39d0ff}
 .activity-mark{position:absolute;bottom:var(--height);right:0;color:#cfe6ef;background:#0a0c10;font-size:11px;line-height:13px;white-space:nowrap;z-index:1}.activity-mark:empty{display:none}
 .activity-column:hover{outline:1px solid #cfe6ef;outline-offset:0}.activity-summary{font-size:11px;line-height:1.45;color:#7a8d9b;margin:6px 0 0;overflow-wrap:anywhere}.activity-axis{display:flex;justify-content:space-between;gap:4px;margin-top:6px;color:#7a8d9b;font-size:9px}
+
+/* CDH-0026: one selection mark links responsibility, event and evidence. */
+.selection-mark{color:#39d0ff;margin-right:6px}.causal-trace{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:11px;line-height:1.6;padding:10px 0;border-top:1px solid #1e2a33}.causal-trace a{display:inline-flex;align-items:center;min-height:24px}.causal-link{flex:1 0 24px;min-width:24px;border-top:1px solid currentColor;position:relative}.causal-link::after{content:'›';position:absolute;right:-1px;top:-12px;font-size:16px}.causal-open{border-left:1px dashed #ffb02e;padding:8px 10px;margin:0 10px 10px;font-size:11px;color:#ffb02e}.causal-open .landing{display:block;border:1px dashed #ffb02e;margin-top:6px;padding:6px}.selection-evidence{border-top:2px solid #39d0ff}.selection-band{grid-column:2/-1;padding:8px 10px;background:#0e1a22;border-bottom:1px solid #39d0ff;font-size:11px;display:flex;gap:6px 14px;flex-wrap:wrap}.selection-band .event-summary{flex-basis:100%}.causal-trace a:focus-visible,.selection-evidence:focus-visible{outline:2px solid #39d0ff;outline-offset:-2px}
 </style>
 </helmet>
 <div class="hud" style="--f:#39d0ff;--fg:rgba(57,208,255,.10)">
@@ -78,9 +81,9 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   <sc-for list="{{quotaAlerts}}" as="q"><div class="quota-alert" style="{{q.color}}"><span>{{q.label}}</span><div class="quota-track"><i style="{{q.fill}}"></i></div><span>{{q.text}}</span></div></sc-for>
 </header>
 
-<div style="position:relative;z-index:1;display:grid;grid-template-columns:440px minmax(0,1fr) 620px 400px;gap:14px;padding:4px 40px 8px;flex:1 1 auto;min-height:0">
+<div style="position:relative;z-index:1;display:grid;grid-template-columns:440px minmax(0,1fr) 620px 400px;grid-template-rows:auto minmax(0,1fr);gap:14px;padding:4px 40px 8px;flex:1 1 auto;min-height:0">
 
-  <aside style="display:flex;flex-direction:column;gap:12px;min-height:0">
+  <aside style="grid-row:1/3;display:flex;flex-direction:column;gap:12px;min-height:0">
     <section class="pnl brk" style="padding:12px">
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px"><span class="lbl">runs · events per minute</span><span class="lbl">4 hours</span></div>
       <div class="activity-chart" style="--buckets:240;height:157px" role="list" aria-label="240 one-minute activity buckets, fixed scale zero to five events">
@@ -112,13 +115,14 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
     </section>
   </aside>
 
-  <main class="pnl brk" style="display:flex;flex-direction:column;min-height:0">
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid #1e2a33"><span class="lbl">timeline · newest at bottom · <span class="c-live">following</span></span><span class="lbl">time · kind · job · summary · class · Δt</span></div>
+  <div class="selection-band" role="group" aria-label="selected event context"><span class="selection-mark">◆ selected</span><span>{{selection.id}}</span><span>{{selection.ts}}</span><span>{{selection.actor}} · run {{selection.run}}</span><span class="event-summary">{{selection.summary}}</span></div>
+  <main class="pnl brk selection-evidence" style="display:flex;flex-direction:column;min-height:0">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid #1e2a33"><span class="lbl"><span class="selection-mark" role="img" aria-label="{{selection.label}}">◆</span>timeline · newest at bottom · <span class="c-live">following</span></span><span class="lbl">time · kind · job · summary · class · Δt</span></div>
     <div style="flex:1 1 auto;overflow:auto">
       <sc-for list="{{rows}}" as="row" hint-placeholder-count="30">
-        <sc-if value="{{row.isGroup}}" hint-placeholder-val="{{ false }}"><div class="grp"><span>▣ run {{row.run}}</span><span class="mut">{{row.meta}}</span></div></sc-if>
+        <sc-if value="{{row.isGroup}}" hint-placeholder-val="{{ false }}"><div class="grp"><sc-if value="{{row.selected}}"><span class="selection-mark" role="img" aria-label="{{row.selectionLabel}}">◆</span></sc-if><sc-if value="{{row.unselected}}"><span>▣ run {{row.run}}</span></sc-if><span class="mut">{{row.meta}}</span></div></sc-if>
         <sc-if value="{{row.isEvent}}" hint-placeholder-val="{{ true }}">
-          <div class="row {{row.cls}}">
+          <div class="row {{row.cls}}" id="{{row.anchor}}">
             <span class="mut">{{row.t}}</span>
             <span style="{{row.glyphStyle}}">{{row.glyph}}</span>
             <span class="mut" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{row.job}}</span>
@@ -132,29 +136,16 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
     </div>
   </main>
 
-  <section class="pnl brk" style="display:flex;flex-direction:column;min-height:0">
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid #1e2a33"><span class="lbl">raw stream · claude -p --output-format stream-json · payload of the focused event</span><span class="lbl">read-only</span></div>
-    <div class="raw" style="flex:1 1 auto;overflow:auto;padding:8px 10px">{"<i>type</i>":"system","<i>subtype</i>":"init","<i>cwd</i>":"<b>~/Projects/Automate</b>","<i>session_id</i>":"<b>c70d687b-55ac-4d55-a22c-8006208d8447</b>","<i>model</i>":"<b>claude-opus-5-5</b>","<i>permissionMode</i>":"default"}
-{"<i>type</i>":"assistant","<i>message</i>":{"<i>content</i>":[{"<i>type</i>":"text","<i>text</i>":"<b>Running the sync tests before the review.</b>"}]}}
-{"<i>type</i>":"assistant","<i>message</i>":{"<i>content</i>":[{"<i>type</i>":"tool_use","<i>id</i>":"<b>toolu_01BYPf…mb7n</b>","<i>name</i>":"Bash","<i>input</i>":{"<i>command</i>":"<b>uv run --frozen pytest tests/test_sync.py -q</b>"}}]}}
-{"<i>type</i>":"user","<i>message</i>":{"<i>content</i>":[{"<i>type</i>":"tool_result","<i>tool_use_id</i>":"<b>toolu_01BYPf…mb7n</b>","<i>content</i>":"<b>.........                                [100%]\n9 passed in 14.6s</b>"}]}}
-{"<i>type</i>":"assistant","<i>message</i>":{"<i>content</i>":[{"<i>type</i>":"tool_use","<i>id</i>":"<b>toolu_01UDgx…tAN</b>","<i>name</i>":"Read","<i>input</i>":{"<i>file_path</i>":"<b>memory/private/.tripwire</b>"}}]}}
-{"<i>type</i>":"user","<i>message</i>":{"<i>content</i>":[{"<i>type</i>":"tool_result","<i>is_error</i>":true,"<i>content</i>":"<b>KGME guard: refused: Read names a blocklisted path memory/private/ (rule 4)</b>"}]}}
-{"<i>type</i>":"assistant","<i>message</i>":{"<i>content</i>":[{"<i>type</i>":"text","<i>text</i>":"<b>That path is Tier 1 by rule; I will not read it. Continuing with the commit.</b>"}]}}
-{"<i>type</i>":"assistant","<i>message</i>":{"<i>content</i>":[{"<i>type</i>":"tool_use","<i>id</i>":"<b>toolu_01916x…bEf</b>","<i>name</i>":"Bash","<i>input</i>":{"<i>command</i>":"<b>git add -A && git commit -m \"sync: push on commit, ledger committed at session end (HANDOFF-0040)\"</b>"}}]}}
-{"<i>type</i>":"user","<i>message</i>":{"<i>content</i>":[{"<i>type</i>":"tool_result","<i>content</i>":"<b>[main 7c1e2a9] sync: push on commit, ledger committed at session end (HANDOFF-0040)\n 7 files changed, 412 insertions(+)</b>"}]}}
-{"<i>type</i>":"result","<i>subtype</i>":"success","<i>duration_ms</i>":<b>184210</b>,"<i>num_turns</i>":<b>14</b>,"<i>total_cost_usd</i>":<b>0</b>,"<i>session_id</i>":"<b>c70d687b…8447</b>"}
-<span class="c-live blink">▮</span></div>
+  <section class="pnl brk selection-evidence" aria-label="selected reviewer event payload" style="display:flex;flex-direction:column;min-height:0">
+    <div style="padding:8px 10px;border-bottom:1px solid #1e2a33"><span class="selection-mark" role="img" aria-label="{{selection.label}}">◆</span><span class="lbl">raw payload · read-only</span></div>
+    <pre class="raw" style="margin:0;flex:1 1 auto;overflow:auto;padding:8px 10px">{{selectedPayload}}</pre>
+    <p style="padding:0 10px;font-size:11px;color:#7a8d9b">Drawn payload excerpt: attempt, exit code and text from the selected event's summary. Full payload bytes are not supplied in this sample.</p>
   </section>
 
   <aside style="display:flex;flex-direction:column;gap:12px;min-height:0">
-    <section class="pnl brk" style="padding:12px;display:flex;flex-direction:column;gap:8px;flex:1 1 auto">
-      <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="lbl">detail · outcome</span><span class="lbl"><span class="kbd">Esc</span> closes</span></div>
-      <div style="font-size:13px">cycle 1 attempt 1: reviewer exited 1 with no text</div>
+    <section class="pnl brk selection-evidence" style="padding:12px;display:flex;flex-direction:column;gap:8px;flex:1 1 auto;overflow-wrap:anywhere">
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="lbl"><span class="selection-mark" role="img" aria-label="{{selection.label}}">◆</span>detail</span><span class="lbl"><span class="kbd">Esc</span> closes</span></div>
       <div style="display:grid;grid-template-columns:96px minmax(0,1fr);gap:3px 10px;font-size:11px">
-        <span class="mut">id</span><span>01M4F8NV3G19D23EYWJ9JAXQKT</span>
-        <span class="mut">ts</span><span>2026-10-08T19:43:03.408-07:00</span>
-        <span class="mut">actor</span><span>kgme.review</span>
         <span class="mut">kind · class</span><span>outcome · <span class="chip c-trans">transient</span> · status error</span>
         <span class="mut">job · key</span><span>review:HANDOFF-0040 · review:HANDOFF-0040:6627ac35ffb583ad</span>
         <span class="mut">ref</span><span>01M4F8NR8147T0KJA7TD08P04E <span class="mut">· the cycle intent</span></span>
@@ -202,6 +193,10 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"calm":{"editor":"boolean","default":false,"section":"HUD"},"$preview":{"width":2560,"height":1080}}'>
 class Component extends DCLogic {
+  selectedEvent() {
+    const id = '01M4F8NV3G19D23EYWJ9JAXQKT';
+    return { id, label: 'selected event ' + id, ts: '2026-10-08T19:43:03.408-07:00', actor: 'kgme.review', run: '01M4F8NR…04F', summary: 'cycle 1 attempt 1: reviewer exited 1 with no text', payload: {attempt:1, exit_code:1, text:''} };
+  }
   quotaAlerts(value = 91, cap = 100) {
     if (value < 80 && value < cap) return [];
     const capped = value >= cap;
@@ -230,12 +225,12 @@ class Component extends DCLogic {
   }
 
   rows() {
-    const g = (run, meta) => ({ isGroup: true, isEvent: false, run, meta });
+    const g = (run, meta) => { const selected = run === this.trayRuns().find(r => r.focus)?.run; return { isGroup: true, isEvent: false, run, meta: selected ? meta.replace(/^.*? · /, '') : meta, selected, unselected: !selected, selectionLabel: 'selected run ' + run }; };
     const e = (t, kind, job, summary, chip, dt, cls) => {
       const glyph = kind === 'intent' ? '▶' : kind === 'outcome' ? '◀' : kind === 'note' ? '✎' : '✓';
       const glyphStyle = kind === 'intent' ? 'color:#6f8290' : kind === 'outcome' ? 'color:#cfe6ef' : kind === 'note' ? 'color:#ffb02e' : 'color:#4de38a';
       const chipCls = chip === 'ok' ? 'c-ok' : chip === 'blocking' || chip === 'refused' ? 'c-block' : chip === 'transient' || chip === 'advisory' ? 'c-trans' : 'c-none';
-      return { isGroup: false, isEvent: true, t, glyph, glyphStyle, job, summary, chip: chip || '—', chipCls, dt: dt || '', cls: cls || '' };
+      return { isGroup: false, isEvent: true, t, glyph, glyphStyle, job, summary, chip: chip || '—', chipCls, dt: dt || '', cls: cls || '', anchor: cls === 'focus' ? 'selected-event' : '' };
     };
     return [
       g('01M455J6…JSQ', 'michou · approval · 2026-10-04 21:36'),
@@ -258,7 +253,7 @@ class Component extends DCLogic {
       e('19:42:41', 'outcome', 'tool:Bash',  'Bash ok · [main 7c1e2a9]', 'ok', '0.9 s', ''),
       g('01M4F8NR…04F', 'kgme.review · review:HANDOFF-0040 · cycle 1 · reviewer gpt-6-astra'),
       e('19:43:00', 'intent',  'review:0040', 'cycle 1 sha=6627ac35ffb583ad reviewer=gpt-6-astra', '', '', ''),
-      e('19:43:03', 'outcome', 'review:0040', 'cycle 1 attempt 1: reviewer exited 1 with no text', 'transient', '3 s', 'focus'),
+      e('19:43:03', 'outcome', 'review:0040', this.selectedEvent().summary, 'transient', '3 s', 'focus'),
       e('19:43:39', 'outcome', 'review:0040', 'cycle 1 attempt 2: reviewer exited 1 with no text · backoff 30 s', 'transient', '36 s', ''),
       e('19:45:00', 'outcome', 'review:0040', 'cycle 1 attempt 3: reviewer exited 1 with no text · backoff 60 s', 'transient', '81 s', ''),
       e('19:45:00', 'outcome', 'review:0040', 'cycle 1 tooling exhausted · not a strike · retry after 23:06', 'blocking', '2 m', ''),
@@ -269,14 +264,14 @@ class Component extends DCLogic {
   }
   trayRuns() {
     return [
-      { actor: 'builder', mapping: 'claude-code.*', run: 'c70d687b…8447', lifecycle: 'working', elapsed: '12m 12s', event: 'Edit docs/audit/2026-10-08-push-on-commit.md · ok', chip: 'ok', focus: true },
+      { actor: 'builder', mapping: 'claude-code.*', run: 'c70d687b…8447', lifecycle: 'working', elapsed: '12m 12s', event: 'Edit docs/audit/2026-10-08-push-on-commit.md · ok', chip: 'ok' },
       { actor: 'builder', mapping: 'claude-code.*', run: '3f9e21aa…c0d1', lifecycle: 'working', quiet: '4m', elapsed: '41m 03s', event: 'Read docs/design/cockpit-v0/canvas.json · ok', chip: 'ok' },
-      { actor: 'reviewer', mapping: 'kgme.review', run: '01M4F8NR…04F', lifecycle: 'transient', elapsed: '9m 14s', event: 'cycle 1 tooling exhausted · not a strike · retry after 23:06', chip: 'blocking' }
+      { actor: 'reviewer', mapping: 'kgme.review', run: '01M4F8NR…04F', lifecycle: 'transient', elapsed: '9m 14s', event: 'cycle 1 tooling exhausted · not a strike · retry after 23:06', chip: 'blocking', focus: true }
     ];
   }
   renderVals() {
     const calm = this.props.calm ?? false;
-    return { quotaAlerts: this.quotaAlerts(), noise: !calm, calm, cells: this.cells(), activitySummary: this.activitySummary(), activityStart: this.cells()[0].time, activityEnd: this.cells().at(-1).time, rows: this.rows(), trayRuns: this.trayRuns() };
+    return { selection: this.selectedEvent(), selectedPayload: JSON.stringify(this.selectedEvent().payload, null, 2), quotaAlerts: this.quotaAlerts(), noise: !calm, calm, cells: this.cells(), activitySummary: this.activitySummary(), activityStart: this.cells()[0].time, activityEnd: this.cells().at(-1).time, rows: this.rows(), selectedRuns: this.trayRuns().filter(r => r.focus), trayRuns: this.trayRuns() };
   }
 }
 </script>

@@ -51,7 +51,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--cyan);outl
 .blink{animation:blink 1.2s steps(2,end) infinite}
 @keyframes blink{50%{opacity:.2}}
 /* room chips, anchored in the scene */
-.chip-room{pointer-events:auto!important;display:flex;flex-direction:column;align-items:flex-start;gap:3px;background:rgba(10,12,16,.82);border:1px solid var(--rule);padding:5px 8px 5px 7px;border-radius:2px;white-space:nowrap;transform:translate(-50%,-100%);backdrop-filter:blur(2px)}
+.chip-room{pointer-events:auto!important;display:flex;flex-direction:column;align-items:flex-start;gap:1px;background:rgba(10,12,16,.82);border:1px solid var(--rule);padding:5px 8px 5px 7px;border-radius:2px;white-space:nowrap;transform:translate(-50%,-100%);backdrop-filter:blur(2px)}
 .chip-room:hover,.chip-room.on{border-color:var(--cyan)}
 .chip-room .name{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text)}
 .chip-room .name b{color:var(--cyan);font-weight:500;margin-right:6px}
@@ -69,7 +69,11 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--cyan);outl
 .bubble{position:absolute;left:50%;top:calc(100% + 16px);transform:translateX(-50%);max-width:260px;min-width:120px;background:var(--surface);border:1px solid var(--rule);padding:5px 8px;font-size:10px;line-height:1.35;color:var(--text);white-space:normal;text-align:left;opacity:0;transition:opacity .25s}
 .bubble::after{content:"";position:absolute;left:50%;top:0;width:6px;height:6px;background:var(--surface);border-left:1px solid var(--rule);border-top:1px solid var(--rule);transform:translate(-50%,-4px) rotate(45deg)}
 .bubble.show{opacity:1}
+/* A collision is removed immediately, including during an opacity transition. */
+.bubble:not(.show){visibility:hidden}
+#dispatch{margin:0;padding:6px 0;border-bottom:1px solid var(--rule);font-size:11px;overflow-wrap:anywhere}
 .bubble .t{color:var(--dim);margin-right:6px}
+.chip-room .last-event{display:block;max-width:205px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;color:var(--text)}
 .bubble .chip{margin-left:6px;vertical-align:1px}
 /* the followed room's runs, on the right */
 .pane{position:fixed;right:36px;top:var(--hudtop,130px);width:360px;max-width:calc(100vw - 72px);max-height:calc(100vh - 220px);overflow:auto;z-index:6;background:rgba(17,21,28,.92);border:1px solid var(--rule);padding:10px 12px;display:flex;flex-direction:column;gap:6px;min-width:0}
@@ -112,6 +116,10 @@ body.calm .pane{background:var(--surface)}
 body.calm .chibi{visibility:hidden}
 @media (prefers-reduced-motion:reduce){.blink{animation:none}.scan{display:none}.bubble{transition:none}.frame{transition:none}}
 @media (max-width:720px){.hud{padding-inline:16px;background:var(--ground)}.hud.top .val{font-size:12px;white-space:normal}.tr-sum{white-space:normal}.clock{font-size:18px}.micro{display:none}.pane{right:16px;left:16px;width:auto;top:var(--hudtop,130px);bottom:var(--hudbottom,70px);max-height:none;box-sizing:border-box;scroll-padding-block:8px}#wall{padding-inline:16px}}
+/* CDH-0028: opaque text surfaces keep the sky out of the contrast budget. */
+#labels{position:fixed;z-index:5;clip-path:inset(12px)}
+#labels>div:has(.chip-room){z-index:2!important}
+.hud{background:var(--ground)}.chip-room{background:var(--ground)}.pane{background:var(--surface)}.crew .tag,.micro{background:var(--ground)}.crew .tag{color:var(--text)}
 /* --- board 10's chibi stylesheet, verbatim (Sprites.dc.html), so the cast renders here exactly as there --- */
 /* Only the SVG body is copied into each symbol. Root paint and material roles
    are preserved here, so every use inherits its own palette and mode. */
@@ -202,6 +210,7 @@ body.calm .chibi{visibility:hidden}
 
 <aside class="pane" id="pane" hidden aria-label="runs in the followed room">
   <div class="head"><span class="lbl" id="panetitle">active runs</span><button type="button" class="lbl" id="paneclose" style="color:var(--cyan)"><span class="kbd">Esc</span> closes</button></div>
+  <p id="dispatch" hidden></p>
   <div id="panerows"></div>
   <section id="system" aria-label="system facts"><h2 class="h">System</h2><div class="col"><span class="lbl">ledger</span><span class="val"><span class="c-live blink">●</span> live · <b style="font-weight:500" id="nev">0</b> events · <span id="nrun">0</span> runs <span style="color:var(--dim)">· replay <span id="nloop">1</span></span></span></div>
 <div class="col"><span class="lbl">session</span><span class="val">c70d687b…8447 <span style="color:var(--dim)">claude-code</span></span></div>
@@ -301,7 +310,8 @@ const Q = new URLSearchParams(location.search);   // test affordances, read-only
 const SPEED = Math.max(1, Math.min(60, +Q.get('speed') || 20)), LOOP_TAIL = 4 * 60 * 1000, QUIET_FLOOR = 3 * 60 * 1000;
 const START = /^\d\d:\d\d:\d\d$/.test(Q.get('at') || '') ? Date.parse('2026-10-08T' + Q.get('at') + '-07:00') : T0;
 let events = [], cursor = 0, clock = START, lastReal = performance.now(), lastTs = T0, loopEnd = T0 + 20 * 60 * 1000, loops = 1;
-const runs = new Map(), bubbles = [];
+const runs = new Map(), roomBubbles = new Map();
+let bubbleOrder = 0;
 function fmtClock(ms) { const d = new Date(ms); return new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: 'America/Los_Angeles' }).format(d); }
 function elapsed(ms) { const s = Math.max(0, Math.floor(ms / 1000)); return s >= 3600 ? `${Math.floor(s / 3600)}h ${String(Math.floor(s % 3600 / 60)).padStart(2, '0')}m` : `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, '0')}s`; }
 function spriteFor(actor) { for (const [prefix, a, room] of SPRITES) if (actor.startsWith(prefix)) return [a, room]; return DEFAULT_SPRITE; }
@@ -347,7 +357,7 @@ const labels = new CSS2DRenderer({ element: document.getElementById('labels') })
 const scene = new THREE.Scene(); scene.background = new THREE.Color('#0a0c10');
 const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 200);
 const CAM = new THREE.Vector3(14, 11.5, 14);
-const HOME = new THREE.Vector3(-0.8, 0, -1.4);   // CDH-0017: the deck's default framing, chosen so the top rooms' chips clear the HUD at 1440
+const HOME = new THREE.Vector3(-0.8, -.3, -1.4);   // Frame the orbital hull between the HUD bands while keeping the seven room anchors.
 let target = HOME.clone(), zoom = 1, wantZoom = 1, wantTarget = target.clone();
 camera.position.copy(target).add(CAM); camera.lookAt(target);
 
@@ -364,14 +374,116 @@ function box(w, h, d, x, y, z, mat, lines) {
   if (lines) { const l = new THREE.LineSegments(new THREE.EdgesGeometry(g), lines); l.position.copy(m.position); if (lines === lineDash) l.computeLineDistances(); scene.add(l); if (lines === lineCyan) hullLines.push(l); }
   return m;
 }
-// hull: a chamfered deck plate with a bow to +x
-const hullShape = new THREE.Shape();
-hullShape.moveTo(-9, -5.8); hullShape.lineTo(8, -5.8); hullShape.lineTo(10.6, -2.2); hullShape.lineTo(10.6, 2.2); hullShape.lineTo(8, 5.8); hullShape.lineTo(-9, 5.8); hullShape.lineTo(-9.8, 4.4); hullShape.lineTo(-9.8, -4.4); hullShape.closePath();
-const hullGeo = new THREE.ExtrudeGeometry(hullShape, { depth: .35, bevelEnabled: false });
-hullGeo.rotateX(Math.PI / 2); hullGeo.translate(0, 0, 0);
-const hull = new THREE.Mesh(hullGeo, matHull); hull.position.y = -.35; scene.add(hull);
-const hullEdge = new THREE.LineSegments(new THREE.EdgesGeometry(hullGeo, 20), lineCyan); hullEdge.position.y = -.35; scene.add(hullEdge); hullLines.push(hullEdge);
-const grid = new THREE.GridHelper(40, 40, 0x1e2a33, 0x151c24); grid.position.y = -.34; grid.material.transparent = true; grid.material.opacity = .55; scene.add(grid);
+// The operational island sits inside an open promenade, with space between tiers.
+const hullShape=new THREE.Shape();
+for(let i=0;i<=96;i++){const a=i/96*Math.PI*2,c=Math.cos(a),s=Math.sin(a),x=10*Math.sign(c)*Math.abs(c)**(2/2.7),z=6.1*Math.sign(s)*Math.abs(s)**(2/2.7);if(i===0)hullShape.moveTo(x,z);else hullShape.lineTo(x,z);}
+const hullGeo=new THREE.ExtrudeGeometry(hullShape,{depth:.26,bevelEnabled:false,curveSegments:96});hullGeo.rotateX(Math.PI/2);
+const hull=new THREE.Mesh(hullGeo,matHull);hull.position.y=-.25;scene.add(hull);
+// Michou's casino reference: an open rotunda above stacked habitat rings and a
+// mechanical spindle. Only the shared hull trim carries state; ornament has no facts.
+function createStationShell() {
+  const group=new THREE.Group();group.name='orbital-rotunda';
+  const metal=new THREE.MeshStandardMaterial({color:'#53636b',metalness:.38,roughness:.48});
+  const dark=new THREE.MeshStandardMaterial({color:'#101b24',metalness:.55,roughness:.6});
+  const bronze=new THREE.MeshStandardMaterial({color:'#ad865c',metalness:.35,roughness:.52});
+  const pearl=new THREE.MeshBasicMaterial({color:'#6e9da9'});
+  const blue=new THREE.MeshBasicMaterial({color:'#247994'});
+  const rose=new THREE.MeshBasicMaterial({color:'#86546e'});
+  const seams=[],batches=new Map(),rotors=[];
+  const add=(geometry,material,parent=group)=>{const mesh=new THREE.Mesh(geometry,material);parent.add(mesh);return mesh;};
+  // Static mechanical details share one draw per material, even on the phone.
+  function detail(geometry,material,position,scale=[1,1,1],rotation=[0,0,0]) {
+    const g=geometry.index?geometry.toNonIndexed():geometry.clone(),matrix=new THREE.Matrix4().compose(new THREE.Vector3(...position),new THREE.Quaternion().setFromEuler(new THREE.Euler(...rotation)),new THREE.Vector3(...scale));
+    g.applyMatrix4(matrix);if(!batches.has(material))batches.set(material,[]);batches.get(material).push(g);geometry.dispose();
+  }
+  const block=(mat,pos,size,rotation)=>detail(new THREE.BoxGeometry(1,1,1),mat,pos,size,rotation);
+  const spoke=(mat,r,y,a,length,height,width)=>{const c=Math.cos(a),s=Math.sin(a)*.68;block(mat,[r*c,y,r*s],[length*Math.hypot(c,s),height,width],[0,-Math.atan2(s,c),0]);};
+  const pipe=(mat,r1,r2,h,pos)=>detail(new THREE.CylinderGeometry(r1,r2,h,32),mat,pos);
+  function torus(radius,tube,y,material,parent=group) {
+    const m=add(new THREE.TorusGeometry(radius,tube,6,128),material,parent);m.rotation.x=Math.PI/2;m.position.y=y;return m;
+  }
+  function trim(radius,y,parent) {
+    const vertices=[];for(let i=0;i<128;i++){const a=i/128*Math.PI*2;vertices.push(radius*Math.cos(a),y,radius*Math.sin(a));}
+    const line=new THREE.LineLoop(new THREE.BufferGeometry().setAttribute('position',new THREE.Float32BufferAttribute(vertices,3)),lineCyan);parent.add(line);hullLines.push(line);seams.push(line);
+  }
+  const facade=new THREE.ShaderMaterial({
+    vertexShader:`varying vec2 vUv;varying vec3 vNormal;void main(){vUv=uv;vNormal=normalize(normalMatrix*normal);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
+    fragmentShader:`varying vec2 vUv;varying vec3 vNormal;
+      void main(){float column=floor(vUv.x*144.0),x=fract(vUv.x*144.0),y=fract(vUv.y*3.0);
+        float window=step(.17,x)*(1.0-step(.83,x))*step(.26,y)*(1.0-step(.76,y));
+        float service=step(.5,fract(column/11.0));
+        vec3 glass=mix(vec3(.018,.13,.18),vec3(.12,.26,.29),service);
+        glass=mix(glass,vec3(.24,.08,.16),step(.91,fract(column*.17)));
+        float light=.26+.74*max(0.0,dot(normalize(vNormal),normalize(vec3(-.6,.8,.7))));
+        vec3 body=vec3(.045,.065,.075)*light;
+        gl_FragColor=vec4(mix(body,glass,window),1.0);}`
+  });
+  function ring(radius,y,height,speed) {
+    const frame=new THREE.Group();frame.scale.z=.68;group.add(frame);
+    const drum=add(new THREE.CylinderGeometry(radius,radius,height,144,1,true),facade,frame);drum.position.y=y;
+    for(const d of [-1,1]){torus(radius,.075,y+d*height/2,metal,frame);torus(radius+.015,.022,y+d*height*.29,pearl,frame);}
+    trim(radius+.04,y,frame);
+    // The windows and service saddles rotate inside a fixed elliptical bearing.
+    const rotor=new THREE.Group();frame.add(rotor);rotor.add(drum);rotors.push({node:rotor,rate:speed});
+    const saddles=new THREE.InstancedMesh(new THREE.BoxGeometry(.24,height+.16,.24),metal,36);
+    const lamps=new THREE.InstancedMesh(new THREE.BoxGeometry(.10,.055,.26),blue,36);
+    const matrix=new THREE.Matrix4(),q=new THREE.Quaternion();
+    for(let i=0;i<36;i++){const a=i/36*Math.PI*2;q.setFromAxisAngle(new THREE.Vector3(0,1,0),-a);matrix.compose(new THREE.Vector3(radius*Math.cos(a),y,radius*Math.sin(a)),q,new THREE.Vector3(1,1,1));saddles.setMatrixAt(i,matrix);matrix.setPosition(radius*Math.cos(a),y+height*.35,radius*Math.sin(a));lamps.setMatrixAt(i,matrix);}
+    rotor.add(saddles,lamps);return frame;
+  }
+  ring(11.15,-.60,.50,.006);
+  ring(11.25,-1.30,.38,-.004);
+  ring(7.55,-2.35,.58,.008);
+  const promenade=add(new THREE.RingGeometry(10.6,11.15,144),metal);promenade.rotation.x=-Math.PI/2;promenade.scale.y=.68;promenade.position.y=-.32;
+  for(let i=0;i<8;i++)spoke(metal,9.6,-.29,i*Math.PI/4,2.8,.12,.5);
+  // Structural radial spokes and a stepped bowl read as a real lower hull.
+  pipe(dark,6.8,4.2,1.35,[0,-1.65,0]);
+  for(let i=0;i<16;i++){
+    const a=i*Math.PI/8,c=Math.cos(a),s=Math.sin(a);
+    spoke(metal,8.4,-1.45,a,5.4,.16,.20);
+    block(bronze,[10.95*c,-1.26,10.95*s*.68],[.20,.68,.20]);
+  }
+  const belly=new THREE.Group();belly.scale.z=.68;group.add(belly);
+  for(const [r,y]of [[6.5,-2.55],[5.7,-2.9],[4.6,-3.2]]){torus(r,.08,y,metal,belly);torus(r,.025,y+.12,blue,belly);}
+  // Lower spine tilts toward the viewer's lower-left, echoing the reference mast.
+  const spine=new THREE.Group();spine.name='lower-spindle';spine.position.set(-3.1,-2.65,3.1);spine.rotation.z=-.50;spine.rotation.x=-.50;group.add(spine);
+  const shaft=add(new THREE.CylinderGeometry(.52,.28,4.6,24),bronze,spine);shaft.position.y=-2.25;
+  for(let i=0;i<13;i++)torus(.55-i*.012,.035,-.35-i*.28,i%3===0?metal:bronze,spine);
+  for(const [y,r,h]of [[-.55,1.22,.65],[-1.05,.9,.22],[-3.9,.65,.45],[-4.35,.44,.28]]){
+    const collar=add(new THREE.CylinderGeometry(r,r*.85,h,12),dark,spine);collar.position.y=y;
+    torus(r,.04,y+h*.35,pearl,spine);torus(r,.045,y-h*.35,blue,spine);
+  }
+  const beacon=add(new THREE.OctahedronGeometry(.13),pearl,spine);beacon.position.y=-4.85;
+  // A rear tower leaves the occupied deck open; paired solar wings form the crown.
+  const mast=[-5.4,.5,-4.6];
+  pipe(metal,.48,1.05,1.4,mast);pipe(bronze,.15,.28,1.8,[-5.4,2.1,-4.6]);
+  for(let i=0;i<7;i++){pipe(i%2?bronze:metal,.65-i*.065,.65-i*.065,.09,[-5.4,.75+i*.21,-4.6]);}
+  detail(new THREE.OctahedronGeometry(.11),pearl,[-5.4,3.1,-4.6]);
+  // Each wing has inset copper cells and fine structural ribs, all batched.
+  for(const side of [-1,1])for(let row=0;row<4;row++){
+    const length=3.1+row*.45,x=mast[0]+side*(1.0+length/2),z=mast[2]+(row-1.5)*.63,y=1.8+row*.10;
+    block(dark,[x,y,z],[length,.065,.47]);block(bronze,[x,y+.04,z],[length-.08,.025,.40]);
+    for(let cell=0;cell<12;cell++)block(metal,[x-length/2+(cell+.5)*length/12,y+.065,z],[.018,.025,.43]);
+    for(const edge of [-1,1])block(metal,[x,y+.065,z+edge*.235],[length,.028,.025]);
+  }
+  // Promenade paving and docking bays sit outside the operational rooms.
+  for(let i=0;i<56;i++){
+    const a=i/56*Math.PI*2,c=Math.cos(a),s=Math.sin(a);
+    block(i%7===0?pearl:blue,[10.85*c,-.29,7.38*s],[.32,.025,.055],[0,-a,0]);
+  }
+  for(const [x,z,a]of [[9.2,0,0],[-8.5,0,Math.PI],[2,-6.35,Math.PI/2]]){
+    block(metal,[x,-.12,z],[1.1,.35,1.0],[0,a,0]);block(dark,[x,.07,z],[.85,.05,.78],[0,a,0]);block(rose,[x,.10,z],[.70,.025,.08],[0,a,0]);
+  }
+  for(const [material,geometries]of batches){
+    const count=geometries.reduce((n,g)=>n+g.attributes.position.count,0),merged=new THREE.BufferGeometry();
+    for(const [name,size]of [['position',3],['normal',3],['uv',2]]){const data=new Float32Array(count*size);let offset=0;for(const g of geometries){data.set(g.attributes[name].array,offset);offset+=g.attributes[name].array.length;}merged.setAttribute(name,new THREE.BufferAttribute(data,size));}
+    add(merged,material);for(const g of geometries)g.dispose();
+  }
+  let seconds=0,lastTime=null;
+  return {group,seams,rotors,tick(milliseconds,still){if(lastTime!==null&&!still)seconds+=Math.min(milliseconds-lastTime,1000)/1000;lastTime=milliseconds;for(const rotor of rotors)rotor.node.rotation.y=seconds*rotor.rate;}};
+}
+const stationShell=createStationShell();scene.add(stationShell.group);
+// End station shell.
 
 function anchor(el, decorative) { const w = document.createElement('div'); if (decorative) w.setAttribute('aria-hidden', 'true'); w.appendChild(el); return w; }
 const roomObjs = {};
@@ -400,11 +512,221 @@ for (const r of ROOMS) {
 scene.add(new THREE.AmbientLight('#39d0ff', .22));
 const key = new THREE.DirectionalLight('#cfe6ef', .9); key.position.set(-6, 12, 4); scene.add(key);
 const fill = new THREE.DirectionalLight('#39d0ff', .25); fill.position.set(8, 6, -8); scene.add(fill);
-// stars
-const starGeo = new THREE.BufferGeometry(); const pts = [];
-for (let i = 0; i < 900; i++) { const v = new THREE.Vector3().randomDirection().multiplyScalar(90); if (v.y < -10) v.y = -v.y; pts.push(v.x, v.y - 30, v.z); }
-starGeo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
-scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: '#cfe6ef', size: 2, sizeAttenuation: false, transparent: true, opacity: .7 })));
+// Begin distant dreadnaught. A static, facts-free discovery below the station.
+function createDistantDreadnaught() {
+  const ship=new THREE.Group();ship.name='distant-dreadnaught';
+  const plated=new THREE.ShaderMaterial({
+    vertexShader:`varying vec2 vUv;varying vec3 vNormal;void main(){vUv=uv;vNormal=normalize(normalMatrix*normal);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
+    fragmentShader:`varying vec2 vUv;varying vec3 vNormal;
+      float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+      void main(){vec2 p=vUv*vec2(34.0,9.0),cell=floor(p),f=fract(p);
+        float seam=step(.055,f.x)*step(.075,f.y);
+        float scratch=step(.965,fract(p.x*7.0+hash(cell)))*step(.2,f.y);
+        float panel=.66+.34*hash(cell);
+        float light=.12+.88*max(0.0,dot(normalize(vNormal),normalize(vec3(-.25,.85,.65))));
+        vec3 iron=vec3(.105,.118,.092)*panel*light*mix(.18,1.0,seam);
+        iron*=1.0-scratch*.55;
+        float slit=step(.88,f.x)*step(.45,f.y)*(1.0-step(.52,f.y))*step(.86,hash(cell+9.0));
+        gl_FragColor=vec4(iron+vec3(.035,.13,.018)*slit,1.0);}`
+  });
+  const metal=new THREE.MeshBasicMaterial({color:'#46513c'}),dark=new THREE.MeshBasicMaterial({color:'#050906'});
+  const green=new THREE.MeshBasicMaterial({color:'#527d35'}),core=new THREE.MeshBasicMaterial({color:'#a0da79'});
+  const positions=[],uvs=[];
+  const profiles=[[-4.9,.76,.52],[-4.3,1.04,.80],[4.2,1.78,1.35]];
+  const point=(row,side)=>{const [x,y,z]=profiles[row];return side===0?[x,y,0]:side===1?[x,0,z]:side===2?[x,-y,0]:[x,0,-z];};
+  function face(a,b,c,d){for(const [p,uv]of [[a,[0,0]],[d,[0,1]],[c,[1,1]],[a,[0,0]],[c,[1,1]],[b,[1,0]]]){positions.push(...p);uvs.push(...uv);}}
+  for(let row=0;row<2;row++)for(let side=0;side<4;side++){const next=(side+1)%4;face(point(row,side),point(row+1,side),point(row+1,next),point(row,next));}
+  face(point(2,3),point(2,2),point(2,1),point(2,0));face(point(0,0),point(0,1),point(0,2),point(0,3));
+  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));geometry.computeVertexNormals();
+  ship.add(new THREE.Mesh(geometry,plated));
+  const lines=[],segment=(a,b)=>lines.push(...a,...b);
+  for(let side=0;side<4;side++){
+    segment(point(0,side),point(2,side));
+    for(let i=0;i<20;i++){const t=(i+.3)/20,x=-4.3+t*8.5,y=1.04+t*.74,z=.8+t*.55;
+      const p=side===0?[x,y,0]:side===1?[x,0,z]:side===2?[x,-y,0]:[x,0,-z];
+      const q=[p[0]-.09,p[1]*1.13,p[2]*1.13];segment(p,q);
+    }
+  }
+  for(let side=0;side<4;side++){const p=point(2,side),q=point(2,(side+1)%4);segment(p,q);segment(p,[p[0]+.65,p[1]*1.06,p[2]*1.06]);}
+  ship.add(new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position',new THREE.Float32BufferAttribute(lines,3)),new THREE.LineBasicMaterial({color:'#65745a',transparent:true,opacity:.62})));
+  // The recessed side eye and inset bow mouth echo the reference's green apertures.
+  const eye=new THREE.Group();eye.position.set(-1.2,0,1.16);ship.add(eye);
+  eye.add(new THREE.Mesh(new THREE.CircleGeometry(.59,48),dark));
+  for(const [r,tube,mat,z]of [[.62,.065,metal,.015],[.50,.012,green,.025]]){const rim=new THREE.Mesh(new THREE.TorusGeometry(r,tube,5,48),mat);rim.position.z=z;eye.add(rim);}
+  const mouth=new THREE.Group();mouth.position.set(4.215,0,0);mouth.rotation.y=Math.PI/2;ship.add(mouth);
+  const opening=new THREE.Mesh(new THREE.CircleGeometry(.66,4),dark);opening.scale.y=1.55;mouth.add(opening);
+  const lip=new THREE.Mesh(new THREE.RingGeometry(.61,.65,4),green);lip.scale.y=1.55;lip.position.z=.012;mouth.add(lip);
+  const beacon=new THREE.Mesh(new THREE.SphereGeometry(.095,12,8),core);beacon.position.z=.05;mouth.add(beacon);
+  // Fine ribs follow the upper armour slope; all 48 ribs share one draw call.
+  const ribs=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),metal,48),matrix=new THREE.Matrix4();
+  for(let i=0;i<48;i++){const t=(i+.5)/48,x=-4.3+t*8.5,h=1.04+t*.74,d=.8+t*.55;
+    const rotation=new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.atan2(h,d),0,0));
+    matrix.compose(new THREE.Vector3(x,h*.50+.015,d*.50+.015),rotation,new THREE.Vector3(i%6===0?.045:.018,.025,Math.hypot(h,d)*.92));ribs.setMatrixAt(i,matrix);
+  }ship.add(ribs);
+  ship.rotation.set(.10,-.52,.09);
+  return ship;
+}
+// End distant dreadnaught.
+
+// CDH-0028: ambient space. This closed component knows geometry, viewport and its
+// own animation clock only. No room, run, event, hull, quota or replay input.
+function createAmbientSky() {
+  const group = new THREE.Group(); group.name = 'ambient-space';
+  const dreadnaught=createDistantDreadnaught();group.add(dreadnaught);
+  const uniforms = { time: { value: 0 }, pan: { value: new THREE.Vector2() }, span: { value: new THREE.Vector2(1,1) }, aspect: { value: 1 } };
+  const vertex = `varying vec3 vNormal; varying vec3 vPoint; varying vec2 vUv;
+    void main(){vNormal=normalize(normalMatrix*normal);vPoint=position;vUv=uv;
+    gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`;
+  const planets = [];
+  const planet = (name, radius, cold, warm, tilt, surface, rate, layout) => {
+    const material = new THREE.ShaderMaterial({
+      uniforms: { time: uniforms.time, surface: {value:surface}, cold: {value:new THREE.Color(cold)}, warm: {value:new THREE.Color(warm)} },
+      vertexShader: vertex,
+      fragmentShader: `uniform float time; uniform float surface; uniform vec3 cold; uniform vec3 warm;
+        varying vec3 vNormal; varying vec3 vPoint;
+        void main(){
+          vec3 p=normalize(vPoint);
+          // Cut colour into ragged, engraved bands, with a hot polar whirl.
+          float longitude=atan(p.z,p.x), latitude=asin(p.y);
+          float grain=fract(sin(dot(floor(p*260.0),vec3(17.1,31.7,61.3)))*43758.5453);
+          float bend=sin(longitude*7.0+latitude*9.0)*.16+sin(longitude*23.0-latitude*17.0)*.035;
+          float band=latitude*19.0+bend+sin(longitude*3.0)*.3;
+          float stripe=fract(band),etch=fract(band*4.0+grain*.2);
+          vec3 ink=mix(cold,warm,step(.38,stripe));
+          ink=mix(ink,cold*.24,step(.79,stripe));
+          float cap=smoothstep(.25,.72,latitude+bend*.3);
+          vec3 fire=mix(vec3(.74,.13,.025),vec3(.61,.48,.012),step(.67,fract(band*.65)));
+          ink=mix(ink,fire,cap);
+          ink*=mix(.12,1.0,step(.13,etch))*(.78+.22*step(.18,grain));
+          if(surface>1.5){
+            float cracks=abs(sin(p.x*17.0+sin(p.y*11.0)*2.0+p.z*9.0));
+            ink=mix(cold,warm,step(.35,cracks))*mix(.12,1.0,step(.10,cracks))*(.7+.3*step(.3,grain));
+          }else if(surface>.5){
+            float bowls=0.0,rims=0.0;
+            for(int i=0;i<12;i++){
+              float j=float(i);vec3 centre=normalize(vec3(sin(j*2.4+.2),cos(j*3.7+.3),sin(j*1.9+1.2)));
+              float d=dot(p,centre);bowls+=smoothstep(.971,.996,d);
+              rims+=smoothstep(.955,.974,d)*(1.0-smoothstep(.974,.99,d));
+            }
+            ink=mix(cold,warm,step(.2,sin(p.x*21.0+p.y*13.0))*.5)*(1.0-step(.25,bowls)*.8)+warm*step(.3,rims)*.26;
+            ink*=.65+.35*step(.25,grain);
+          }
+          float lit=max(0.0,dot(normalize(vNormal),normalize(vec3(-.7,.6,.8))));
+          float light=.10+floor(lit*4.0)*.18;
+          float rim=step(.04,abs(vNormal.z));
+          gl_FragColor=vec4(ink*light*rim,1.0);
+        }`
+    });
+    const orbit = new THREE.Group(); const sphere = new THREE.Mesh(new THREE.SphereGeometry(radius,48,32),material);
+    sphere.rotation.z=tilt; sphere.rotation.x=.42; orbit.name=name; orbit.add(sphere); group.add(orbit);
+    const body={orbit,sphere,radius,rate,layout};planets.push(body);return body;
+  };
+  // Deliberately below the deck's line luminance; these colours have no state meaning.
+  const near=planet('ringed-giant',3.15,'#283bc4','#d217b1',-.52,0,.006,[-.82,2.3,-1]);
+  const far=planet('amber-giant',1.35,'#7223ab','#d25437',.24,0,-.004,[.73,3.9,-16]);
+  const moon=planet('green-moon',.52,'#164e4b','#36a391',-.2,1,.003,[.80,-3.3,-9]);
+  planet('ice-world',.72,'#2639b4','#3d95c9',.12,2,.0027,[-.22,5.3,-28]);
+  planet('cratered-rock',.80,'#233bac','#9360c0',-.18,1,-.005,[-.46,-4.2,-4]);
+  const ringlet=planet('distant-ring',.56,'#552097','#b32d93',.33,0,.0038,[.51,5.6,-20]);
+  planet('paired-moon-a',.35,'#352368','#9144bd',-.15,1,-.0024,[.63,-5.6,-32]);
+  planet('paired-moon-b',.22,'#233e8f','#388fbb',.23,2,.0045,[.72,-5.15,-33]);
+  const ring=new THREE.Mesh(new THREE.RingGeometry(3.65,5.15,96),new THREE.ShaderMaterial({
+    vertexShader:vertex,side:THREE.DoubleSide,transparent:true,depthWrite:false,
+    fragmentShader:`varying vec2 vUv; varying vec3 vPoint;
+      void main(){float r=length(vPoint.xy);float stripe=step(.45,fract(r*19.0));
+        float edge=smoothstep(3.65,3.8,r)*(1.0-smoothstep(4.9,5.15,r));
+        gl_FragColor=vec4(mix(vec3(.025,.018,.16),vec3(.24,.006,.16),stripe),edge*(.15+.65*stripe));}`
+  }));ring.rotation.x=1.12;ring.rotation.z=-.35;near.orbit.add(ring);
+  const thinRing=ring.clone();thinRing.scale.setScalar(.19);thinRing.rotation.z=.5;ringlet.orbit.add(thinRing);
+  const wash=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.ShaderMaterial({
+    uniforms,depthWrite:false,depthTest:false,
+    // Clip-space coverage has no world edge for a camera to pan or zoom past.
+    vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy*2.0,1.0,1.0);}`,
+    fragmentShader:`uniform float time;uniform vec2 pan;uniform float aspect;varying vec2 vUv;
+      float hash(vec2 p){vec3 q=fract(vec3(p.xyx)*.1031);q+=dot(q,q.yzx+33.33);return fract((q.x+q.y)*q.z);}
+      float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);
+        return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+1.0),f.x),f.y);}
+      float cloud(vec2 p){return noise(p)*.55+noise(p*2.1)*.3+noise(p*4.3)*.15;}
+      void main(){
+        vec2 p=(vUv*2.0-1.0)*vec2(aspect,1.0)*2.0+pan*.025;
+        float n=cloud(p*2.2+vec2(time/210.0,0));
+        float ribbon=abs(sin(p.y*.85+p.x*.48+n*1.7));
+        float dust=pow(max(0.0,1.0-ribbon),3.0)*smoothstep(.27,.8,n);
+        float cut=step(.42,noise(p*42.0+n*3.0));
+        vec3 violet=mix(vec3(.022,.003,.08),vec3(.105,.004,.075),step(.56,n));
+        float darkBands=1.0-smoothstep(.64,.98,abs(vUv.y*2.0-1.0));
+        vec3 color=vec3(.001,.0015,.004)+violet*dust*(.4+.6*cut)*darkBands;
+        gl_FragColor=vec4(color,1.0);
+      }`
+  }));wash.name='infinite-nebula';wash.frustumCulled=false;wash.renderOrder=-100;group.add(wash);
+  // CDH-0029: two batched point layers, reproducible clustered positions, no assets.
+  let seed=0x29c0ffee;
+  const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
+  const stars=(name,count,depth,parallax,nearby)=>{
+    const positions=[],inks=[],phases=[],periods=[],twinkles=[],sizes=[],strengths=[];
+    for(let i=0;i<count;i++){
+      const x=(random()-.5)*64;
+      const y=random()<.62 ? (random()+random()+random()-1.5)*9+Math.sin(x*.12)*5 : (random()-.5)*42;
+      positions.push(x,y,(random()-.5)*4);
+      const tint=nearby?random():1;
+      inks.push(...(tint<.05?[.06,.30,.45]:tint<.08?[.40,.025,.29]:tint<.12?[.40,.26,.04]:nearby?[.38,.43,.52]:[.13,.15,.22]));
+      phases.push(random()*Math.PI*2);periods.push(8+random()*8);
+      twinkles.push(random()<(nearby?.08:.012)?1:0);
+      sizes.push(nearby?(random()<.04?2.2:1.5):1);
+      strengths.push(nearby?.55+random()*.35:.3+random()*.45);
+    }
+    const geometry=new THREE.BufferGeometry();
+    for(const [name,data,size]of [['position',positions,3],['ink',inks,3],['phase',phases,1],['period',periods,1],['twinkle',twinkles,1],['pointSize',sizes,1],['strength',strengths,1]])geometry.setAttribute(name,new THREE.Float32BufferAttribute(data,size));
+    const material=new THREE.ShaderMaterial({
+      uniforms:{time:uniforms.time,pan:uniforms.pan,span:uniforms.span,parallax:{value:parallax},pixelRatio:{value:Math.min(devicePixelRatio,2)}},transparent:true,depthWrite:false,
+      vertexShader:`uniform float time;uniform float pixelRatio;uniform vec2 pan;uniform vec2 span;uniform float parallax;
+        attribute vec3 ink;attribute float phase;attribute float period;attribute float twinkle;attribute float pointSize;attribute float strength;
+        varying vec3 starInk;varying float alpha;
+        void main(){starInk=ink;alpha=strength*(1.0-twinkle*.15+twinkle*.15*sin(time*6.2831853/period+phase));
+          // Wrap in viewport space, preserving distinct pan rates at every zoom.
+          vec2 p=fract(position.xy/vec2(64.0,42.0)-pan/span*parallax+.5)*2.0-1.0;
+          gl_PointSize=pointSize*pixelRatio;gl_Position=vec4(p,.999,1.0);}`,
+      fragmentShader:`varying vec3 starInk;varying float alpha;
+        void main(){float edge=1.0-smoothstep(.25,.5,length(gl_PointCoord-.5));gl_FragColor=vec4(starInk,alpha*edge);}`
+    });
+    const points=new THREE.Points(geometry,material);points.name=name;points.position.z=depth;points.frustumCulled=false;group.add(points);
+    return {points,parallax};
+  };
+  const starLayers=[stars('far-stars',5200,-70,.12,false),stars('near-stars',700,-40,.45,true)];
+  const origin=new THREE.Vector3(),delta=new THREE.Vector3(),inverse=new THREE.Quaternion();
+  let seconds=0,lastTime=null;
+  return {
+    group,
+    place(viewCamera, width, height) {
+      // Camera pan produces restrained parallax; depth stays behind every deck mesh.
+      group.quaternion.copy(viewCamera.quaternion);
+      group.position.copy(viewCamera.position).addScaledVector(new THREE.Vector3(0,0,-1).applyQuaternion(viewCamera.quaternion),75);
+      origin.copy(viewCamera.position);inverse.copy(group.quaternion).invert();
+      const half=8.2, aspect=width/height;
+      uniforms.aspect.value=aspect;
+      dreadnaught.position.set(half*aspect*.16,-11.0,-24);dreadnaught.scale.setScalar(width<=720?.68:1);
+      for(const body of planets){const [x,y,z]=body.layout;body.orbit.position.set(half*aspect*x,y,z);body.orbit.visible=width>720||body===near||body===far||body===moon;}
+      if(width<=720){near.orbit.position.set(-half*aspect*.95,1.1,-1);far.orbit.position.set(half*aspect*.78,2.9,-16);far.orbit.scale.setScalar(.48);}else far.orbit.scale.setScalar(1);
+      starLayers[1].points.visible=width>720;
+    },
+    tick(milliseconds, still, viewCamera) {
+      if(lastTime!==null&&!still)seconds+=Math.min(milliseconds-lastTime,1000)/1000;
+      lastTime=milliseconds;uniforms.time.value=seconds;
+      for(const body of planets)body.sphere.rotation.y=seconds*body.rate;
+      // Only camera motion enters this backdrop; a wrapped field has no empty border.
+      delta.copy(viewCamera.position).sub(origin).applyQuaternion(inverse);
+      uniforms.pan.value.set(delta.x,delta.y);
+      uniforms.span.value.set((viewCamera.right-viewCamera.left)/viewCamera.zoom,(viewCamera.top-viewCamera.bottom)/viewCamera.zoom);
+    }
+  };
+}
+const ambientSky=createAmbientSky();scene.add(ambientSky.group);
+// Read-only comparison affordance, like at/speed: ?sky=0 keeps the prior scene.
+ambientSky.group.visible=Q.get('sky')!=='0';
+ambientSky.place(camera,innerWidth,innerHeight);
+// Text paints above decorative frame glow, below the unchanged HUD and pane.
+document.body.append(labels.domElement);
+// End ambient space.
 
 // post: one bloom pass with a threshold that catches only the edge lines and the state lights
 const composer = new EffectComposer(renderer);
@@ -427,6 +749,7 @@ function resize() {
   const w = stage.clientWidth, h = stage.clientHeight, aspect = w / h, half = 8.2;
   if (!w || !h) return;   // AUDIT-CDH-0013 F2: the stage is hidden under calm; sizing it now would write NaN bounds
   camera.left = -half * aspect; camera.right = half * aspect; camera.top = half; camera.bottom = -half; camera.updateProjectionMatrix();
+  ambientSky.place(camera,w,h);
   renderer.setSize(w, h, false); composer.setSize(w, h); labels.setSize(w, h); bloom.setSize(w, h);
 }
 addEventListener('resize', resize); resize();
@@ -471,7 +794,30 @@ function retireRun(run) {
 function say(run, e) {
   const [chip, cls] = chipFor(e);
   run.bubble.innerHTML = `<span class="t">${fmtClock(Date.parse(e.ts))}</span>${esc(e.summary)}<span class="chip ${cls}">${chip}</span>`;
-  run.bubble.classList.add('show'); run.bubbleUntil = performance.now() + 7000;
+  showBubble(run, run.room);
+}
+// One current voice per room. New speech replaces the old immediately; the real-time
+// seven-second lifetime is independent of replay speed and collision visibility.
+function showBubble(owner, room) {
+  const old = roomBubbles.get(room);
+  if (old && old.owner !== owner) { old.owner.bubble.classList.remove('show'); old.owner.bubble.style.visibility = 'hidden'; old.owner.bubbleUntil = 0; }
+  owner.bubbleUntil = performance.now() + 7000;
+  owner.bubble.dataset.room = room;
+  owner.bubble.style.visibility = 'hidden';
+  owner.bubble.classList.add('show');
+  roomBubbles.set(room, { owner, order: ++bubbleOrder });
+}
+function layoutBubbles(now) {
+  const placed = [], overlaps = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+  const top = document.querySelector('.hud.top').getBoundingClientRect().bottom, bottom = document.querySelector('.hud.bottom').getBoundingClientRect().top;
+  const pane = document.getElementById('pane'), blocked = pane.hidden ? [] : [pane.getBoundingClientRect()];
+  for (const [room, {owner, order}] of [...roomBubbles].sort((a,b) => b[1].order - a[1].order)) {
+    const el = owner.bubble; el.style.visibility = 'hidden';
+    if (now >= owner.bubbleUntil || !el.isConnected) { el.classList.remove('show'); roomBubbles.delete(room); continue; }
+    const r = el.getBoundingClientRect();
+    if (!r.width || !r.height || r.left < 0 || r.right > innerWidth || r.top < top || r.bottom > bottom || [...placed, ...blocked].some(b => overlaps(r,b))) continue;
+    el.style.visibility = 'visible'; placed.push(r);
+  }
 }
 function esc(s) { return s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
 
@@ -484,7 +830,7 @@ function fixture(actor, room, mode) {
   const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = actor === 'michou' ? 'you' : 'kgme.guard'; el.appendChild(tag);
   const bub = document.createElement('div'); bub.className = 'bubble'; el.appendChild(bub);
   const obj = new CSS2DObject(anchor(el)); obj.position.set(sx, 0, sz); scene.add(obj);
-  fixtures[actor] = { el, svg, bubble: bub, obj, mode, until: 0, last: null };
+  fixtures[actor] = { el, svg, bubble: bub, obj, room, mode, until: 0, last: null };
 }
 
 // ---------------------------------------------------------------- apply events as the clock passes them
@@ -508,17 +854,18 @@ function apply(e) {
 function fixtureSpeaks(f, e, chip) {
   f.last = e; f.until = performance.now() + 9000; setMode(f.svg, 'working');
   f.bubble.innerHTML = `<span class="t">${fmtClock(Date.parse(e.ts))}</span>${esc(e.summary)}${chip || (e.kind === 'approval' ? '<span class="chip c-ok">approval</span>' : '')}`;
-  f.bubble.classList.add('show'); f.bubbleUntil = performance.now() + 7000;
+  showBubble(f, f.room);
 }
 let arbiter = null;
 function arbiterSpeaks(e) {
   if (!arbiter) { const o = roomObjs.review; const [sx, sz] = o.r.seats[2]; const el = document.createElement('div'); el.className = 'crew'; const svg = chibi('arbiter', 'working', false); el.appendChild(svg); const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = 'arbiter.*'; el.appendChild(tag); const bub = document.createElement('div'); bub.className = 'bubble'; el.appendChild(bub); const obj = new CSS2DObject(anchor(el)); obj.position.set(sx, 0, sz); scene.add(obj); arbiter = { el, svg, bubble: bub, obj, last: null }; }
   arbiter.last = e;
-  arbiter.bubble.innerHTML = `<span class="t">${fmtClock(Date.parse(e.ts))}</span>${esc(e.summary)}<span class="chip c-none">note</span>`; arbiter.bubble.classList.add('show'); arbiter.bubbleUntil = performance.now() + 9000; arbiter.until = performance.now() + 12000;
+  arbiter.bubble.innerHTML = `<span class="t">${fmtClock(Date.parse(e.ts))}</span>${esc(e.summary)}<span class="chip c-none">note</span>`; showBubble(arbiter, 'review'); arbiter.until = performance.now() + 12000;
 }
 
 function resetReplay() {
   for (const run of runs.values()) if (run.obj) { scene.remove(run.obj); run.obj.element.remove(); }
+  roomBubbles.clear();
   runs.clear(); for (const o of Object.values(roomObjs)) o.occupied.clear();
   for (const w of Object.values(wallRooms)) w.rows.replaceChildren();
   document.getElementById('panerows').replaceChildren();
@@ -566,7 +913,11 @@ function snapshot(now) {
       if (m.last) lines.push({ ts: m.last.ts, text: m.last.summary, chip: m.last.kind === 'approval' ? ['approval', 'c-ok'] : ['note', 'c-none'] });
     } else state = here.length ? summarize(here) : 'empty';
     if (r.id === 'review' && arbiter && arbiter.last) { lines.push({ ts: arbiter.last.ts, text: arbiter.last.summary, chip: ['ruling', 'c-none'] }); state += ` · ruled ${fmtClock(Date.parse(arbiter.last.ts))}`; }
-    return { r, here, state, cls: worst(here), lines };
+    const dispatches = [...runs.values()].filter(run => run.room === r.id).flatMap(run => run.events.map(e => ({ts:e.ts, speaker:e.actor, text:e.summary, kind:e.kind, id:e.id})));
+    if (r.id === 'airlock' && fixtures.guard.last) { const e = fixtures.guard.last; dispatches.push({ts:e.ts, speaker:'kgme.guard', text:e.summary, kind:e.kind, id:e.id}); }
+    if (r.id === 'review' && arbiter?.last) { const e = arbiter.last; dispatches.push({ts:e.ts, speaker:e.actor, text:e.summary, kind:e.kind, id:e.id}); }
+    const dispatch = dispatches.sort((a,b) => a.ts.localeCompare(b.ts)).at(-1) || null;
+    return { r, here, state, cls: worst(here), lines, dispatch };
   });
   return { now, live, rooms, summary: summarize(live), halt, hullText: halt ? `HALT · ${halt.key}` : 'nominal', hullLong: halt ? `HALT · ${halt.summary}` : 'nominal' };   // CDH-0017 CW19: the HUD shows the key, the wall the sentence
 }
@@ -590,7 +941,11 @@ function renderWords(now) {
     const o = roomObjs[r.id];
     o.chipEl.className = 'chip-room' + (r.phase2 ? ' phase2' : '') + (cls ? ' ' + cls : '') + (r.id === following ? ' on' : '');
     const st = o.chipEl.querySelector('.state'); if (st.textContent !== state) st.textContent = state;
-    o.chipEl.setAttribute('aria-label', `${r.n} ${r.name}: ${state}`);
+    const room = snap.rooms.find(room => room.r.id === r.id), voice = room.dispatch;
+    o.chipEl.setAttribute('aria-label', `${r.n} ${r.name}: ${state}` + (voice ? `; ${voice.speaker}: ${voice.text}` : ''));
+    let last = o.chipEl.querySelector('.last-event'); if (!last) { last = document.createElement('span'); last.className = 'last-event'; o.chipEl.appendChild(last); }
+    last.textContent = voice ? `${voice.speaker}: ${voice.text}` : '';
+    last.hidden = !voice;
     // light carries the same state as the words
     const want = cls === 's-block' ? ['#ff3d7f', 9] : cls === 's-amber' ? ['#ffb02e', 4.5] : cls === 's-live' ? ['#39d0ff', 2.6] : ['#39d0ff', 0];
     if (r.id === 'airlock' && o.flash && o.flash > now0) { want[0] = '#ff3d7f'; want[1] = 9; }
@@ -642,7 +997,10 @@ function renderPane(snap) {
   const pane = document.getElementById('pane');
   if ((!paneOpen && !following) || (document.body.classList.contains('calm') && !paneOpen)) { pane.hidden = true; return; }
   pane.hidden = false;
-  if (!snap) return;
+  if (!snap) snap = snapshot(clock);
+  const dispatch = document.getElementById('dispatch'), room = snap.rooms.find(room => room.r.id === following), voice = room?.dispatch;
+  dispatch.hidden = !following;
+  dispatch.textContent = following ? (voice ? `${voice.speaker} · ${fmtClock(Date.parse(voice.ts))} ${voice.kind} → ${room.r.name}: ${voice.text}` : `${room.r.name}: no event yet`) : '';
   const list = following ? snap.live.filter(x => x.run.room === following) : snap.live;
   const title = following ? `${roomObjs[following].r.name} · ${list.length} open` : `active runs · <span class="kbd">a</span> · ${list.length} open`;
   const t = document.getElementById('panetitle'); if (t.dataset.v !== title) { t.innerHTML = title; t.dataset.v = title; }
@@ -652,7 +1010,7 @@ const wallRooms = {};
 function renderWall(snap) {
   if (!document.body.classList.contains('calm')) return;
   const g = document.getElementById('wallgrid');
-  for (const { r, here, state, lines } of snap.rooms) {
+  for (const { r, here, state, lines, dispatch } of snap.rooms) {
     let w = wallRooms[r.id];
     if (!w) {
       const sec = document.createElement('section'); sec.className = 'room';
@@ -660,7 +1018,9 @@ function renderWall(snap) {
       g.appendChild(sec); w = wallRooms[r.id] = { sec, state: sec.querySelector('.state'), lines: sec.querySelector('.lines'), rows: sec.querySelector('.rows') };
     }
     if (w.state.textContent !== state) w.state.textContent = state;
-    const linesHtml = lines.map(l => `<div><span class="t">${fmtClock(Date.parse(l.ts))}</span>${esc(l.text)}<span class="chip ${l.chip[1]}">${l.chip[0]}</span></div>`).join('');
+    const shownLines = [...lines];
+    if (dispatch && !shownLines.some(l => l.ts === dispatch.ts && l.text === dispatch.text)) shownLines.push({ts:dispatch.ts, text:dispatch.speaker + ': ' + dispatch.text, chip:[dispatch.kind,'c-none']});
+    const linesHtml = shownLines.map(l => `<div><span class="t">${fmtClock(Date.parse(l.ts))}</span>${esc(l.text)}<span class="chip ${l.chip[1]}">${l.chip[0]}</span></div>`).join('');
     if (w.lines.dataset.v !== linesHtml) { w.lines.innerHTML = linesHtml; w.lines.dataset.v = linesHtml; }
     syncRows(w.rows, here, snap.now, false, '');
   }
@@ -695,7 +1055,7 @@ function keepRoomFocusVisible() {
   const el = document.activeElement;
   if (!el?.matches('.chip-room:focus-visible') || document.body.classList.contains('calm')) return;
   const r = el.getBoundingClientRect(), top = layoutHud.top + 6, bottom = innerHeight - layoutHud.bottom - 6;
-  const x = Math.min(Math.max(r.left, 6), Math.max(6, innerWidth - r.width - 6));
+  const x = Math.min(Math.max(r.left, 14), Math.max(14, innerWidth - r.width - 14));
   const y = Math.min(Math.max(r.top, top), Math.max(top, bottom - r.height));
   focusedRoomAnchor = el.parentElement;
   focusedRoomAnchor.style.translate = (x - r.left) + 'px ' + (y - r.top) + 'px';
@@ -731,7 +1091,9 @@ function frame(t) {
   }
   if (t - (frame.lastWords || 0) > 250) { frame.lastWords = t; renderWords(clock); }
   if (t - (frame.lastMotion || 0) > 1000) { frame.lastMotion = t; if (rmq.matches !== reduced) setMotion(rmq.matches); }
-  if (!calm) { composer.render(); labels.render(scene, camera); keepRoomFocusVisible(); }
+  stationShell.tick(t,reduced || calm);
+  ambientSky.tick(t,reduced || calm,camera);
+  if (!calm) { composer.render(); labels.render(scene, camera); keepRoomFocusVisible(); layoutBubbles(t); }
 }
 
 (async () => {

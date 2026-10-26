@@ -3,10 +3,10 @@ id: LESSONS-COCKPIT-DESIGN
 type: note
 status: active
 created: 2026-10-16T00:20:00-07:00
-modified: 2026-10-22T11:08:02-07:00
+modified: 2026-10-25T16:33:28-07:00
 author: codex
 source: inferred
-sources: [CDH-0019, AUDIT-CDH-0018, AUDIT-CDH-0019-CYCLE-1, AUDIT-CDH-0020-REVIEW, AUDIT-CDH-0021-REVIEW, AUDIT-CDH-0022, AUDIT-CDH-0019-CYCLE-2, AUDIT-CDH-0019-CYCLE-2-REVIEW, AUDIT-CDH-0025]
+sources: [CDH-0019, AUDIT-CDH-0018, AUDIT-CDH-0019-CYCLE-1, AUDIT-CDH-0020-REVIEW, AUDIT-CDH-0021-REVIEW, AUDIT-CDH-0022, AUDIT-CDH-0019-CYCLE-2, AUDIT-CDH-0019-CYCLE-2-REVIEW, AUDIT-CDH-0025, AUDIT-CDH-0023-0025-REVIEW, AUDIT-CDH-0026, AUDIT-CDH-0024-0026-REVIEW, AUDIT-CDH-0028, AUDIT-CDH-0029, AUDIT-CDH-0029-FOLLOWUP, AUDIT-CDH-0019-STATION-CASINO]
 tier: 2
 ---
 # Lessons — the design track (read at the start of every CDH; 40 lines max, condense rather than append)
@@ -21,16 +21,16 @@ The canvas editor and the pane
 - `<dc-import name="X" prop="{{val}}">` mounts sibling `X.dc.html`; a child's `<helmet>` CSS applies in the parent, so prefix its classes; it may mount twice on one board.
 - Toggling a board's Tweak makes the editor re-save that file (attribute quoting only). Diff against the repository before republishing the review copy.
 - Screenshots work with the pane hidden, but after a load the artifact frame paints only on a later capture, sometimes the third: keep capturing every 10 s until it does. The pane's width follows the side panel (643 CSS px once); read the frame's width from the host page before judging a layout. The Tweaks icon needs the pointer tool, not the hand. Zoom from the menu, pan with wheel ticks (~87 px each); a drag flings. `#artboard-<id>` appears in the hash once a board is selected.
-- The artifact frame takes clicks but not keys from the pane, and does not expose its accessibility tree to it: keys, focus and names are measured standalone; clicks and pixels natively.
-- A hidden tab pauses rAF; cap the per-frame delta or the first frame back jumps a replay past its end (CW15's cause).
+- After a click inside it, the artifact frame takes keys from the pane too (Tab, Shift+Tab, Enter on board 7, 2026-10-22), but it does not expose its accessibility tree: names are measured standalone; clicks, keys, focus rings and pixels natively. A capture can trail the last action by one step.
+- A hidden tab pauses rAF; cap the per-frame delta or the first frame back jumps a replay past its end (CW15's cause). Orthographic depth alone gives no parallax: use distinct camera-pan coefficients and verify screen displacement; let camera easing settle before measuring twinkle (CDH-0029). A background in an unbounded camera must cover the viewport and wrap its stars; finite planes expose straight edges under pan. Verify actual minimum zoom and repeated drags (CDH-0029 follow-up). For a moving decorative shell, compare frozen pixels under fixed scene lights: a timed event light can change even while replay is paused (station casino).
 
 Measurement
-- Contrast uses linearized sRGB, (L1+.05)/(L2+.05), after any CSS filter. Audit every actual cell's cascade: a muted class cannot override inline color, even when color follows another declaration. CDH-0017 missed duration cells; CDH-0019 verified the repair with computed styles.
+- Contrast uses linearized sRGB, (L1+.05)/(L2+.05), after any CSS filter. Audit every actual cell's cascade: a muted class cannot override inline color, even when color follows another declaration. CDH-0017 missed duration cells; CDH-0019 verified the repair with computed styles. For a 3D background, sample pixels with text fill masked (not color, which changes currentColor borders), pause periodic word updates during capture, and keep decorative frame glow below the words (CDH-0028).
 - A fixed grid minimum can exceed a phone's inner width. Cap it to 100% of available width and measure both sides of the media breakpoint plus desktop widths; CDH-0019's 7-width fixture preserved the wide layout.
 - Chromium joins a button's inline spans without spaces when it names it from content; give dense rows an explicit, complete `aria-label`. The visually hidden status region's clipped text box runs past the viewport; leave `.vh` out of overflow measurements. An opaque phone HUD can hide real Tab targets. Check every focused room and the opened pane against the current HUD bounds; following a room changes wrapping and therefore those bounds (CDH-0022 / CDH-0019 cycle 2). A fix applied in the render loop shows on the next frame: measure after rendered frames (rAF), not a fixed delay.
 - An emulated reduced-motion change does not always fire the matchMedia listener; poll once a second as well.
-- A zero-specificity reset (`:where(button)`) keeps component rules in charge; `.tr-root :where(button)` is still (0,1,0).
-- A legacy state sentinel is not an event count. Separate state from count, label missing counts explicitly, and exclude them from numeric peaks and totals (CDH-0025; Michou confirmed).
+- A zero-specificity reset (`:where(button)`) keeps component rules in charge; a leaf class must differ from the root class derived from its view (CDH-0026); `.tr-root :where(button)` is still (0,1,0).
+- A legacy state sentinel is not an event count. Separate state from count, label missing counts explicitly, and exclude them from numeric peaks and totals (CDH-0025; Michou confirmed). When a fact moves, check its value as well as its presence (CW31). A line added to an anchored label widens it: measure label-to-label overlaps at a mid width (800 × 600) too, not only the phone and the design width (CW34).
 
 The loop
 - Codex commits its own three delivery files and takes the next ready row; Cowork applies blocking findings as the next cycle and Michou vetoes after the fact (2026-10-14 00:41). Under ADR-023, checks are run, not asked; judgement calls are scored (stakes × edge ≥ 1.5 asks, batched, with a recommendation) and the scores recorded in the README's open list.

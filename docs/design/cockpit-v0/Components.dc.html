@@ -49,7 +49,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
       <div class="lbl">KGME cockpit v0 · HANDOFF-0036</div>
       <h1 style="margin:2px 0 0;font-size:22px;font-weight:700;letter-spacing:.04em">Component sheet</h1>
     </div>
-    <div style="max-width:720px;font-size:11px;color:#6f8290">Signal in the centre, noise at the edges. Every element below is either <span style="color:#cfe6ef">signal</span> (carries a fact from the ledger) or <span style="color:#cfe6ef">noise</span> (frame, rails, micro-labels, scanlines). Noise never carries information, so <span class="kbd">c</span> and <code>prefers-reduced-motion</code> can remove it without loss.</div>
+    <div class="lbl">Tokens, event anatomy and calm compared side by side.</div>
   </div>
 
   <div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:18px">
@@ -82,23 +82,19 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
       <div class="lbl" style="margin-top:12px">Row height 22 px · dense · no text under 9 px, and 9 px only for labels that repeat.</div>
     </section>
 
-    <section class="pnl brk" style="padding:16px">
-      <h2 class="h">Frame carries state</h2>
-      <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:10px">
+
+
+    <section class="pnl brk" style="padding:16px"><h2 class="h">Frame states</h2><div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:10px">
         <div class="mini" style="--f:#39d0ff;--fg:rgba(57,208,255,.12)"><span class="m">live</span><div class="b"></div></div>
         <div class="mini" style="--f:#ff3d7f;--fg:rgba(255,61,127,.28)"><span class="m" style="color:#ff3d7f">blocking · halt</span><div class="b"></div></div>
         <div class="mini" style="--f:#39d0ff;--fg:rgba(57,208,255,.12);border-top:3px solid #ffb02e"><span class="m" style="color:#ffb02e">pending · amber strip</span><div class="b"></div></div>
         <div class="mini scan" style="--f:#4a5560;--fg:rgba(120,130,140,.14)"><span class="m">disconnected · grey static</span><div class="b" style="opacity:.5"></div></div>
-      </div>
-      <div class="lbl" style="margin-top:12px">1 px border + inset glow + tick rails. Noise: collapses under c.</div>
-    </section>
-
+      </div><p class="lbl">1 px border + inset glow + tick rails.</p></section>
     <section class="pnl brk" style="padding:16px;grid-column:span 2">
-      <h2 class="h">Row anatomy · one event</h2>
-      <div style="border:1px solid #1e2a33">
+      <h2 class="h">Selected event · frame, glyph, words and role</h2>
+      <dc-import name="Tray" view="context" runs="{{specimenRuns}}" hint-size="100%,36px"></dc-import>
+      <div style="border:1px solid #ff3d7f">
         <div class="grp"><span>▣ run c70d687b…8447</span><span style="color:#6f8290">claude-code · HANDOFF-0040 · started 19:40:02 · 212 events</span></div>
-        <div class="row"><span style="color:#6f8290">19:41:33</span><span style="color:#6f8290">▶</span><span style="color:#6f8290">tool:Bash</span><span>Bash uv run --frozen pytest tests/test_sync.py -q</span><span><span class="chip c-none">—</span></span><span style="text-align:right;color:#6f8290"></span></div>
-        <div class="row hov"><span style="color:#6f8290">19:41:48</span><span>◀</span><span style="color:#6f8290">tool:Bash</span><span>Bash ok · 9 passed</span><span><span class="chip c-ok">ok</span></span><span style="text-align:right;color:#6f8290">15 s</span></div>
         <div class="row focus"><span style="color:#7a8d9b">19:42:02</span><span>◀</span><span style="color:#7a8d9b">tool:Read</span><span>refused: Read names a blocklisted path memory/private/</span><span><span class="chip c-block">refused</span></span><span style="text-align:right;color:#7a8d9b">12 ms</span></div>
         <div class="row" style="border-bottom:0"><span class="callout">time</span><span class="callout">kind</span><span class="callout">job</span><span class="callout">summary ≤ 200 chars, redacted upstream</span><span class="callout">class</span><span class="callout" style="text-align:right">Δt</span></div>
       </div>
@@ -145,7 +141,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
       <div class="activity-summary">Height 0–5; + = 5 or more. B = blocking; P = pending; ? = unknown count. Minute and exact count in labels.</div>
     </section>
 
-    <section class="pnl brk" style="padding:16px">
+    <section class="pnl brk" style="padding:16px;grid-column:span 2">
       <h2 class="h">Strike boxes · ADR-016 bound</h2>
       <div style="display:flex;flex-direction:column;gap:10px;font-size:11px">
         <div style="display:flex;gap:8px;align-items:center"><div style="width:34px;height:22px;border:1px dashed #39d0ff"></div><div style="width:34px;height:22px;border:1px dashed #39d0ff"></div><div style="width:34px;height:22px;border:1px dashed #39d0ff"></div><span style="color:#6f8290">no cycle yet</span></div>
@@ -163,19 +159,16 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
       </div>
     </section>
 
-    <section class="pnl brk" style="padding:16px;grid-column:span 3">
-      <h2 class="h">Active-runs tray · CDH-0007 · the cast at work</h2>
-      <dc-import name="Tray" view="sheet" hint-size="100%,520px"></dc-import>
-    </section>
+
 
     <section class="pnl brk" style="padding:16px;grid-column:span 3">
-      <h2 class="h">Noise · frame furniture, all of it optional</h2>
-      <div style="display:grid;grid-template-columns:repeat(4, minmax(0, 1fr));gap:18px;font-size:11px">
+      <h2 class="h">Noise → calm · one before / after</h2><p style="font-size:11px;color:#7a8d9b">Signal in the centre, noise at the edges. Every element below is either <span style="color:#cfe6ef">signal</span> (carries a fact from the ledger) or <span style="color:#cfe6ef">noise</span> (frame, rails, micro-labels, scanlines). Noise never carries information, so <span class="kbd">c</span> and <code>prefers-reduced-motion</code> can remove it without loss.</p>
+      <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:18px;font-size:11px"><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px">
         <div><div class="tx" style="margin-bottom:8px"></div><div class="lbl">tick rail · 1 px every 8 px, frame colour at 45%</div></div>
-        <div><div class="lbl" style="color:#6f8290;margin-bottom:8px">KGME · KUANG GRADE MARK ELEVEN · COCKPIT V0 · READ-ONLY</div><div class="lbl">micro-label · 9 px, .14em, corners only, repeats facts shown elsewhere</div></div>
+        <div><div class="lbl" style="color:#6f8290;margin-bottom:8px">KGME · ◦ ◦ ◦ · · ·</div><div class="lbl">micro-label · 9 px, .14em, corners only, carries no fact</div></div>
         <div><div class="scan" style="height:28px;background-color:#11151c;border:1px solid #1e2a33;margin-bottom:8px"></div><div class="lbl">scanlines · 3.5% every 3 px · off under reduced motion</div></div>
         <div><div style="height:28px;background:radial-gradient(ellipse at center,#11151c 40%,#05070a 100%);border:1px solid #1e2a33;margin-bottom:8px"></div><div class="lbl">vignette · 55% at the edge · sweep line 6 s, off under reduced motion</div></div>
-      </div>
+      </div><div style="padding:12px;background:#0a0c10;border:1px solid #1e2a33"><span class="kbd">c</span> calm: no rails, micro-labels, scanlines or vignette. The selected event keeps its time, glyph, actor, summary, class and duration.</div></div>
     </section>
   </div>
 </div>
@@ -185,7 +178,7 @@ class Component extends DCLogic {
   renderVals() {
     // Explicit specimen counts are separate from status; they are not source readings.
     const samples = [{count:0},{count:1},{count:2},{count:3},{count:4},{count:5},{count:8,state:'blocking'},{count:2,state:'pending'},{count:null,state:'blocking'}];
-    return { cells: samples.map((c, i) => ({
+    return { specimenRuns: [{actor:'builder',mapping:'claude-code.*',run:'c70d687b…8447',lifecycle:'blocked',event:'refused: Read names a blocklisted path memory/private/',elapsed:'2m 00s',chip:'refused',focus:true}], cells: samples.map((c, i) => ({
       label: 'Specimen 12:' + String(i).padStart(2,'0') + ': ' + (c.count === null ? 'count unavailable' : c.count + ' events') + (c.state ? ', ' + c.state : ''),
       mark: (c.state === 'blocking' ? 'B' : c.state === 'pending' ? 'P' : '') + (c.count === null ? '?' : c.count >= 5 ? '+' : ''),
       style: '--height:' + (c.count === null ? 0 : Math.min(c.count,5) / 5 * 100) + '%;--tint:' + (c.state === 'blocking' ? '#ff3d7f' : c.state === 'pending' ? '#ffb02e' : '#39d0ff')

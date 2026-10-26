@@ -35,6 +35,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .tr-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding-bottom:8px}
 .tr-row{width:100%;display:grid;grid-template-columns:24px minmax(0,1fr) auto;grid-template-rows:auto auto;gap:1px 8px;align-items:center;padding:5px 6px;border-top:1px solid #141b22}
 .tr-row .chibi{grid-row:1/3}
+.tr-selection{color:#39d0ff;margin-right:6px}.tr-context-strip{display:flex;gap:8px;align-items:center;padding:8px 10px;background:#0e1a22;border-bottom:1px solid #39d0ff;font-size:11px;min-width:0}.tr-context-copy{display:flex;flex-wrap:wrap;gap:3px 10px;min-width:0}.tr-context-event{flex-basis:100%;overflow-wrap:anywhere;color:#cfe6ef}.tr-context-strip .tr-muted{color:#7a8d9b}
 .tr-row:hover{background:#0f141b}
 .tr-focus,.tr-row.tr-focus:hover{outline:1px solid #39d0ff;outline-offset:-1px;background:#0e1a22}
 .tr-l1{display:flex;gap:8px;min-width:0;font-size:11px;white-space:nowrap;overflow:hidden}
@@ -124,7 +125,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 @keyframes chibi-fire{from{transform:scaleY(.96);opacity:.85}to{transform:scaleY(1);opacity:1}}
 @keyframes chibi-halo{from{transform:translateY(0)}to{transform:translateY(-3px)}}
 
-</style>
+.tr-context-detail summary{cursor:pointer;min-height:24px}.tr-context-detail summary:focus-visible{outline:2px solid #39d0ff}.tr-context-detail[open]{flex-basis:100%}.tr-pane .tr-l1,.tr-pane .tr-l2{white-space:normal;overflow:visible;flex-wrap:wrap}.tr-pane .tr-run,.tr-pane .tr-ev{overflow:visible;overflow-wrap:anywhere}.tr-pane .tr-run{color:#7a8d9b}</style>
 </helmet>
 
 <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" style="position:absolute;width:0;height:0;overflow:hidden">
@@ -801,6 +802,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 </defs>
 </svg>
 <div data-calm="{{calm}}" class="{{rootCls}}">
+<sc-if value="{{isContext}}"><div class="tr-context-strip" role="group" aria-label="selected run context"><sc-for list="{{runs}}" as="r"><svg class="chibi portrait actor-{{r.actor}} mode-{{r.mode}} pal-phosphor tone-{{r.tone}}" viewBox="{{r.crop}}" aria-hidden="true" focusable="false"><use href="#chibi-{{r.actor}}"></use></svg><div class="tr-context-copy"><span><span class="tr-selection" role="img" aria-label="{{r.selectionLabel}}">◆</span>{{r.mapping}}</span><span class="{{r.lifeCls}}">{{r.lifecycle}}{{r.quietText}}</span><details class="tr-context-detail"><summary><span class="tr-kbd">Enter</span> run detail</summary><span class="tr-context-event">run {{r.run}} · elapsed {{r.elapsed}}<br>latest: {{r.event}}</span></details></div></sc-for></div></sc-if>
 <sc-if value="{{isBar}}" hint-placeholder-val="{{ false }}">
 <div class="tr-col">
   <span class="tr-lbl">active runs · <span class="tr-kbd">a</span></span>
@@ -819,14 +821,14 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 </sc-if>
 <sc-if value="{{isPane}}" hint-placeholder-val="{{ false }}">
 <div class="tr-pane">
-  <div class="tr-head"><span class="tr-lbl">active runs · <span class="tr-kbd">a</span> · {{count}}</span><button type="button" class="tr-lbl" aria-label="close the active runs pane, key Escape"><span class="tr-kbd">Esc</span> closes</button></div>
+  <p class="tr-note">Lifecycle describes the run now; the latest event keeps its own class. Elapsed is measured from the first event. Enter filters the timeline to that run.</p><div class="tr-head"><span class="tr-lbl">active runs · <span class="tr-kbd">a</span> · {{count}}</span><button type="button" class="tr-lbl" aria-label="close the active runs pane, key Escape"><span class="tr-kbd">Esc</span> closes</button></div>
   <sc-if value="{{hasRuns}}" hint-placeholder-val="{{ true }}">
     <sc-for list="{{runs}}" as="r" hint-placeholder-count="3">
       <button type="button" class="tr-row {{r.focusCls}}" aria-label="{{r.label}}">
         <svg class="chibi portrait actor-{{r.actor}} mode-{{r.mode}} pal-phosphor tone-{{r.tone}}" viewBox="{{r.crop}}" aria-hidden="true" focusable="false"><use href="#chibi-{{r.actor}}"></use></svg>
-        <span class="tr-l1"><span class="tr-map">{{r.mapping}}</span><span class="tr-run">{{r.run}}</span></span>
+        <span class="tr-l1"><span class="tr-map"><sc-if value="{{r.selected}}"><span class="tr-selection" role="img" aria-label="{{r.selectionLabel}}">◆</span></sc-if>{{r.mapping}}</span><span class="tr-run">{{r.run}}</span></span>
         <span class="tr-life {{r.lifeCls}}">{{r.lifecycle}}<span class="tr-quiet">{{r.quietText}}</span></span>
-        <span class="tr-l2"><span class="tr-el">{{r.elapsed}}</span><span class="tr-ev">{{r.event}}</span></span>
+        <span class="tr-l2"><span class="tr-el">{{r.elapsed}}</span><span class="tr-ev">{{r.explanation}}<br>Latest event: {{r.event}}</span></span>
         <span><span class="tr-chip {{r.chipCls}}">{{r.chip}}</span></span>
       </button>
     </sc-for>
@@ -870,7 +872,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
         <sc-for list="{{runs}}" as="r" hint-placeholder-count="4">
           <button type="button" class="tr-row {{r.focusCls}}" aria-label="{{r.label}}">
             <svg class="chibi portrait actor-{{r.actor}} mode-{{r.mode}} pal-phosphor tone-{{r.tone}}" viewBox="{{r.crop}}" aria-hidden="true" focusable="false"><use href="#chibi-{{r.actor}}"></use></svg>
-            <span class="tr-l1"><span class="tr-map">{{r.mapping}}</span><span class="tr-run">{{r.run}}</span></span>
+            <span class="tr-l1"><span class="tr-map"><sc-if value="{{r.selected}}"><span class="tr-selection" role="img" aria-label="{{r.selectionLabel}}">◆</span></sc-if>{{r.mapping}}</span><span class="tr-run">{{r.run}}</span></span>
             <span class="tr-life {{r.lifeCls}}">{{r.lifecycle}}<span class="tr-quiet">{{r.quietText}}</span></span>
             <span class="tr-l2"><span class="tr-el">{{r.elapsed}}</span><span class="tr-ev">{{r.event}}</span></span>
             <span><span class="tr-chip {{r.chipCls}}">{{r.chip}}</span></span>
@@ -878,17 +880,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
         </sc-for>
         <div class="tr-foot"><span><span class="tr-kbd">j</span> <span class="tr-kbd">k</span> move</span><span><span class="tr-kbd">Enter</span> jumps to the run · <span class="tr-kbd">r</span> filter</span><span><span class="tr-kbd">Esc</span> closes</span></div>
       </div>
-      <div class="tr-rules">
-        <span>row</span><span>portrait · actor mapping · run id, short · lifecycle word · elapsed since the run's first event, live · the run's newest event, ellipsised · that event's ADR-016 class chip. Two lines, 24 px portrait, 11 / 10 px type; <span class="tr-kbd">j</span> <span class="tr-kbd">k</span> move the 1 px cyan focus, <span class="tr-kbd">Enter</span> sets the <span class="tr-kbd">r</span> filter to that run and returns to the timeline.</span>
-        <span>working</span><span>the newest event is younger than the quiet limit below. Portrait: working.</span>
-        <span>waiting</span><span>the newest event is an intent with no outcome (what <span class="tr-kbd">o</span> lists): a tool call still running, in Phase 2 an approval. Portrait: waiting. Amber word.</span>
-        <span>transient</span><span>the newest outcome is class transient; a retry is scheduled. Portrait: transient. Amber word, amber chip. An exhausted retry that names a time (<b>retry after 23:06</b>) stays transient: the run is parked, not halted, so the word is transient while the event's own chip keeps its class, as the review sample shows.</span>
-        <span>blocked</span><span>the newest outcome or note is class blocking and the run has not moved since: a halt, a refusal that stopped it. Portrait: blocked. Magenta word, magenta chip, and the frame floods as on board 4.</span>
-        <span>quiet</span><span>a working run with no event for longer than its median gap between intents (the ordinary median: the mean of the two middle gaps when their count is even), and never less than three minutes (with fewer than two intents, three minutes); the station's code is the reference. The word stays <b>working</b>; <b>quiet 4m</b> follows it in muted text; the portrait waits. The bar counts it inside working: <b>2 working (1 quiet)</b>.</span>
-        <span>idle</span><span>no open run: the bar reads <b>idle</b> in muted text and shows no portrait; the pane says when the last run closed.</span>
-        <span>stale</span><span>server unreachable (board 6): the last known state, the whole slot greyed with the page, and <b>stale · … · as of 19:52:14</b> in text.</span>
-        <span>rule</span><span>every fact in the tray is a word or a number; the portraits mirror the words and never add one. Calm hides every portrait and leaves the words. Reduced motion changes nothing here: the tray adds no animation of its own, only board 10's selected detail animates. A shell (Codex, Claude Code, a terminal worker) is an actor like any other; <code>kgme.toml [sprites]</code> decides its face, the stranger until it is given one. Read-only: nothing in the tray dispatches, approves or chooses a model (Phase 2, board 8).</span>
-      </div>
+      <p class="tr-note">Lifecycle definitions: board 11. Press a for run detail.</p>
     </div>
   </div>
 </div>
@@ -935,7 +927,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
         <sc-for list="{{runs}}" as="r" hint-placeholder-count="4">
           <button type="button" class="tr-row {{r.focusCls}}" aria-label="{{r.label}}">
             <svg class="chibi portrait actor-{{r.actor}} mode-{{r.mode}} pal-phosphor tone-{{r.tone}}" viewBox="{{r.crop}}" aria-hidden="true" focusable="false"><use href="#chibi-{{r.actor}}"></use></svg>
-            <span class="tr-l1"><span class="tr-map">{{r.mapping}}</span><span class="tr-run">{{r.run}}</span></span>
+            <span class="tr-l1"><span class="tr-map"><sc-if value="{{r.selected}}"><span class="tr-selection" role="img" aria-label="{{r.selectionLabel}}">◆</span></sc-if>{{r.mapping}}</span><span class="tr-run">{{r.run}}</span></span>
             <span class="tr-life {{r.lifeCls}}">{{r.lifecycle}}<span class="tr-quiet">{{r.quietText}}</span></span>
             <span class="tr-l2"><span class="tr-el">{{r.elapsed}}</span><span class="tr-ev">{{r.event}}</span></span>
             <span><span class="tr-chip {{r.chipCls}}">{{r.chip}}</span></span>
@@ -951,7 +943,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
         <span>blocked</span><span>the newest outcome or note is class blocking and the run has not moved since: a halt, a refusal that stopped it. Portrait: blocked. Magenta word, magenta chip, and the frame floods as on board 4.</span>
         <span>quiet</span><span>a working run with no event for longer than its median gap between intents (the ordinary median: the mean of the two middle gaps when their count is even), and never less than three minutes (with fewer than two intents, three minutes); the station's code is the reference. The word stays <b>working</b>; <b>quiet 4m</b> follows it in muted text; the portrait waits. The bar counts it inside working: <b>2 working (1 quiet)</b>.</span>
         <span>idle</span><span>no open run: the bar reads <b>idle</b> in muted text and shows no portrait; the pane says when the last run closed.</span>
-        <span>stale</span><span>server unreachable (board 6): the last known state, the whole slot greyed with the page, and <b>stale · … · as of 19:52:14</b> in text.</span>
+        <span>stale</span><span>server unreachable (board 6): the last known state stays legible, with one snapshot boundary and a persistent disconnect band. The slot says <b>stale</b>; the boundary owns its timestamp.</span>
         <span>rule</span><span>every fact in the tray is a word or a number; the portraits mirror the words and never add one. Calm hides every portrait and leaves the words. Reduced motion changes nothing here: the tray adds no animation of its own, only board 10's selected detail animates. A shell (Codex, Claude Code, a terminal worker) is an actor like any other; <code>kgme.toml [sprites]</code> decides its face, the stranger until it is given one. Read-only: nothing in the tray dispatches, approves or chooses a model (Phase 2, board 8).</span>
       </div>
     </div>
@@ -962,7 +954,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 </sc-if>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"view":{"editor":"enum","options":["board","sheet","bar","pane"],"default":"board","section":"Tray"},"calm":{"editor":"boolean","default":false,"section":"Tray"},"runs":{"editor":null},"state":{"editor":null},"lastSeen":{"editor":null},"$preview":{"width":1440,"height":940}}'>
+<script type="text/x-dc" data-dc-script data-props='{"view":{"editor":"enum","options":["board","sheet","bar","pane","context"],"default":"board","section":"Tray"},"calm":{"editor":"boolean","default":false,"section":"Tray"},"runs":{"editor":null},"state":{"editor":null},"lastSeen":{"editor":null},"$preview":{"width":1440,"height":940}}'>
 class Component extends DCLogic {
   crops() {
     return { builder: '35 9 167 167', reviewer: '33 2 183 183', arbiter: '26 0 181 181', guard: '29 0 170 170', scribe: '34 6 164 164', michou: '32 18 169 169', stranger: '25 3 167 167' };
@@ -981,10 +973,11 @@ class Component extends DCLogic {
       crop: crops[actor],
       mapping: run.mapping || actor,
       run: run.run || '',
+      explanation: run.quiet ? 'Quiet: no event beyond the median intent gap, with a three-minute minimum; lifecycle remains working.' : { working:'Working: the latest event is inside the quiet limit.', waiting:'Waiting: an intent has no outcome yet.', transient:'Transient: retry scheduled, including an exhausted retry with a reset time; the event class stays separate.', blocked:'Blocked: a blocking outcome or note has stopped this run.' }[lifecycle],
       elapsed: run.elapsed || '',
       event: run.event || '',
       quietText: run.quiet ? ' · quiet ' + run.quiet : '',
-      focusCls: run.focus ? 'tr-focus' : '',
+      focusCls: run.focus ? 'tr-focus' : '', selected: !!run.focus, selectionLabel: 'selected run ' + (run.run || ''),
       label: (run.mapping || actor) + ' ' + (run.run || '') + ', ' + lifecycle + (run.quiet ? ', quiet ' + run.quiet : '') + ', ' + (run.elapsed || '') + ': ' + (run.event || '') + ' (' + chip + '); Enter filters the timeline to this run'
     };
   }
@@ -1024,7 +1017,7 @@ class Component extends DCLogic {
     return {
       calm, runs,
       rootCls: 'tr-root tr-' + view,
-      isBar: view === 'bar', isPane: view === 'pane', isSheet: view === 'sheet', isBoard: view === 'board',
+      isContext: view === 'context', isBar: view === 'bar', isPane: view === 'pane', isSheet: view === 'sheet', isBoard: view === 'board',
       staleCls: stale ? 'tr-stale' : '',
       summary: sum.summary, sumCls: sum.sumCls, count: sum.count,
       hasRuns: runs.length > 0, noRuns: runs.length === 0,
@@ -1032,7 +1025,7 @@ class Component extends DCLogic {
       demos: [
         demo('live', 'portraits stack like cards, newest run last; the words carry the count per lifecycle, quiet inside working.', live, 'live', ''),
         demo('idle', 'nothing open: muted idle, no portrait. The slot keeps its place so the bar does not reflow.', [], 'live', ''),
-        demo('stale', 'board 6: the page greys as a whole; the slot repeats its last known state and says when.', [samples[1], samples[2]], 'stale', '19:52:14')
+        demo('stale', 'board 6: the slot retains its last known state; the snapshot boundary says when.', [samples[1], samples[2]], 'stale', '19:52:14')
       ]
     };
   }

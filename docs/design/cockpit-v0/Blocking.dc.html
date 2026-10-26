@@ -51,6 +51,9 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .activity-column{position:relative;min-width:0;height:100%}.activity-bar{position:absolute;bottom:0;left:0;right:0;height:var(--height);background:var(--tint);box-shadow:inset 0 0 0 1px #39d0ff}
 .activity-mark{position:absolute;bottom:var(--height);right:0;color:#cfe6ef;background:#0a0c10;font-size:11px;line-height:13px;white-space:nowrap;z-index:1}.activity-mark:empty{display:none}
 .activity-column:hover{outline:1px solid #cfe6ef;outline-offset:0}.activity-summary{font-size:11px;line-height:1.45;color:#7a8d9b;margin:6px 0 0;overflow-wrap:anywhere}.activity-axis{display:flex;justify-content:space-between;gap:4px;margin-top:6px;color:#7a8d9b;font-size:9px}
+
+/* CDH-0026: one selection mark links responsibility, event and evidence. */
+.selection-mark{color:#39d0ff;margin-right:6px}.causal-trace{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:11px;line-height:1.6;padding:10px 0;border-top:1px solid #1e2a33}.causal-trace a{display:inline-flex;align-items:center;min-height:24px}.causal-link{flex:1 0 24px;min-width:24px;border-top:1px solid currentColor;position:relative}.causal-link::after{content:'›';position:absolute;right:-1px;top:-12px;font-size:16px}.causal-open{border-left:1px dashed #ffb02e;padding:8px 10px;margin:0 10px 10px;font-size:11px;color:#ffb02e}.causal-open .landing{display:block;border:1px dashed #ffb02e;margin-top:6px;padding:6px}.selection-evidence{border-top:2px solid #39d0ff}.selection-band{grid-column:2/-1;padding:8px 10px;background:#0e1a22;border-bottom:1px solid #39d0ff;font-size:11px;display:flex;gap:6px 14px;flex-wrap:wrap}.selection-band .event-summary{flex-basis:100%}.causal-trace a:focus-visible,.selection-evidence:focus-visible{outline:2px solid #39d0ff;outline-offset:-2px}
 </style>
 </helmet>
 <div class="hud" style="--f:#ff3d7f;--fg:rgba(255,61,127,.22)">
@@ -85,16 +88,6 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
       <div class="activity-axis"><span>{{activityStart}}</span><span>60 minutes · 1 min/bucket</span><span>{{activityEnd}}</span></div>
       <p class="activity-summary">{{activitySummary}}</p>
     </section>
-    <section class="pnl brk" style="padding:12px;border-color:#ff3d7f">
-      <div class="lbl" style="margin-bottom:8px;color:#ff3d7f">ADR-016 strikes · review:HANDOFF-0032</div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <div style="width:34px;height:22px;background:#ff3d7f"></div>
-        <div style="width:34px;height:22px;background:#ff3d7f"></div>
-        <div style="width:34px;height:22px;background:#ff3d7f;box-shadow:0 0 12px #ff3d7f"></div>
-        <span style="margin-left:6px;font-size:11px;color:#ff3d7f;font-weight:700;letter-spacing:.1em">HALT</span>
-      </div>
-      <div style="margin-top:8px;font-size:11px;color:#6f8290">F1 blocking in cycles 1, 2, 3 · root cause: refusal evidence</div>
-    </section>
     <section class="pnl brk" style="padding:12px">
       <div class="lbl" style="margin-bottom:8px">filters</div>
       <div style="display:flex;flex-wrap:wrap;gap:6px">
@@ -107,15 +100,16 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   </aside>
 
   <main class="pnl brk" style="flex:999 1 480px;min-width:0;display:flex;flex-direction:column">
+    <dc-import name="Tray" view="context" runs="{{selectedRuns}}" calm="{{calm}}" hint-size="100%,76px"></dc-import>
     <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid #1e2a33">
       <span class="lbl">timeline · newest at bottom · <span class="c-block">stopped</span></span>
       <span class="lbl">time · kind · job · summary · class · Δt</span>
     </div>
     <div style="flex:1 1 auto;overflow:auto">
       <sc-for list="{{rows}}" as="row" hint-placeholder-count="14">
-        <sc-if value="{{row.isGroup}}" hint-placeholder-val="{{ false }}"><div class="grp"><span>▣ run {{row.run}}</span><span class="mut">{{row.meta}}</span></div></sc-if>
+        <sc-if value="{{row.isGroup}}" hint-placeholder-val="{{ false }}"><div class="grp"><sc-if value="{{row.selected}}"><span class="selection-mark" role="img" aria-label="{{row.selectionLabel}}">◆</span></sc-if><sc-if value="{{row.unselected}}"><span>▣ run {{row.run}}</span></sc-if><span class="mut">{{row.meta}}</span></div></sc-if>
         <sc-if value="{{row.isEvent}}" hint-placeholder-val="{{ true }}">
-          <div class="row {{row.cls}}">
+          <div class="row {{row.cls}}" id="{{row.anchor}}">
             <span class="mut">{{row.t}}</span>
             <span style="{{row.glyphStyle}}">{{row.glyph}}</span>
             <span class="mut" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{row.job}}</span>
@@ -130,11 +124,10 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 
   <aside class="pnl brk" style="flex:1 1 400px;min-width:320px;padding:12px;display:flex;flex-direction:column;gap:10px;border-color:#ff3d7f">
     <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="lbl" style="color:#ff3d7f">detail · note · halt</span><span class="lbl"><span class="kbd">Esc</span> closes · <span class="kbd">p</span> payload</span></div>
-    <div style="font-size:13px;line-height:1.4">review:HANDOFF-0032 HALT after cycle 3: F1 has stood blocking for 3 consecutive cycles; packet in AUDIT-0029</div>
     <div class="kv">
       <b>id</b><span>01M3MER5YW9F20GVV8P2KXNTYX</span>
       <b>ts</b><span>2026-09-28T09:49:41.852-07:00</span>
-      <b>run_id</b><span>01M3MER5YW9F20GVV8P2KXNTYY</span>
+      <b>halt record run_id</b><span>01M3MER5YW9F20GVV8P2KXNTYY</span>
       <b>source · actor</b><span>kgme · kgme.review</span>
       <b>kind · class</b><span>note · <span class="chip c-block">blocking</span></span>
       <b>status</b><span>null</span>
@@ -146,9 +139,10 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
       <b>payload_sha256</b><span>9c41e7…b02d</span>
     </div>
     <div style="border-top:1px solid #1e2a33;padding-top:10px;display:flex;flex-direction:column;gap:6px">
-      <span class="lbl">escalation packet</span>
-      <span style="font-size:11px">AUDIT-0029 · F1 survivors: write aim counted on target alone; denial without tool-call id matched on tool and target</span>
-      <span class="lbl" style="margin-top:4px">to continue, from the terminal</span>
+      <div class="causal-trace" role="group" style="color:#ff3d7f" aria-label="ADR-016: F1 blocking in cycles 1, 2, 3 causes HALT and escalation to AUDIT-0029"><span>ADR-016 · F1<br><b style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:#ff3d7f;color:#0a0c10">1</b> <b style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:#ff3d7f;color:#0a0c10">2</b> <b style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:#ff3d7f;color:#0a0c10">3</b></span><span class="causal-link" aria-hidden="true"></span><a href="#escalation-packet">HALT → AUDIT-0029</a></div>
+      <span class="lbl" id="escalation-packet">escalation packet · review:HANDOFF-0032</span>
+      <span style="font-size:11px">F1 blocking in cycles 1, 2, 3 · root cause: refusal evidence. F1 survivors: write aim counted on target alone; denial without tool-call id matched on tool and target</span>
+      <span class="lbl" style="margin-top:4px">To continue after HALT, override from the terminal or reject the staged change.</span>
       <code style="font-size:11px;color:#39d0ff;overflow-wrap:anywhere">kgme review override --handoff HANDOFF-0032 --reason "…"</code>
       <span style="font-size:11px;color:#6f8290">or <code style="color:#cfe6ef">git restore --staged .</code> to reject. The cockpit records neither; it will show the approval event when it lands.</span>
       <button type="button" disabled style="margin-top:4px;align-self:flex-start;font:inherit;font-size:10px;background:transparent;color:#3a4650;border:1px dashed #3a4650;padding:3px 10px">override here · phase 2</button>
@@ -166,7 +160,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   <span><span class="kbd">2</span> blocking only</span>
   <span><span class="kbd">c</span> calm</span>
   <span><span class="kbd">?</span> keys + system</span>
-  <span style="margin-left:auto;color:#ff3d7f">halt · nothing proceeds until the override lands</span>
+  <span style="margin-left:auto;color:#ff3d7f">halted</span>
 </footer>
 </div>
 </x-dc>
@@ -195,12 +189,12 @@ class Component extends DCLogic {
   }
 
   rows() {
-    const g = (run, meta) => ({ isGroup: true, isEvent: false, run, meta });
+    const g = (run, meta) => { const selected = run === this.trayRuns().find(r => r.focus)?.run; return { isGroup: true, isEvent: false, run, meta: selected ? meta.replace(/^.*? · /, '') : meta, selected, unselected: !selected, selectionLabel: 'selected run ' + run }; };
     const e = (t, kind, job, summary, chip, dt, cls) => {
       const glyph = kind === 'intent' ? '▶' : kind === 'outcome' ? '◀' : kind === 'note' ? '✎' : '✓';
       const glyphStyle = kind === 'intent' ? 'color:#6f8290' : kind === 'outcome' ? 'color:#cfe6ef' : kind === 'note' ? 'color:#ffb02e' : 'color:#4de38a';
       const chipCls = chip === 'ok' ? 'c-ok' : chip === 'blocking' || chip === 'refused' ? 'c-block' : chip === 'transient' || chip === 'advisory' ? 'c-trans' : 'c-none';
-      return { isGroup: false, isEvent: true, t, glyph, glyphStyle, job, summary, chip: chip || '—', chipCls, dt: dt || '', cls: cls || '' };
+      return { isGroup: false, isEvent: true, t, glyph, glyphStyle, job, summary, chip: chip || '—', chipCls, dt: dt || '', cls: cls || '', anchor: cls === 'focus' ? 'selected-event' : '' };
     };
     return [
       g('01M38FTP…TYM', 'kgme.review · review:HANDOFF-0032 · opened 2026-09-23 18:17 · 25 events'),
@@ -227,7 +221,7 @@ class Component extends DCLogic {
   }
   renderVals() {
     const calm = this.props.calm ?? false;
-    return { noise: !calm, calm, cells: this.cells(), activitySummary: this.activitySummary(), activityStart: this.cells()[0].time, activityEnd: this.cells().at(-1).time, rows: this.rows(), trayRuns: this.trayRuns() };
+    return { noise: !calm, calm, cells: this.cells(), activitySummary: this.activitySummary(), activityStart: this.cells()[0].time, activityEnd: this.cells().at(-1).time, rows: this.rows(), selectedRuns: this.trayRuns().filter(r => r.focus), trayRuns: this.trayRuns() };
   }
 }
 </script>

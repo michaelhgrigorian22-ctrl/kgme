@@ -33,7 +33,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .sprite-controls button{font:inherit;font-size:11px;line-height:18px;color:#cfe6ef;border:1px solid #1e2a33;border-radius:2px;background:#11151c;padding:3px 8px;cursor:pointer}
 .sprite-controls button[aria-pressed="true"]{border-color:#39d0ff;text-decoration:underline;text-underline-offset:4px}
 .sprite-controls button:hover{border-color:#39d0ff}.sprite-controls button:focus-visible,.sprite-scroll:focus-visible{outline:2px solid #39d0ff;outline-offset:3px}
-.selected-layout{display:grid;grid-template-columns:96px minmax(0,1.4fr) minmax(0,1fr);gap:16px;align-items:center;margin-top:14px}
+.selected-layout{display:grid;grid-template-columns:160px minmax(0,1.4fr) minmax(0,1fr);gap:16px;align-items:center;margin-top:14px}
 .detail-mount{height:96px;width:96px;display:grid;place-items:center;border:1px solid #1e2a33;background:#0a0c10;box-sizing:border-box}
 .sprite-matrix{display:grid;grid-template-columns:170px repeat(7,minmax(0,1fr));margin-top:12px}.sprite-matrix sc-for,.sprite-matrix sc-if{display:contents}
 .matrix-heading,.matrix-label,.matrix-cell{border-top:1px solid #1e2a33;padding:9px 4px;box-sizing:border-box;min-width:0}
@@ -107,7 +107,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 
 .sr-only{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 
-</style>
+.selected-pair{display:flex;align-items:center;gap:20px}.selected-pair .detail-mount{flex:none}.selected-portrait{display:flex;flex-direction:column;align-items:center;gap:8px}.selected-portrait .portrait{width:24px;height:24px}.selected-event{border-left:2px solid #39d0ff;padding-left:8px;color:#cfe6ef}</style>
 </helmet>
 <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" style="position:absolute;width:0;height:0;overflow:hidden">
 <defs>
@@ -788,14 +788,14 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
       <div class="lbl">KGME cockpit · whimsy that obeys the rule · v2, louder</div>
       <h1 style="margin:2px 0 0;font-size:22px;font-weight:700;letter-spacing:.04em">Sprites — the cast and its modes</h1>
     </div>
-    <div style="max-width:760px;font-size:11px;color:#6f8290">One original illustrated character per <code style="color:#cfe6ef">actor</code>, 7 modes, 2 material palettes from the same drawing. A 24 px cropped portrait belongs in run headers; a 72 px full character belongs in detail headers. Modes repeat lifecycle facts in adjacent text; they are not failure classes. Calm removes decoration; reduced motion freezes it. The stranger remains the fallback.</div>
+    <div style="max-width:760px;font-size:11px;color:#7a8d9b">7 original actors · 7 modes · 2 palettes. Compare the same selected drawing at 72 px and its actual 24 px crop. Mapping and constraints live in Rules below.</div>
   </div>
   <section class="pnl brk" style="padding:14px">
     <h2 class="h">Reusable cast · 49 static specimens · one selected preview</h2>
-    <p class="sprite-copy">7 actors × 7 modes. Scroll for the palette pairs and context examples. Use Play for the detail controls; the calm tweak hides decoration and retains every fact.</p>
+    <p class="sprite-copy">7 actors × 7 modes. Scroll for the palette pairs and context examples. Use Play for the sample controls.</p>
     <div class="sprite-scroll" tabindex="0" aria-label="Cast specimens, palettes and context">
       <section class="sprite-panel" aria-labelledby="selected-heading">
-        <h3 id="selected-heading" class="h">Selected detail · 72 px · fixture controls</h3>
+        <h3 id="selected-heading" class="h">Selected role · 72 px figure + 24 px portrait</h3>
         <div class="sprite-controls" role="group" aria-label="Selected actor">
           <span class="lbl">Actor</span>
           <sc-for list="{{actorChoices}}" as="choice" hint-placeholder-count="7"><button type="button" onClick="{{choice.pick}}" aria-pressed="{{choice.selected}}">{{choice.key}}</button></sc-for>
@@ -809,9 +809,9 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
           <sc-for list="{{paletteChoices}}" as="choice" hint-placeholder-count="2"><button type="button" onClick="{{choice.pick}}" aria-pressed="{{choice.selected}}">{{choice.key}}</button></sc-for>
         </div>
         <div class="selected-layout">
-          <div id="chibi-selected-detail" class="detail-mount"><svg class="chibi actor-{{selected.actor}} mode-{{selected.mode}} pal-{{selected.palette}} tone-{{selected.tone}} {{motionClass}}" viewBox="0 0 240 280" aria-hidden="true" focusable="false"><use href="#{{selected.symbol}}"></use></svg></div>
-          <div><strong>{{selected.name}}</strong><p>Actor: {{selected.mapping}}. Mode: {{selected.mode}}.</p><p>Lifecycle: {{selected.lifecycle}}. Class: {{selected.className}}.</p><p>Event: {{selected.event}}. Palette: {{selected.palette}}. Size: 72 CSS px.</p><p class="muted">{{selected.bio}}</p></div>
-          <div><p class="c-live" role="status">{{motionStatus}}</p><p class="muted">Only this visible detail can animate. Reduced motion freezes it. These controls select samples; they do not dispatch commands.</p></div>
+          <div class="selected-pair"><div id="chibi-selected-detail" class="detail-mount"><svg class="chibi actor-{{selected.actor}} mode-{{selected.mode}} pal-{{selected.palette}} tone-{{selected.tone}} {{motionClass}}" viewBox="0 0 240 280" aria-hidden="true" focusable="false"><use href="#{{selected.symbol}}"></use></svg></div>
+          <div class="selected-portrait"><svg class="chibi portrait actor-{{selected.actor}} mode-{{selected.mode}} pal-phosphor tone-{{selected.tone}}" viewBox="{{selected.crop}}" aria-hidden="true" focusable="false"><use href="#{{selected.symbol}}"></use></svg><span class="lbl">24 px</span></div></div><div><strong>{{selected.name}}</strong><p>Actor: {{selected.mapping}}. Mode: {{selected.mode}}.</p><p>Lifecycle: {{selected.lifecycle}}. Class: {{selected.className}}.</p><p>Mode event: {{selected.event}}. Detail palette: {{selected.palette}}.</p><p class="selected-event">Existing role example: {{selected.roleEvent}}</p><p class="muted">{{selected.bio}}</p></div>
+          <div><p class="c-live" role="status">{{motionStatus}}</p><p class="muted">These controls select samples; they do not dispatch commands.</p></div>
         </div>
       </section>
       <section class="sprite-panel" aria-labelledby="matrix-heading">
@@ -861,7 +861,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px">
     <section class="pnl brk" style="padding:16px">
       <h2 class="h">Voice · the micro-labels, mood: based</h2>
-      <div style="font-size:11px;color:#6f8290;margin-bottom:10px">The corner labels carry no information, so they can say anything. A <code style="color:#cfe6ef">mood</code> tweak swaps the cold set for this one. Same facts, worse attitude.</div>
+      <div style="font-size:11px;color:#6f8290;margin-bottom:10px">A <code style="color:#cfe6ef">mood</code> tweak swaps the cold set for this one. Noise rule: board 1.</div>
       <div class="voice">
         <span>live</span><div>the ledger remembers · you may not</div>
         <span>blocking</span><div>it's not you · it's the regex</div>
@@ -880,14 +880,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
     <section class="pnl brk" style="padding:16px">
       <h2 class="h">Rules</h2>
       <div style="display:flex;flex-direction:column;gap:10px;font-size:11px">
-        <div><span class="lbl">mapping, in kgme.toml</span><pre style="margin:6px 0 0;font:inherit;color:#cfe6ef;white-space:pre-wrap">[sprites]
-"claude-code.*" = "builder"
-"kgme.review"   = "reviewer"
-"arbiter.*"     = "arbiter"
-"kgme.guard"    = "guard"
-"kgme.*"        = "scribe"
-"michou"        = "michou"
-default         = "stranger"</pre><span style="color:#6f8290">Matched on <code>actor</code>, first rule wins. A Kimi harness is the stranger until you give it a face.</span></div>
+        <div><span class="lbl">mapping, in kgme.toml</span><p>Actor / mapping in the 7-row table above defines <code>[sprites]</code>.</p><span style="color:#6f8290">Matched on <code>actor</code>, first rule wins. A Kimi harness is the stranger until you give it a face.</span></div>
         <div><span class="lbl">what a sprite may do</span><p style="margin:6px 0 0;color:#cfe6ef">Blink, work its own tool, glance, sag, burn, wear a halo or lie in chalk. Up to 2 authored key poses use interpolated transforms. Only the selected visible detail animates. Calm removes artwork without losing actor, lifecycle, class or event text. Hidden, offscreen and reduced-motion previews do no animation work.</p></div>
         <div><span class="lbl">what a sprite is</span><p style="margin:6px 0 0;color:#cfe6ef">One editable SVG under <code>chibi/</code>, with 6 material roles and restrained cel shading. Smooth source geometry replaces the retired 24 × 24 grid and 3 KB cap. Phosphor stays in the timeline; sticker is confined to detail headers and the illustrated Phase 2 selector. The 22 px event rows, keyboard map and 3 strike boxes stay unchanged.</p></div>
       </div>
@@ -929,6 +922,8 @@ class Component extends DCLogic {
       { key: 'michou', name: 'you / Michou', mapping: 'michou', bio: 'Bucket hat, sunglasses, chain, cheetah hoodie and flip phone.' },
       { key: 'stranger', name: 'the stranger', mapping: 'default', bio: 'CRT head, crooked antennae, static face and grey coat.' }
     ].map(actor => ({ ...actor, symbol: 'chibi-' + actor.key }));
+    const crops = { builder:'35 9 167 167', reviewer:'33 2 183 183', arbiter:'26 0 181 181', guard:'29 0 170 170', scribe:'34 6 164 164', michou:'32 18 169 169', stranger:'25 3 167 167' };
+    const roleEvents = { builder:'19:41:48 · tool:Bash · Bash ok · 9 passed · ok · 15 s', reviewer:'19:43:03 · review:0040 · cycle 1 attempt 1: reviewer exited 1 with no text · transient · 3 s', arbiter:'review:HANDOFF-0032 HALT after cycle 3 · blocking', guard:'Phase 2 sample approval · Bash git push origin main · advisory', scribe:'No role-specific event supplied; mode sample above.', michou:'No role-specific event supplied; mode sample above.', stranger:'No role-specific event supplied; mode sample above.' };
     const modes = [
       { key: 'idle', lifecycle: 'ready', className: '—', event: 'sample ready', tone: 'live' },
       { key: 'working', lifecycle: 'active', className: '—', event: 'sample tool intent', tone: 'live' },
@@ -951,7 +946,7 @@ class Component extends DCLogic {
       }))),
       actorChoices: choices(actors, 'actor'), modeChoices: choices(modes, 'mode'),
       paletteChoices: choices([{ key: 'phosphor' }, { key: 'sticker' }], 'palette'),
-      selected: { ...actor, ...mode, actor: actor.key, mode: mode.key, palette: this.state.palette },
+      selected: { ...actor, ...mode, crop: crops[actor.key], roleEvent: roleEvents[actor.key], actor: actor.key, mode: mode.key, palette: this.state.palette },
       motionClass: animate ? 'is-animated' : '',
       motionStatus: calm ? 'Calm: artwork hidden; all facts retained.'
         : this.state.reduced ? 'Reduced motion: coherent static pose.'

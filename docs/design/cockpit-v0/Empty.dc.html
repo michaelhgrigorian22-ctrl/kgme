@@ -35,7 +35,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 @keyframes pulse{50%{opacity:.5}}
 @media (prefers-reduced-motion:reduce){.pulse{animation:none}.scan{display:none}}
 .quota-alert{display:flex;align-items:center;gap:8px;min-height:24px;font-size:11px}.quota-track{width:80px;height:7px;border:1px solid currentColor}.quota-track i{display:block;height:100%;background:currentColor}
-</style>
+.vacant{border:0;background:transparent;color:#7a8d9b}.vacant .lbl{color:#7a8d9b}.empty-detail summary{cursor:pointer;min-height:24px}.empty-detail summary:focus-visible{outline:2px solid #39d0ff}.empty-detail p{overflow-wrap:anywhere}</style>
 </helmet>
 <div class="hud" style="--f:#39d0ff;--fg:rgba(57,208,255,.06)">
 <sc-if value="{{noise}}" hint-placeholder-val="{{ true }}">
@@ -54,24 +54,18 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 
 <header style="position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:12px 22px;align-items:flex-end;padding:30px 36px 10px">
   <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">clock</span><span style="font-size:22px;font-weight:700;letter-spacing:.04em">09:00:00<span style="color:#6f8290;font-size:12px;font-weight:400"> −07:00</span></span></div>
-  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">ledger</span><span style="font-size:14px"><span style="color:#6f8290">○</span> empty · <b style="font-weight:500">0</b> events · 0 runs</span></div>
+  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">ledger</span><span style="font-size:14px"><span style="color:#6f8290">○</span> empty</span></div>
   <dc-import name="Tray" view="bar" runs="{{trayRuns}}" calm="{{calm}}" hint-size="300px,38px"></dc-import>
 </header>
 
 <div style="position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:14px;padding:4px 36px 8px;flex:1 1 auto;align-content:flex-start">
   <aside style="flex:0 1 232px;min-width:200px;display:flex;flex-direction:column;gap:12px">
-    <section class="pnl brk" style="padding:12px 12px 10px">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px"><span class="lbl">runs · events per minute</span><span class="lbl">60 min</span></div>
-      <div style="display:grid;grid-template-columns:repeat(12, minmax(0, 1fr));gap:3px">
-        <sc-for list="{{cells}}" as="c" hint-placeholder-count="96"><div class="cell"></div></sc-for>
-      </div>
-      <div style="display:flex;justify-content:space-between;margin-top:6px"><span class="lbl">08:00</span><span class="lbl">now</span></div>
-    </section>
-    <section class="pnl brk" style="padding:12px">
+
+    <section class="vacant" style="padding:12px">
       <div class="lbl" style="margin-bottom:8px">ADR-016 strikes · no review open</div>
       <div style="display:flex;gap:8px;align-items:center"><div style="width:34px;height:22px;border:1px dashed #1e2a33"></div><div style="width:34px;height:22px;border:1px dashed #1e2a33"></div><div style="width:34px;height:22px;border:1px dashed #1e2a33"></div><span style="margin-left:6px;font-size:11px;color:#6f8290">—</span></div>
     </section>
-    <section class="pnl brk" style="padding:12px">
+    <section class="vacant" style="padding:12px">
       <div class="lbl" style="margin-bottom:8px">filters</div>
       <div style="display:flex;flex-wrap:wrap;gap:6px">
         <button type="button" disabled style="font:inherit;font-size:10px;background:transparent;color:#3a4650;border:1px solid #1e2a33;padding:2px 8px">run <span class="kbd" style="color:#3a4650;border-color:#3a4650">r</span></button>
@@ -87,10 +81,10 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
       <span class="lbl">timeline · newest at bottom</span>
       <span class="lbl">time · kind · job · summary · class · Δt</span>
     </div>
-    <div style="flex:1 1 auto;display:flex;align-items:center;justify-content:center;padding:40px 24px">
+    <div style="flex:1 1 auto;display:flex;align-items:flex-start;padding:24px 10px">
       <div style="max-width:520px;display:flex;flex-direction:column;gap:14px">
-        <div style="font-size:22px;font-weight:700;letter-spacing:.04em;color:#6f8290"><span class="pulse">▮</span> no events yet</div>
-        <p style="margin:0;color:#cfe6ef">The ledger has nothing to show. It fills the first time a hook fires or a job writes an intent. Three ways that happens:</p>
+        <div style="font-size:22px;font-weight:700;letter-spacing:.04em;color:#6f8290"><span aria-hidden="true">▮</span> nothing recorded yet</div>
+        <div class="zero-counts">0 events · 0 runs · no activity reading<br><span class="lbl">events per minute · last 60 min · 08:00 to now</span></div><p style="margin:0;color:#cfe6ef">The ledger has nothing to show. It fills the first time a hook fires or a job writes an intent. Three ways that happens:</p>
         <div style="display:flex;flex-direction:column;gap:8px;font-size:11px">
           <div style="display:flex;gap:12px"><span class="chip c-live" style="min-width:54px;text-align:center">session</span><span>open Claude Code in the repository with <span style="color:#39d0ff">kgme-claude</span> · every tool call writes an intent and an outcome</span></div>
           <div style="display:flex;gap:12px"><span class="chip c-live" style="min-width:54px;text-align:center">job</span><span><span style="color:#39d0ff">kgme brief --dry-run</span> · Loop 0 reads the vault and writes nothing but its own events</span></div>
@@ -101,9 +95,9 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
     </div>
   </main>
 
-  <aside class="pnl brk" style="flex:0 1 352px;min-width:300px;padding:12px;display:flex;flex-direction:column;gap:10px">
+  <aside class="vacant" style="flex:0 1 352px;min-width:300px;padding:12px;display:flex;flex-direction:column;gap:10px">
     <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="lbl">detail</span><span class="lbl">Esc closes</span></div>
-    <div style="font-size:11px;color:#6f8290">Select a row with <span class="kbd">j</span> <span class="kbd">k</span> and press <span class="kbd">Enter</span>. The pane shows every field of ADR-019's event shape: id, ts, run, actor, kind, class, status, job, key, ref, parent, summary, payload_ref, payload_sha256.</div>
+    <div style="font-size:11px;color:#6f8290">Select a row with <span class="kbd">j</span> <span class="kbd">k</span> and press <span class="kbd">Enter</span>. </div><details class="empty-detail"><summary><span class="kbd">Enter</span> event shape</summary><p>ADR-019: id, ts, run, actor, kind, class, status, job, key, ref, parent, summary, payload_ref, payload_sha256.</p></details><div></div>
     <div style="margin-top:auto;border-top:1px solid #1e2a33;padding-top:8px;display:flex;flex-direction:column;gap:4px">
       <span class="lbl">open handoff</span><span style="color:#6f8290">none adopted</span>
       <span class="lbl" style="margin-top:6px">last review</span><span style="color:#6f8290">—</span>
@@ -129,7 +123,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 class Component extends DCLogic {
   renderVals() {
     const calm = this.props.calm ?? false;
-    return { noise: !calm, calm, trayRuns: [], cells: Array.from({ length: 96 }, () => ({})) };
+    return { noise: !calm, calm, trayRuns: [],  };
   }
 }
 </script>

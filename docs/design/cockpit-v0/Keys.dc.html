@@ -62,7 +62,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   <div style="font-size:11px;color:#7a8d9b">Single-character keys act only while focus is on the cockpit's own surface, never inside a text field. In the filter line only Enter and Esc act. No modifier chords in v0; remapping is Phase 2. This drawing previews each surface's map; it does not bind application keys.</div>
   <div style="display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start">
     <div style="flex:1.2 1 680px;min-width:0;display:flex;flex-direction:column;gap:16px"><section class="pnl brk" style="padding:18px;display:flex;flex-direction:column;gap:6px"><sc-for list="{{keyboardRows}}" as="row"><div style="{{row.style}}"><sc-for list="{{row.keys}}" as="key"><div class="{{key.cls}}"><b>{{key.key}}</b><small>{{key.hint}}</small></div></sc-for></div></sc-for></section>
-  <sc-if value="{{hasSystem}}"><section class="pnl brk" style="padding:14px"><div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px"><h2 class="h" style="margin:0">System · {{sampleName}}</h2><sc-for list="{{samples}}" as="sample"><button type="button" class="surface-choice" aria-pressed="{{sample.selected}}" onClick="{{sample.pick}}">{{sample.name}}</button></sc-for></div><div class="system" tabindex="0" aria-label="system facts, scroll for all fields"><dl><sc-for list="{{systemRows}}" as="fact"><dt>{{fact.label}}</dt><dd>{{fact.value}}</dd></sc-for></dl></div></section></sc-if>
+  <sc-if value="{{hasSystem}}"><section class="pnl brk" style="padding:14px"><div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px"><h2 class="h" style="margin:0">System · {{sampleName}}</h2><sc-for list="{{samples}}" as="sample"><button type="button" class="surface-choice" aria-pressed="{{sample.selected}}" onClick="{{sample.pick}}">{{sample.name}}</button></sc-for></div><div class="system" tabindex="0" aria-label="system facts, scroll for all fields"><dl><sc-for list="{{systemRows}}" as="fact"><dt>{{fact.label}}</dt><dd>{{fact.value}}</dd></sc-for></dl><sc-if value="{{isDisconnected}}"><h3 class="h" style="margin-top:16px">When disconnected</h3><p>To start: <code>kgme cockpit</code> from the repository.</p><p>The Dock icon opens this page; it does not start the server (launchd waits for Phase 3).</p><p>The record is intact in the ledger file above; this view will catch up on its own.</p><p>The grey frame means no signal, never an error in the ledger.</p></sc-if></div></section></sc-if>
 </div>
     <div style="flex:1 1 400px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px"><sc-for list="{{families}}" as="family"><section class="pnl brk" style="padding:14px"><h2 class="h">{{family.name}}</h2><div class="leg"><sc-for list="{{family.bindings}}" as="binding"><span class="k"><span class="kbd" style="{{binding.style}}">{{binding.key}}</span></span><span>{{binding.text}}</span></sc-for></div></section></sc-for></div>
   </div>
@@ -263,6 +263,10 @@ class Component extends DCLogic {
     {
       "label": "Policy",
       "value": "retrying every 2 s · nothing is lost: the ledger is a file"
+    },
+    {
+      "label": "Ledger file",
+      "value": "logs/ledger/2026-10.jsonl"
     }
   ],
   "Phase2": [
@@ -371,7 +375,7 @@ class Component extends DCLogic {
         if (!pattern.test(supplied)) systemRows.push({label, value:'Not supplied in this sample.'});
       }
     }
-    return { noise: !(this.props.calm ?? false), surfaceName: surface === 'desk'?'Desk':surface === 'wall'?'Wall':'Station', isStation:station, hasSystem:!station, sampleName:names[sample], systemRows,
+    return { noise: !(this.props.calm ?? false), surfaceName: surface === 'desk'?'Desk':surface === 'wall'?'Wall':'Station', isStation:station, hasSystem:!station, isDisconnected:!station && sample === 'Disconnected', sampleName:names[sample], systemRows,
       surfaces:['desk','wall','station'].map(key=>({name:key,selected:key===surface,pick:()=>this.setState({surface:key})})),
       samples:surface==='desk'?Object.keys(names).filter(k=>k!=='Wall').map(key=>({name:names[key],selected:key===sample,pick:()=>this.setState({sample:key})})):[],
       keyboardRows:rows.map((keys,i)=>({style:'display:flex;gap:6px;padding-left:'+([0,24,40,64,160][i])+'px',keys:keys.map(key=>({key,hint:reserved[key]||hints[key]||'',cls:'key'+(reserved[key]?' f2':hints[key]?' on':'')+(['Esc','Tab'].includes(key)?' wide':key==='Enter'?' wider':key==='Space'?' space':'')}))})),
