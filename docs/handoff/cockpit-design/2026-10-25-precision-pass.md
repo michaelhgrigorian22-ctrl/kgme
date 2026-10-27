@@ -6,7 +6,11 @@ from: michou
 to: codex
 model: gpt-6-astra
 tier: 2
-status: proposed
+status: done
+completed: 2026-10-26T17:58:00-07:00
+report: docs/audit/cockpit-design/cdh-0031-implementation.md
+adopted_by: michou
+adopted: 2026-10-26T14:13:45-07:00
 depends_on: [CDH-0029, CDH-0030]
 design_track: HANDOFF-0036
 ---

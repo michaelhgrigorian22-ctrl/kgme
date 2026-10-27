@@ -3,7 +3,7 @@ id: READER-COCKPIT-DESIGN
 type: note
 status: active
 created: 2026-10-09T21:50:00-07:00
-modified: 2026-10-22T02:15:00-07:00
+modified: 2026-10-26T17:39:00-07:00
 author: cowork
 source: stated
 tier: 2
@@ -33,6 +33,14 @@ CDH-0001 implemented the reusable cast; CDH-0002 found the native iframe failure
 
 ## The one rule
 **Signal in the centre, noise at the edges, and noise never carries information.** Everything outside the three columns (frame, tick rails, micro-labels, scanlines, vignette, sweep) and every sprite is decoration that mirrors a fact already shown in text. Therefore the `c` key and `prefers-reduced-motion` can remove or freeze all of it without loss. A finding that a decorative element carries a fact nowhere else on screen is `blocking`; a finding that a fact is shown only by colour is `blocking` (ADR-016 vocabulary, see below).
+
+### Precision
+
+CDH-0031 makes spacing an 8 px scale, rounded to the nearest step; ties round upward. The 4 px subgrid belongs only to row anatomy, including chips, keycaps and tray rows. A ledger row keeps its documented 22 px outer height: 15 px content, two 3 px insets and one 1 px rule; its chip uses a 13 px line-height. The 24 px target minimum, 1 px accessibility clipping boxes and negative 1 px visually-hidden offset are deliberate exceptions. Artwork, chart geometry, frame brackets and tick rails are dimensions, not spacing tokens. Desk columns share a top and bottom line through grid stretch and flexible panels; the wall's selected-event band sits above its four aligned columns.
+
+Structural borders are 1 px `#1e2a33`. State-coloured borders, dashed reserved keys, selected-event marks and the frame signature retain their meanings. Type uses 22/14/12/11/9 px, normally at 1.45 line-height; compact anatomy retains 1, 13 px activity labels, 14 px tray labels, 15 px chips and rows, 16 px keys and 18 px tray copy. Tracking is zero, .14em for labels or .1em for chips. Numbers inherit tabular figures on every surface.
+
+All finite motion uses `cubic-bezier(0,0,.2,1)`: 120 ms response, 240 ms state, 480 ms travel. Feedback begins on the next frame. The camera and panes retarget from their current position and finish at their destination; no asymptotic follow remains. Every focusable control gets the same cyan 2 px ring with a negative 2 px offset, keeping it inside clipped panels. Text and accessible state acknowledgements remain immediate. One reduced-motion CSS query per surface removes animation and travel while preserving state changes as instant cuts. Documented ambient crew poses, sky and cursor blink retain their existing cadence; calm and reduced motion still stop them. Board 1 carries the Motion specimen, and `tests/test_design_precision.py` enforces the source rules and projected column baselines under `make check`.
 
 ## Decided (by Michou, 2026-10-08, 09 and 22)
 - Palette, phosphor + neon: ground `#0a0c10`, surface `#11151c`, rule `#1e2a33`, text `#cfe6ef`, muted `#6f8290`, cyan `#39d0ff` (focus, live, frame), magenta `#ff3d7f` (blocking and refused only), amber `#ffb02e` (pending, transient, advisory), green `#4de38a` (ok, approval). Sprite extras: hat `#8fb4c4` in phosphor; a sticker palette for two places only.

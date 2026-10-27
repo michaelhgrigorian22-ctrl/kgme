@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-body{margin:0;background:#0a0c10;color:#cfe6ef;font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.45}
+body{margin:0;background:#0a0c10;color:#cfe6ef;font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.45;font-variant-numeric:tabular-nums}
 a{color:#39d0ff}a:hover{color:#cfe6ef}
 .hud{position:relative;min-height:100vh;display:flex;flex-direction:column;background:#0a0c10;isolation:isolate;overflow:hidden}
 .frame{position:absolute;inset:0;pointer-events:none;border:1px solid var(--f);box-shadow:inset 0 0 0 1px rgba(0,0,0,.6),inset 0 0 90px var(--fg)}
@@ -26,10 +26,10 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .brk::after{bottom:-1px;right:-1px;border-left:0;border-top:0}
 .lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#7a8d9b}
 .h{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#39d0ff;margin:0 0 8px}
-.kbd{display:inline-block;min-width:16px;padding:0 5px;border:1px solid #39d0ff;color:#39d0ff;font-size:10px;line-height:16px;text-align:center;border-radius:2px}
-.key{width:48px;height:48px;border:1px solid #1e2a33;background:#0e1218;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:3px;color:#7a8d9b}
-.key b{font-size:13px;font-weight:500;color:#7a8d9b}
-.key small{font-size:7px;letter-spacing:.06em;text-transform:uppercase;line-height:1;text-align:center}
+.kbd{display:inline-block;min-width:16px;padding:0 4px;border:1px solid #39d0ff;color:#39d0ff;font-size:11px;line-height:16px;text-align:center;border-radius:2px}
+.key{width:48px;height:48px;border:1px solid #1e2a33;background:#0e1218;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:3px;color:#7a8d9b}
+.key b{font-size:14px;font-weight:500;color:#7a8d9b}
+.key small{font-size:9px;letter-spacing:0;text-transform:uppercase;line-height:1;text-align:center}
 .on{border-color:#39d0ff;color:#39d0ff;background:#0e1a22;box-shadow:inset 0 0 12px rgba(57,208,255,.12)}
 .on b{color:#cfe6ef}
 .on small{color:#39d0ff}
@@ -37,10 +37,10 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .f2 small{color:#7a8d9b}
 .f2 b{color:#7a8d9b}
 .wide{width:72px}.wider{width:96px}.space{width:280px}
-.leg{display:grid;grid-template-columns:72px minmax(0,1fr);gap:4px 12px;font-size:11px;align-items:baseline}
+.leg{display:grid;grid-template-columns:72px minmax(0,1fr);gap:8px 16px;font-size:11px;align-items:baseline}
 .leg .k{text-align:right}
-@media (prefers-reduced-motion:reduce){.scan{display:none}}
-.surface-choice{min-height:24px;padding:4px 10px;border:1px solid #1e2a33;background:#0a0c10;color:#cfe6ef;font:inherit}.surface-choice[aria-pressed="true"]{border-color:#39d0ff;text-decoration:underline;text-underline-offset:3px}.surface-choice:focus-visible,.system:focus-visible{outline:2px solid #39d0ff;outline-offset:2px}.system{max-height:270px;overflow:auto;scroll-padding:8px}.system dl{display:grid;grid-template-columns:minmax(140px,1fr) minmax(0,3fr);gap:6px 16px;margin:0;font-size:11px}.system dt{color:#7a8d9b}.system dd{margin:0;overflow-wrap:anywhere}.key .small{font-size:7px}
+
+.surface-choice{min-height:24px;padding:8px 8px;border:1px solid #1e2a33;background:#0a0c10;color:#cfe6ef;font:inherit}.surface-choice[aria-pressed="true"]{border-color:#39d0ff;text-decoration:underline;text-underline-offset:3px}.surface-choice:focus-visible,.system:focus-visible{}.system{max-height:270px;overflow:auto;scroll-padding:8px}.system dl{display:grid;grid-template-columns:minmax(140px,1fr) minmax(0,3fr);gap:8px 16px;margin:0;font-size:11px}.system dt{color:#7a8d9b}.system dd{margin:0;overflow-wrap:anywhere}.key .small{font-size:9px}
 
 /* CDH-0032: isolated ground, negative decoration, then normal-flow text (0+). */
 .pnl{isolation:isolate}
@@ -51,7 +51,20 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .micro{background:#0a0c10}
 /* Repeat the original scan on opaque panel surfaces, behind their words. */
 .hud:has(.scan) .pnl{background-image:repeating-linear-gradient(0deg,rgba(207,230,239,.035) 0 1px,transparent 1px 3px);background-attachment:fixed}
-@media (prefers-reduced-motion:reduce){.hud:has(.scan) .pnl{background-image:none}}
+
+
+.row{box-sizing:border-box;height:22px;line-height:15px}.row .chip{line-height:13px}
+/* CDH-0031: one spacing/type/motion contract; signature decoration is unchanged. */
+:root{--precision-ease:cubic-bezier(0,0,.2,1);--precision-response:120ms;--precision-state:240ms;--precision-travel:480ms}
+:where(button,a,summary,input,select,textarea,[tabindex]){outline:2px solid transparent;outline-offset:-2px;transition:outline-color var(--precision-response) var(--precision-ease),background-color var(--precision-response) var(--precision-ease),border-color var(--precision-response) var(--precision-ease)}
+:where(button,a,summary,input,select,textarea,[tabindex]):focus-visible{outline:2px solid #39d0ff;outline-offset:-2px}
+.row,.tr-row{transition:background-color var(--precision-state) var(--precision-ease),outline-color var(--precision-response) var(--precision-ease)}
+[data-precision-columns]{align-items:stretch!important;align-content:stretch!important}
+[data-precision-column]{min-width:0;box-sizing:border-box}
+[data-precision-columns="desk"]{display:grid!important;grid-template-columns:minmax(200px,232px) minmax(0,1fr) minmax(300px,352px);grid-template-rows:minmax(0,1fr)}
+[data-precision-columns="desk"]>[data-precision-column]{height:100%;min-height:0}
+[data-precision-column]>:last-child:not(:only-child){flex-grow:1}
+@media (prefers-reduced-motion:reduce){.scan{display:none}.hud:has(.scan) .pnl{background-image:none}*,*::before,*::after{transition:none!important;animation:none!important}}
 </style>
 </helmet>
 <div class="hud" style="--f:#39d0ff;--fg:rgba(57,208,255,.08)">
@@ -68,14 +81,14 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   <div class="micro" style="bottom:7px;right:30px">· · ·</div>
 </sc-if>
 
-<div style="position:relative;z-index:1;padding:36px;display:flex;flex-direction:column;gap:16px;box-sizing:border-box;max-height:100vh;overflow:auto">
-  <div style="display:flex;justify-content:space-between;gap:16px;align-items:baseline"><div><div class="lbl">KGME cockpit v0 · ? keys + system</div><h1 style="margin:2px 0;font-size:22px">Keyboard map · {{surfaceName}}</h1></div><div style="display:flex;gap:8px"><sc-for list="{{surfaces}}" as="s"><button type="button" class="surface-choice" aria-pressed="{{s.selected}}" onClick="{{s.pick}}">{{s.name}}</button></sc-for></div></div>
+<div style="position:relative;z-index:1;padding:8px 40px;margin:32px 0;display:flex;flex-direction:column;gap:16px;box-sizing:border-box;height:calc(100vh - 64px);overflow:auto">
+  <div style="display:flex;justify-content:space-between;gap:16px;align-items:baseline"><div><div class="lbl">KGME cockpit v0 · ? keys + system</div><h1 style="margin:0px 0;font-size:22px">Keyboard map · {{surfaceName}}</h1></div><div style="display:flex;gap:8px"><sc-for list="{{surfaces}}" as="s"><button type="button" class="surface-choice" aria-pressed="{{s.selected}}" onClick="{{s.pick}}">{{s.name}}</button></sc-for></div></div>
   <div style="font-size:11px;color:#7a8d9b">Single-character keys act only while focus is on the cockpit's own surface, never inside a text field. In the filter line only Enter and Esc act. No modifier chords in v0; remapping is Phase 2. This drawing previews each surface's map; it does not bind application keys.</div>
-  <div style="display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start">
-    <div style="flex:1.2 1 680px;min-width:0;display:flex;flex-direction:column;gap:16px"><section class="pnl brk" style="padding:18px;display:flex;flex-direction:column;gap:6px"><sc-for list="{{keyboardRows}}" as="row"><div style="{{row.style}}"><sc-for list="{{row.keys}}" as="key"><div class="{{key.cls}}"><b>{{key.key}}</b><small>{{key.hint}}</small></div></sc-for></div></sc-for></section>
-  <sc-if value="{{hasSystem}}"><section class="pnl brk" style="padding:14px"><div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px"><h2 class="h" style="margin:0">System · {{sampleName}}</h2><sc-for list="{{samples}}" as="sample"><button type="button" class="surface-choice" aria-pressed="{{sample.selected}}" onClick="{{sample.pick}}">{{sample.name}}</button></sc-for></div><div class="system" tabindex="0" aria-label="system facts, scroll for all fields"><dl><sc-for list="{{systemRows}}" as="fact"><dt>{{fact.label}}</dt><dd>{{fact.value}}</dd></sc-for></dl><sc-if value="{{isDisconnected}}"><h3 class="h" style="margin-top:16px">When disconnected</h3><p>To start: <code>kgme cockpit</code> from the repository.</p><p>The Dock icon opens this page; it does not start the server (launchd waits for Phase 3).</p><p>The record is intact in the ledger file above; this view will catch up on its own.</p><p>The grey frame means no signal, never an error in the ledger.</p></sc-if></div></section></sc-if>
+  <div data-precision-columns="keys" style="display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px">
+    <div data-precision-column style="flex:1.2 1 680px;min-width:0;display:flex;flex-direction:column;gap:16px"><section class="pnl brk" style="padding:16px;display:flex;flex-direction:column;gap:8px"><sc-for list="{{keyboardRows}}" as="row"><div style="{{row.style}}"><sc-for list="{{row.keys}}" as="key"><div class="{{key.cls}}"><b>{{key.key}}</b><small>{{key.hint}}</small></div></sc-for></div></sc-for></section>
+  <sc-if value="{{hasSystem}}"><section class="pnl brk" style="padding:16px"><div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:16px"><h2 class="h" style="margin:0">System · {{sampleName}}</h2><sc-for list="{{samples}}" as="sample"><button type="button" class="surface-choice" aria-pressed="{{sample.selected}}" onClick="{{sample.pick}}">{{sample.name}}</button></sc-for></div><div class="system" tabindex="0" aria-label="system facts, scroll for all fields"><dl><sc-for list="{{systemRows}}" as="fact"><dt>{{fact.label}}</dt><dd>{{fact.value}}</dd></sc-for></dl><sc-if value="{{isDisconnected}}"><h3 class="h" style="margin-top:16px">When disconnected</h3><p>To start: <code>kgme cockpit</code> from the repository.</p><p>The Dock icon opens this page; it does not start the server (launchd waits for Phase 3).</p><p>The record is intact in the ledger file above; this view will catch up on its own.</p><p>The grey frame means no signal, never an error in the ledger.</p></sc-if></div></section></sc-if>
 </div>
-    <div style="flex:1 1 400px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px"><sc-for list="{{families}}" as="family"><section class="pnl brk" style="padding:14px"><h2 class="h">{{family.name}}</h2><div class="leg"><sc-for list="{{family.bindings}}" as="binding"><span class="k"><span class="kbd" style="{{binding.style}}">{{binding.key}}</span></span><span>{{binding.text}}</span></sc-for></div></section></sc-for></div>
+    <div data-precision-column data-precision-columns="specimens" style="flex:1 1 400px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px"><sc-for list="{{families}}" as="family"><section data-precision-column class="pnl brk" style="padding:16px"><h2 class="h">{{family.name}}</h2><div class="leg"><sc-for list="{{family.bindings}}" as="binding"><span class="k"><span class="kbd" style="{{binding.style}}">{{binding.key}}</span></span><span>{{binding.text}}</span></sc-for></div></section></sc-for></div>
   </div>
   <sc-if value="{{isStation}}"><div style="font-size:11px">The station's system facts live once in its <span class="kbd">a</span> pane, available in deck and calm.</div></sc-if>
   <div style="font-size:11px;color:#7a8d9b">Focus uses a cyan outline and surface tint, never colour alone. Reduced motion keeps the keys and removes blink, sweep and scanlines. Dashed keys are Phase 2: reserved, not bound.</div>
@@ -389,7 +402,7 @@ class Component extends DCLogic {
     return { noise: !(this.props.calm ?? false), surfaceName: surface === 'desk'?'Desk':surface === 'wall'?'Wall':'Station', isStation:station, hasSystem:!station, isDisconnected:!station && sample === 'Disconnected', sampleName:names[sample], systemRows,
       surfaces:['desk','wall','station'].map(key=>({name:key,selected:key===surface,pick:()=>this.setState({surface:key})})),
       samples:surface==='desk'?Object.keys(names).filter(k=>k!=='Wall').map(key=>({name:names[key],selected:key===sample,pick:()=>this.setState({sample:key})})):[],
-      keyboardRows:rows.map((keys,i)=>({style:'display:flex;gap:6px;padding-left:'+([0,24,40,64,160][i])+'px',keys:keys.map(key=>({key,hint:reserved[key]||hints[key]||'',cls:'key'+(reserved[key]?' f2':hints[key]?' on':'')+(['Esc','Tab'].includes(key)?' wide':key==='Enter'?' wider':key==='Space'?' space':'')}))})),
+      keyboardRows:rows.map((keys,i)=>({style:'display:flex;gap:8px;padding-left:'+([0,24,40,64,160][i])+'px',keys:keys.map(key=>({key,hint:reserved[key]||hints[key]||'',cls:'key'+(reserved[key]?' f2':hints[key]?' on':'')+(['Esc','Tab'].includes(key)?' wide':key==='Enter'?' wider':key==='Space'?' space':'')}))})),
       families:families.map(f=>({...f,bindings:f.pairs.map(([key,text])=>({key,text,style:f.reserved?'color:#7a8d9b;border-color:#3a4650;border-style:dashed':''}))})) };
   }
 }

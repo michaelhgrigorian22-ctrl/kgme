@@ -14,12 +14,13 @@
    carries every fact in words; light in the hull mirrors the words and never replaces them. One dark world on purpose
    (the cockpit's phosphor palette), so there is no light theme. Nothing remote but the pinned three.js package: the
    type is the system monospace (AUDIT-CDH-0011 S6). */
-:root{--ground:#0a0c10;--surface:#11151c;--rule:#1e2a33;--text:#cfe6ef;--muted:#7a8d9b;--dim:#6f8290;--cyan:#39d0ff;--magenta:#ff3d7f;--amber:#ffb02e;--green:#4de38a;--mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color-scheme:dark}
+:root{--ground:#0a0c10;--surface:#11151c;--rule:#1e2a33;--text:#cfe6ef;--muted:#7a8d9b;--dim:#6f8290;--cyan:#39d0ff;--magenta:#ff3d7f;--amber:#ffb02e;--green:#4de38a;--mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--ease:cubic-bezier(0,0,.2,1);--response:120ms;--state:240ms;--travel:480ms;color-scheme:dark}
 html,body{height:100%}
-body{margin:0;background:var(--ground);color:var(--text);font-family:var(--mono);font-size:12px;line-height:1.45;overflow:hidden}
+body{margin:0;background:var(--ground);color:var(--text);font-family:var(--mono);font-size:12px;line-height:1.45;letter-spacing:0;font-variant-numeric:tabular-nums;overflow:hidden}
 a{color:var(--cyan)}a:hover{color:var(--text)}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
-button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+button,[tabindex],a{outline:2px solid transparent;outline-offset:-2px;transition:outline-color var(--response) var(--ease),border-color var(--response) var(--ease),color var(--response) var(--ease)}
+button:focus-visible,[tabindex]:focus-visible,a:focus-visible{outline-color:var(--cyan)}
 #stage{position:fixed;inset:0;background:var(--ground)}
 #gl{position:absolute;inset:0;width:100%;height:100%;display:block}
 #labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
@@ -27,34 +28,34 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--cyan);outl
 #labels>div:has(.chip-room:focus-visible){z-index:7!important}
 .scan{position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(207,230,239,.035) 0 1px,transparent 1px 3px);z-index:4}
 .vig{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.6) 100%);z-index:2}
-.frame{position:fixed;inset:10px;pointer-events:none;border:1px solid var(--hull,#39d0ff);box-shadow:inset 0 0 90px var(--hullglow,rgba(57,208,255,.10));z-index:3;transition:border-color .6s,box-shadow .6s}
+.frame{position:fixed;inset:10px;pointer-events:none;border:1px solid var(--hull,#39d0ff);box-shadow:inset 0 0 90px var(--hullglow,rgba(57,208,255,.10));z-index:3;transition:border-color var(--state) var(--ease),box-shadow var(--state) var(--ease)}
 .micro{position:fixed;font-size:9px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase;pointer-events:none;z-index:5;white-space:nowrap}
 .lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
-.kbd{display:inline-block;min-width:16px;padding:0 5px;border:1px solid var(--cyan);color:var(--cyan);font-size:10px;line-height:16px;text-align:center;border-radius:2px}
-.chip{display:inline-block;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:0 6px;border:1px solid currentColor;line-height:15px;border-radius:1px;white-space:nowrap}
+.kbd{display:inline-block;min-width:16px;padding:0 4px;border:1px solid var(--cyan);color:var(--cyan);font-size:11px;line-height:16px;text-align:center;border-radius:2px}
+.chip{display:inline-block;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:0 4px;border:1px solid currentColor;line-height:16px;border-radius:1px;white-space:nowrap}
 .c-ok{color:var(--green)}.c-block{color:var(--magenta)}.c-amber{color:var(--amber)}.c-none{color:var(--dim)}.c-live{color:var(--cyan)}
-#system{border-top:1px solid var(--rule);padding-top:10px;font-size:11px;overflow-wrap:anywhere}#system .h{font-size:11px;color:var(--cyan);text-transform:uppercase;letter-spacing:.14em;margin:0 0 8px}#system .col{margin-bottom:8px}#system .val{font-size:11px;white-space:normal}#system dl{display:grid;grid-template-columns:80px minmax(0,1fr);gap:6px 10px;margin:0}#system dt{color:var(--muted)}#system dd{margin:0}
+#system{border-top:1px solid var(--rule);padding-top:8px;font-size:11px;overflow-wrap:anywhere}#system .h{font-size:11px;color:var(--cyan);text-transform:uppercase;letter-spacing:.14em;margin:0 0 8px}#system .col{margin-bottom:8px}#system .val{font-size:11px;white-space:normal}#system dl{display:grid;grid-template-columns:80px minmax(0,1fr);gap:8px 8px;margin:0}#system dt{color:var(--muted)}#system dd{margin:0}
 /* HUD */
-.hud{position:fixed;z-index:6;display:flex;flex-wrap:wrap;gap:10px 22px;align-items:flex-end;padding-inline:36px;min-width:0}
-.hud.top{top:0;left:0;right:0;padding-block:calc(26px + env(safe-area-inset-top,0px)) 8px}
-.hud.bottom{bottom:0;left:0;right:0;padding-block:8px calc(22px + env(safe-area-inset-bottom,0px));align-items:center;font-size:11px;color:var(--dim)}
-.col{display:flex;flex-direction:column;gap:2px;min-width:0}
+.hud{position:fixed;z-index:6;display:flex;flex-wrap:wrap;gap:8px 24px;align-items:flex-end;padding-inline:40px;min-width:0}
+.hud.top{top:0;left:0;right:0;padding-block:calc(24px + env(safe-area-inset-top,0px)) 8px}
+.hud.bottom{bottom:0;left:0;right:0;padding-block:8px calc(24px + env(safe-area-inset-bottom,0px));align-items:center;font-size:11px;color:var(--dim)}
+.col{display:flex;flex-direction:column;gap:0;min-width:0}
 .val{font-size:14px;white-space:nowrap}
-.clock{font-size:22px;font-weight:700;letter-spacing:.04em;font-variant-numeric:tabular-nums}
+.clock{font-size:22px;font-weight:700;letter-spacing:0;font-variant-numeric:tabular-nums}
 .clock small{color:var(--dim);font-size:12px;font-weight:400}
-.tr-bar{display:flex;align-items:center;gap:10px;min-height:24px}
+.tr-bar{display:flex;align-items:center;gap:8px;min-height:24px}
 .tr-stack{display:flex;align-items:center}
-.tr-stack .chibi{background:var(--surface);border-radius:2px;box-shadow:0 0 0 1px var(--ground);margin-left:-7px}
+.tr-stack .chibi{background:var(--surface);border-radius:2px;box-shadow:0 0 0 1px var(--ground);margin-left:-8px}
 .tr-stack .chibi:first-child{margin-left:0}
-.tr-open{display:flex;align-items:center;gap:10px;border-radius:2px}
+.tr-open{display:flex;align-items:center;gap:8px;border-radius:2px}
 .tr-sum{font-size:14px;white-space:nowrap}
 .blink{animation:blink 1.2s steps(2,end) infinite}
 @keyframes blink{50%{opacity:.2}}
 /* room chips, anchored in the scene */
-.chip-room{pointer-events:auto!important;display:flex;flex-direction:column;align-items:flex-start;gap:1px;background:rgba(10,12,16,.82);border:1px solid var(--rule);padding:5px 8px 5px 7px;border-radius:2px;white-space:nowrap;transform:translate(-50%,-100%);backdrop-filter:blur(2px)}
+.chip-room{pointer-events:auto!important;display:flex;flex-direction:column;align-items:flex-start;gap:4px;background:rgba(10,12,16,.82);border:1px solid var(--rule);padding:8px;border-radius:2px;white-space:nowrap;transform:translate(-50%,-100%);backdrop-filter:blur(2px)}
 .chip-room:hover,.chip-room.on{border-color:var(--cyan)}
 .chip-room .name{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text)}
-.chip-room .name b{color:var(--cyan);font-weight:500;margin-right:6px}
+.chip-room .name b{color:var(--cyan);font-weight:500;margin-right:8px}
 .chip-room .state{font-size:11px;color:var(--dim)}
 .chip-room.s-block .state,.chip-room.s-block .name{color:var(--magenta)}
 .chip-room.s-amber .state{color:var(--amber)}
@@ -66,61 +67,62 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--cyan);outl
 .crew .chibi{width:72px;height:72px;filter:drop-shadow(0 6px 4px rgba(0,0,0,.55))}
 .crew .tag{position:absolute;left:50%;top:100%;transform:translate(-50%,2px);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);white-space:nowrap}
 /* CDH-0017 CW16: a bubble hangs below its crew member's tag, never above it, so it cannot cover a room's chip (chips sit above the back wall; bubbles fall toward the floor) */
-.bubble{position:absolute;left:50%;top:calc(100% + 16px);transform:translateX(-50%);max-width:260px;min-width:120px;background:var(--surface);border:1px solid var(--rule);padding:5px 8px;font-size:10px;line-height:1.35;color:var(--text);white-space:normal;text-align:left;opacity:0;transition:opacity .25s}
+.bubble{position:absolute;left:50%;top:calc(100% + 16px);transform:translateX(-50%);max-width:260px;min-width:120px;background:var(--surface);border:1px solid var(--rule);padding:8px;font-size:11px;line-height:1.45;color:var(--text);white-space:normal;text-align:left;opacity:0;transition:opacity var(--state) var(--ease)}
 .bubble::after{content:"";position:absolute;left:50%;top:0;width:6px;height:6px;background:var(--surface);border-left:1px solid var(--rule);border-top:1px solid var(--rule);transform:translate(-50%,-4px) rotate(45deg)}
 .bubble.show{opacity:1}
 /* A collision is removed immediately, including during an opacity transition. */
 .bubble:not(.show){visibility:hidden}
-#dispatch{margin:0;padding:6px 0;border-bottom:1px solid var(--rule);font-size:11px;overflow-wrap:anywhere}
-.bubble .t{color:var(--dim);margin-right:6px}
-.chip-room .last-event{display:block;max-width:205px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;color:var(--text)}
-.bubble .chip{margin-left:6px;vertical-align:1px}
+#dispatch{margin:0;padding:8px 0;border-bottom:1px solid var(--rule);font-size:11px;overflow-wrap:anywhere}
+.bubble .t{color:var(--dim);margin-right:8px}
+.chip-room .last-event{display:block;max-width:205px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--text)}
+.bubble .chip{margin-left:8px;vertical-align:1px}
 /* the followed room's runs, on the right */
-.pane{position:fixed;right:36px;top:var(--hudtop,130px);width:360px;max-width:calc(100vw - 72px);max-height:calc(100vh - 220px);overflow:auto;z-index:6;background:rgba(17,21,28,.92);border:1px solid var(--rule);padding:10px 12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.pane{position:fixed;right:40px;top:var(--hudtop,128px);width:360px;max-width:calc(100vw - 80px);max-height:calc(100vh - 224px);overflow:auto;z-index:6;background:rgba(17,21,28,.92);border:1px solid var(--rule);padding:8px 16px;display:flex;flex-direction:column;gap:8px;min-width:0}
 .pane[hidden]{display:none}
-.pane .head{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.pane .head button{min-height:24px;display:inline-flex;align-items:center;padding:0 2px}
-.row{display:grid;grid-template-columns:24px minmax(0,1fr) auto;grid-template-rows:auto auto;gap:1px 8px;align-items:center;padding:5px 6px;border-top:1px solid #141b22;text-align:left;width:100%}
+.pane{opacity:0;transform:translateY(8px)}
+.pane .head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pane .head button{min-height:24px;display:inline-flex;align-items:center;padding:0 4px}
+.row{display:grid;grid-template-columns:24px minmax(0,1fr) auto;grid-template-rows:auto auto;gap:4px 8px;align-items:center;padding:4px 8px;border-top:1px solid var(--rule);text-align:left;width:100%}
 .row .chibi{grid-row:1/3}
-.row .l1{display:flex;gap:8px;min-width:0;font-size:11px;white-space:nowrap;overflow:hidden}
+.row .l1{display:flex;flex-wrap:wrap;gap:0 8px;min-width:0;font-size:11px;white-space:nowrap;overflow:hidden}
 .row .l1 .map{flex:none}.row .l1 .run{color:var(--dim);overflow:hidden;text-overflow:ellipsis;min-width:0}
-.row .life{font-size:10px;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;text-align:right}
+.row .life{font-size:11px;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;text-align:right}
 .row .life .q{color:var(--dim);letter-spacing:0;text-transform:none}
-.row .l2{display:flex;gap:8px;min-width:0;font-size:10px;color:var(--dim);white-space:nowrap;overflow:hidden}
+.row .l2{display:flex;gap:8px;min-width:0;font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden}
 .row .l2 .ev{overflow:hidden;text-overflow:ellipsis;min-width:0}
-.row.focus{outline:1px solid var(--cyan);outline-offset:-1px;background:#0e1a22}
+.row.focus{outline:2px solid var(--cyan);outline-offset:-2px;background:#0e1a22}
 .row:focus-visible{background:#0e1a22}
 /* AUDIT-CDH-0011 S5: every muted descendant of a focused row, painted or really focused, reads #7a8d9b on #0e1a22 */
 .row.focus .run,.row.focus .l2,.row.focus .life .q,.row.focus .c-none,.row:focus-visible .run,.row:focus-visible .l2,.row:focus-visible .life .q,.row:focus-visible .c-none{color:var(--muted)}
 #hull{white-space:normal;max-width:64ch}
 /* CDH-0014: the count's status region (ux-guidelines 118) is visually hidden; the pane sits under the measured HUD (row 100); every button is 24 px tall (row 104) */
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
-.ctl{min-height:24px;display:inline-flex;align-items:center;gap:6px;padding:0 8px;border:1px solid var(--rule);border-radius:2px;color:var(--text);font-size:11px}
+.ctl{min-height:24px;display:inline-flex;align-items:center;gap:8px;padding:0 8px;border:1px solid var(--rule);border-radius:2px;color:var(--text);font-size:11px}
 .ctl[aria-pressed="true"]{border-color:var(--amber);color:var(--amber)}
 .hull-halt{color:var(--magenta);font-weight:700}
 .empty{font-size:11px;color:var(--dim)}
 /* the wall: what c drops to */
-#wall{position:fixed;inset:0;z-index:5;background:var(--ground);padding:var(--hudtop,130px) 36px var(--hudbottom,70px);overflow:auto;display:flex;flex-direction:column;gap:14px}
+#wall{position:fixed;inset:0;z-index:5;background:var(--ground);padding:var(--hudtop,128px) 40px var(--hudbottom,72px);overflow:auto;display:flex;flex-direction:column;gap:16px}
 #wall[hidden]{display:none}
-#wall .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(400px,100%),1fr));gap:14px}
-#wall .room{background:var(--surface);border:1px solid var(--rule);padding:12px;display:flex;flex-direction:column;gap:6px;min-width:0}
-#wall .room h2{margin:0;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);font-weight:500;display:flex;justify-content:space-between;gap:10px}
-#wall .room h2 span{color:var(--dim);letter-spacing:.08em}
+#wall .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(400px,100%),1fr));gap:16px}
+#wall .room{background:var(--surface);border:1px solid var(--rule);padding:16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+#wall .room h2{margin:0;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);font-weight:500;display:flex;justify-content:space-between;gap:8px}
+#wall .room h2 span{color:var(--dim);letter-spacing:.14em}
 #wall .val{white-space:normal}
-#wall .room .lines{display:flex;flex-direction:column;gap:3px;font-size:10px;color:var(--text)}
-#wall .room .lines .t{color:var(--dim);margin-right:6px}
-#wall .room .lines .chip{margin-left:6px;vertical-align:1px}
+#wall .room .lines{display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--text)}
+#wall .room .lines .t{color:var(--dim);margin-right:8px}
+#wall .room .lines .chip{margin-left:8px;vertical-align:1px}
 body.calm .scan,body.calm .vig,body.calm .frame,body.calm .micro,body.calm #stage,body.calm #labels{display:none}
 body.calm .hud{background:var(--ground)}
 body.calm .pane{background:var(--surface)}
 body.calm .chibi{visibility:hidden}
-@media (prefers-reduced-motion:reduce){.blink{animation:none}.scan{display:none}.bubble{transition:none}.frame{transition:none}}
-@media (max-width:720px){.hud{padding-inline:16px;background:var(--ground)}.hud.top .val{font-size:12px;white-space:normal}.tr-sum{white-space:normal}.clock{font-size:18px}.micro{display:none}.pane{right:16px;left:16px;width:auto;top:var(--hudtop,130px);bottom:var(--hudbottom,70px);max-height:none;box-sizing:border-box;scroll-padding-block:8px}#wall{padding-inline:16px}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.scan{display:none}.chibi.is-animated.mode-idle{--eyes-closed-display:none!important}}
+@media (max-width:720px){.hud{padding-inline:16px;background:var(--ground)}.hud.top .val{font-size:12px;white-space:normal}.tr-sum{white-space:normal}.clock{font-size:22px}.micro{display:none}.pane{right:16px;left:16px;width:auto;top:var(--hudtop,128px);bottom:var(--hudbottom,72px);max-height:none;box-sizing:border-box;scroll-padding-block:8px}#wall{padding-inline:16px}}
 /* CDH-0028: opaque text surfaces keep the sky out of the contrast budget. */
 #labels{position:fixed;z-index:5;clip-path:inset(12px)}
 #labels>div:has(.chip-room){z-index:2!important}
 .hud{background:var(--ground)}.chip-room{background:var(--ground)}.pane{background:var(--surface)}.crew .tag,.micro{background:var(--ground)}.crew .tag{color:var(--text)}
-/* --- board 10's chibi stylesheet, verbatim (Sprites.dc.html), so the cast renders here exactly as there --- */
+/* --- board 10's chibi stylesheet (Sprites.dc.html); its reduced-motion declarations join the single station query above --- */
 /* Only the SVG body is copied into each symbol. Root paint and material roles
    are preserved here, so every use inherits its own palette and mode. */
 .chibi{display:block;overflow:visible;isolation:isolate;width:72px;height:72px;flex:none;fill:var(--dark);stroke:var(--dark);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;--accent:#39d0ff!important}
@@ -155,7 +157,7 @@ body.calm .chibi{visibility:hidden}
 .is-animated.mode-waiting{--head-motion:chibi-glance 1.6s ease-in-out infinite alternate}.is-animated.mode-transient{--figure-motion:chibi-sag 1.8s ease-in-out infinite alternate}
 .is-animated.mode-blocked{--fire-motion:chibi-fire .8s ease-in-out infinite alternate}.is-animated.mode-done{--halo-motion:chibi-halo 2s ease-in-out infinite alternate}
 [data-calm="true"] .chibi{visibility:hidden}
-@media(prefers-reduced-motion:reduce){.chibi-symbol *{animation:none!important}.chibi.is-animated.mode-idle{--eyes-closed-display:none!important}}
+
 
 .actor-builder{--garment:#c39745;--garment-shade:#806039;--garment-light:#e7b958;--face:#f1c6a4;--face-shade:#cb937b;--face-light:#ffe3c6;--tool:#e1ad42;--tool-shade:#94703a;--tool-light:#f4d489;--print:#493326;--dark:#211f2a;--accent:#6f8290}
 .actor-reviewer{--garment:#286068;--garment-shade:#16383f;--garment-light:#42838a;--face:#f1c6a4;--face-shade:#cb937b;--face-light:#ffe3c6;--tool:#765644;--tool-shade:#483938;--tool-light:#c9a471;--print:#20343a;--dark:#211f2a;--accent:#6f8290}
@@ -216,12 +218,12 @@ body.calm .chibi{visibility:hidden}
 <div class="col"><span class="lbl">session</span><span class="val">c70d687b…8447 <span style="color:var(--dim)">claude-code</span></span></div>
 <div class="col"><span class="lbl">harnesses</span><span class="val">claude 2.1.111 · codex 0.154.0 <span style="color:var(--dim)">· arbiter claude-opus-5-5 · ollama idle</span></span></div>
 <dl><dt>Surface</dt><dd>KGME · Kuang Grade Mark Eleven · cockpit v0 · the station · read-only</dd><dt>Replay</dt><dd id="replaymeta">replay of logs/ledger samples · 2026-10-08 · ×20</dd><dt>Provenance</dt><dd>ADR-017 view over the ledger · ADR-019 event v1 · hooks 0028 · guard rule 4</dd><dt>Hook latency</dt><dd>Not measured by this replay.</dd><dt>Claude Max</dt><dd>Quota and reset not supplied by this replay.</dd><dt>Codex Plus</dt><dd>Quota and reset not supplied by this replay.</dd><dt>Source</dt><dd>Local sample-events.jsonl; replay, not a live ledger poll.</dd><dt>Origin</dt><dd id="systemorigin"></dd><dt>Navigation</dt><dd>drag to pan · wheel to zoom · click a room to follow it · c drops to the wall</dd></dl></section>
-  <div class="lbl" style="padding-top:6px;border-top:1px solid var(--rule)"><span class="kbd">1</span>–<span class="kbd">7</span> rooms · <span class="kbd">Enter</span> on a row filters the timeline to its run (board 3)</div>
+  <div class="lbl" style="padding-top:8px;border-top:1px solid var(--rule)"><span class="kbd">1</span>–<span class="kbd">7</span> rooms · <span class="kbd">Enter</span> on a row filters the timeline to its run (board 3)</div>
 </aside>
 
 <section id="wall" hidden aria-label="the wall: the same facts as text">
-  <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:baseline">
-    <div><div class="lbl">KGME cockpit · calm · the wall</div><h1 style="margin:2px 0 0;font-size:22px;font-weight:700;letter-spacing:.04em">Who is working, in words</h1></div>
+  <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px;align-items:baseline">
+    <div><div class="lbl">KGME cockpit · calm · the wall</div><h1 style="margin:0;font-size:22px;font-weight:700;letter-spacing:0">Who is working, in words</h1></div>
     <div class="lbl">calm removes the deck, the frame and the portraits; the HUD above and every fact below were already text · <span class="kbd">c</span> returns</div>
   </div>
   <div class="val">active runs · <span id="wallsum">idle</span> <span style="color:var(--dim)">· hull</span> <span id="wallhull"><span style="color:var(--dim)">nominal</span></span></div>
@@ -251,6 +253,13 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+// Start focus feedback on the input clock, without a pending-animation frame.
+addEventListener('focusin', ({ target: el }) => {
+  if (!(el instanceof Element)) return;
+  getComputedStyle(el).outlineColor;
+  for (const animation of el.getAnimations()) if (animation instanceof CSSTransition && animation.transitionProperty === 'outline-color') animation.startTime = performance.now();
+});
 
 // ---------------------------------------------------------------- the ship: rooms are KGME places
 const ROOMS = [
@@ -359,6 +368,27 @@ const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 200);
 const CAM = new THREE.Vector3(14, 11.5, 14);
 const HOME = new THREE.Vector3(-0.8, -.3, -1.4);   // Frame the orbital hull between the HUD bands while keeping the seven room anchors.
 let target = HOME.clone(), zoom = 1, wantZoom = 1, wantTarget = target.clone();
+// CDH-0031: the CSS ease-out curve, solved by its x coordinate, and finite travel.
+const MOTION = { response: 120, state: 240, travel: 480, easing: 'cubic-bezier(0,0,.2,1)' };
+function easeOut(progress) {
+  if (progress <= 0) return 0; if (progress >= 1) return 1;
+  let lo = 0, hi = 1;
+  for (let i = 0; i < 24; i++) { const t = (lo + hi) / 2; if (.6 * t * t + .4 * t * t * t < progress) lo = t; else hi = t; }
+  const t = (lo + hi) / 2; return t * t * (3 - 2 * t);
+}
+let cameraMotion = null;
+function settleCamera(t) {
+  if (!cameraMotion) return;
+  const p = reduced ? 1 : Math.min(1, Math.max(0, (t - cameraMotion.start) / MOTION.travel));
+  const e = easeOut(p); target.lerpVectors(cameraMotion.from, cameraMotion.to, e);
+  zoom = cameraMotion.zoomFrom + (cameraMotion.zoomTo - cameraMotion.zoomFrom) * e;
+  if (p === 1) { target.copy(cameraMotion.to); zoom = cameraMotion.zoomTo; cameraMotion = null; }
+}
+function travelCamera(t = performance.now()) {
+  settleCamera(t);
+  cameraMotion = { start: t, from: target.clone(), to: wantTarget.clone(), zoomFrom: zoom, zoomTo: wantZoom };
+  if (reduced) settleCamera(t);
+}
 camera.position.copy(target).add(CAM); camera.lookAt(target);
 
 const matFloor = new THREE.MeshStandardMaterial({ color: '#161d26', roughness: .9, metalness: .05 });
@@ -742,7 +772,7 @@ function layoutHud() {
   const top = document.querySelector('.hud.top').offsetHeight, bottom = document.querySelector('.hud.bottom').offsetHeight;
   if (top === layoutHud.top && bottom === layoutHud.bottom) return;
   layoutHud.top = top; layoutHud.bottom = bottom;
-  document.documentElement.style.setProperty('--hudtop', (top + 12) + 'px'); document.documentElement.style.setProperty('--hudbottom', (bottom + 8) + 'px');
+  document.documentElement.style.setProperty('--hudtop', (top + 8) + 'px'); document.documentElement.style.setProperty('--hudbottom', (bottom + 8) + 'px');
 }
 function resize() {
   layoutHud();
@@ -758,12 +788,12 @@ addEventListener('resize', resize); resize();
 let drag = null;
 const gl = renderer.domElement;
 gl.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY, t: wantTarget.clone() }; gl.setPointerCapture(e.pointerId); });
-gl.addEventListener('pointermove', e => { if (!drag) return; const k = (camera.right - camera.left) / stage.clientWidth / zoom; const dx = (e.clientX - drag.x) * k, dy = (e.clientY - drag.y) * k; const right = new THREE.Vector3(1, 0, -1).normalize(), fwd = new THREE.Vector3(-1, 0, -1).normalize(); wantTarget.copy(drag.t).addScaledVector(right, -dx).addScaledVector(fwd, -dy); following = null; setFollowing(); });
+gl.addEventListener('pointermove', e => { if (!drag) return; const k = (camera.right - camera.left) / stage.clientWidth / zoom; const dx = (e.clientX - drag.x) * k, dy = (e.clientY - drag.y) * k; const right = new THREE.Vector3(1, 0, -1).normalize(), fwd = new THREE.Vector3(-1, 0, -1).normalize(); wantTarget.copy(drag.t).addScaledVector(right, -dx).addScaledVector(fwd, -dy); following = null; travelCamera(); setFollowing(); });
 gl.addEventListener('pointerup', () => { drag = null; });
-gl.addEventListener('wheel', e => { e.preventDefault(); wantZoom = Math.min(3, Math.max(.6, wantZoom * (e.deltaY > 0 ? .9 : 1.1))); }, { passive: false });
+gl.addEventListener('wheel', e => { e.preventDefault(); wantZoom = Math.min(3, Math.max(.6, wantZoom * (e.deltaY > 0 ? .9 : 1.1))); travelCamera(); }, { passive: false });
 let following = null;
-function follow(id) { const o = roomObjs[id]; if (!o) return; following = id; wantTarget.set(o.cx, 0, o.cz); wantZoom = 1.9; setFollowing(); }
-function unfollow() { following = null; wantTarget.copy(HOME); wantZoom = 1; setFollowing(); }
+function follow(id) { const o = roomObjs[id]; if (!o) return; following = id; wantTarget.set(o.cx, 0, o.cz); wantZoom = 1.9; travelCamera(); setFollowing(); }
+function unfollow() { following = null; wantTarget.copy(HOME); wantZoom = 1; travelCamera(); setFollowing(); }
 function setFollowing() {
   for (const o of Object.values(roomObjs)) o.chipEl.classList.toggle('on', o.r.id === following);
   const f = document.getElementById('following');
@@ -789,7 +819,8 @@ function placeRun(run) {
 function retireRun(run) {
   const o = roomObjs[run.room]; o.occupied.delete(run.seat);
   run.from = run.obj.position.clone(); run.to = new THREE.Vector3(DOCK_GATE[0], 0, DOCK_GATE[1]); run.walk0 = performance.now(); run.leaving = true;
-  setTimeout(() => { scene.remove(run.obj); run.obj.element.remove(); }, reduced ? 0 : 900);
+  const remove = () => { scene.remove(run.obj); run.obj.element.remove(); };
+  if (reduced) remove(); else setTimeout(remove, MOTION.travel);
 }
 function say(run, e) {
   const [chip, cls] = chipFor(e);
@@ -992,11 +1023,29 @@ function syncRows(container, list, now, paint, emptyText) {
   const real = container.contains(document.activeElement) && document.activeElement.classList.contains('row');
   let i = 0; for (const el of container.children) if (el.dataset.run) { el.classList.toggle('focus', paint && i === 0 && !real); i++; }
 }
-let paneOpen = false;
-function renderPane(snap) {
+let paneOpen = false, paneShown = false, paneMotion = null;
+function showPane(show) {
   const pane = document.getElementById('pane');
-  if ((!paneOpen && !following) || (document.body.classList.contains('calm') && !paneOpen)) { pane.hidden = true; return; }
-  pane.hidden = false;
+  if (show === paneShown) return;
+  paneShown = show;
+  const current = pane.hidden ? { opacity: '0', transform: 'translateY(8px)' } : getComputedStyle(pane);
+  const from = { opacity: current.opacity, transform: current.transform };
+  if (paneMotion) { paneMotion.cancel(); paneMotion = null; }
+  pane.hidden = false; pane.inert = !show;
+  const to = { opacity: show ? '1' : '0', transform: show ? 'translateY(0)' : 'translateY(8px)' };
+  Object.assign(pane.style, to);
+  if (reduced) { pane.hidden = !show; return; }
+  paneMotion = pane.animate([from, to], { duration: MOTION.state, easing: MOTION.easing, fill: 'backwards' });
+  // Start on the input clock, so the next painted frame already responds.
+  paneMotion.startTime = performance.now();
+  paneMotion.onfinish = () => { paneMotion = null; pane.hidden = !paneShown; };
+}
+function settlePane() {
+  if (reduced && paneMotion) { paneMotion.cancel(); paneMotion = null; document.getElementById('pane').hidden = !paneShown; }
+}
+function renderPane(snap) {
+  if ((!paneOpen && !following) || (document.body.classList.contains('calm') && !paneOpen)) { showPane(false); return; }
+  showPane(true);
   if (!snap) snap = snapshot(clock);
   const dispatch = document.getElementById('dispatch'), room = snap.rooms.find(room => room.r.id === following), voice = room?.dispatch;
   dispatch.hidden = !following;
@@ -1075,16 +1124,16 @@ function frame(t) {
   if (clock > loopEnd) { resetReplay(); loops += 1; }
   while (cursor < events.length && Date.parse(events[cursor].ts) <= clock) apply(events[cursor++]);
   const calm = document.body.classList.contains('calm');
+  settlePane();
   // bubbles fade on their own clock; walks and the camera only move while the deck is shown (calm does no scene work, S8)
   for (const run of runs.values()) {
-    if (!calm && run.obj && run.walk0 !== undefined) { const k = reduced ? 1 : Math.min(1, (t - run.walk0) / 600); const s = k * k * (3 - 2 * k); run.obj.position.lerpVectors(run.from, run.to, s); if (k >= 1) run.walk0 = undefined; }
+    if (!calm && run.obj && run.walk0 !== undefined) { const k = reduced ? 1 : Math.min(1, Math.max(0, (t - run.walk0) / MOTION.travel)); const s = easeOut(k); run.obj.position.lerpVectors(run.from, run.to, s); if (k >= 1) run.walk0 = undefined; }
     if (run.bubble && run.bubbleUntil && t > run.bubbleUntil) { run.bubble.classList.remove('show'); run.bubbleUntil = 0; }
   }
   for (const f of Object.values(fixtures)) { if (f.until && t > f.until) { setMode(f.svg, f.mode); f.until = 0; } if (f.bubbleUntil && t > f.bubbleUntil) { f.bubble.classList.remove('show'); f.bubbleUntil = 0; } }
   if (arbiter) { if (arbiter.bubbleUntil && t > arbiter.bubbleUntil) { arbiter.bubble.classList.remove('show'); arbiter.bubbleUntil = 0; } if (arbiter.until && t > arbiter.until) { setMode(arbiter.svg, 'idle'); arbiter.until = 0; } }
   if (!calm) {
-    const ease = reduced ? 1 : .1;
-    zoom += (wantZoom - zoom) * ease; target.lerp(wantTarget, ease);
+    settleCamera(t);
     camera.zoom = zoom; camera.updateProjectionMatrix();
     camera.position.copy(target).add(CAM); camera.lookAt(target);
     document.getElementById('labels').style.setProperty('--z', zoom.toFixed(3));
