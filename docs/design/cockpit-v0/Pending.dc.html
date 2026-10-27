@@ -164,7 +164,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
     </div>
     <div style="border-top:1px solid #1e2a33;padding-top:8px;display:flex;flex-direction:column;gap:8px;font-size:11px">
       <details class="intent-explanation"><summary style="cursor:pointer;min-height:24px"><span class="kbd">Enter</span> intent detail</summary><div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
-      <span>The pre-tool guard wrote this intent before the command ran (ADR-013 §4). The post-tool hook will write the outcome when it returns. Nothing is wrong yet: the agent tier of the canary matrix runs ten live cells and takes about 100 s.</span>
+      <span>The pre-tool guard wrote this intent before the command ran (ADR-013 §4). The post-tool hook will write the outcome when it returns. the agent tier of the canary matrix runs ten live cells and takes about 100 s.</span>
       <span class="lbl" style="margin-top:8px">what happens if it never returns</span>
       <span>At 150 s the row turns <span class="c-block">blocking</span> in the cockpit's own reckoning (not in the ledger). If the session dies, the next session's reconciliation writes an outcome <code style="color:#cfe6ef">status: unknown</code> with ref to this id, and the row closes amber, never green.</span>
       <span class="mut">The cockpit draws this state; it never writes it.</span></div></details>

@@ -872,7 +872,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
               </button>
             </div>
           </div>
-          <p class="tr-note"><b>{{d.label}}</b> · {{d.note}}</p>
+          <sc-if value="{{d.note}}"><p class="tr-note"><b>{{d.label}}</b> · {{d.note}}</p></sc-if>
         </div>
       </sc-for>
     </div>
@@ -902,10 +902,10 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 <div class="tr-board">
   <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:baseline;justify-content:space-between">
     <div>
-      <div class="tr-lbl">KGME cockpit v0 · CDH-0007 · HANDOFF-0036</div>
+      <div class="tr-lbl">KGME cockpit v0</div>
       <h1 style="margin:0px 0 0;font-size:22px;font-weight:700;letter-spacing:0">Active-runs tray — the cast at work</h1>
     </div>
-    <div style="max-width:760px;font-size:11px;color:#7a8d9b">Who is working, waiting, retrying or blocked, as one slot in the top bar of every live board, and as a pane under <span class="tr-kbd">a</span>. The text is the signal; the 24 px phosphor portraits from board 10 mirror it. Samples are real event shapes from <code>logs/ledger</code>.</div>
+    <div style="max-width:760px;font-size:11px;color:#7a8d9b">Who is working, waiting, retrying or blocked, as one slot in the top bar of every live board, and as a pane under <span class="tr-kbd">a</span>. Samples are real event shapes from <code>logs/ledger</code>.</div>
   </div>
   <section class="tr-pnl">
 <div class="tr-sheet">
@@ -927,7 +927,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
               </button>
             </div>
           </div>
-          <p class="tr-note"><b>{{d.label}}</b> · {{d.note}}</p>
+          <sc-if value="{{d.note}}"><p class="tr-note"><b>{{d.label}}</b> · {{d.note}}</p></sc-if>
         </div>
       </sc-for>
     </div>
@@ -949,15 +949,15 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
         <div class="tr-foot"><span><span class="tr-kbd">j</span> <span class="tr-kbd">k</span> move</span><span><span class="tr-kbd">Enter</span> jumps to the run · <span class="tr-kbd">r</span> filter</span><span><span class="tr-kbd">Esc</span> closes</span></div>
       </div>
       <div data-precision-column class="tr-rules">
-        <span>row</span><span>portrait · actor mapping · run id, short · lifecycle word · elapsed since the run's first event, live · the run's newest event, ellipsised · that event's ADR-016 class chip. Two lines, 24 px portrait, 11 / 11 px type; <span class="tr-kbd">j</span> <span class="tr-kbd">k</span> move the 2 px cyan focus, <span class="tr-kbd">Enter</span> sets the <span class="tr-kbd">r</span> filter to that run and returns to the timeline.</span>
-        <span>working</span><span>the newest event is younger than the quiet limit below. Portrait: working.</span>
-        <span>waiting</span><span>the newest event is an intent with no outcome (what <span class="tr-kbd">o</span> lists): a tool call still running, in Phase 2 an approval. Portrait: waiting. Amber word.</span>
-        <span>transient</span><span>the newest outcome is class transient; a retry is scheduled. Portrait: transient. Amber word, amber chip. An exhausted retry that names a time (<b>retry after 23:06</b>) stays transient: the run is parked, not halted, so the word is transient while the event's own chip keeps its class, as the review sample shows.</span>
-        <span>blocked</span><span>the newest outcome or note is class blocking and the run has not moved since: a halt, a refusal that stopped it. Portrait: blocked. Magenta word, magenta chip, and the frame floods as on board 4.</span>
-        <span>quiet</span><span>a working run with no event for longer than its median gap between intents (the ordinary median: the mean of the two middle gaps when their count is even), and never less than three minutes (with fewer than two intents, three minutes); the station's code is the reference. The word stays <b>working</b>; <b>quiet 4m</b> follows it in muted text; the portrait waits. The bar counts it inside working: <b>2 working (1 quiet)</b>.</span>
-        <span>idle</span><span>no open run: the bar reads <b>idle</b> in muted text and shows no portrait; the pane says when the last run closed.</span>
+        <span>row</span><span>elapsed since the run's first event, live; <span class="tr-kbd">j</span> <span class="tr-kbd">k</span> move, <span class="tr-kbd">Enter</span> sets the <span class="tr-kbd">r</span> filter to that run and returns to the timeline.</span>
+        <span>working</span><span>the newest event is younger than the quiet limit below.</span>
+        <span>waiting</span><span>the newest event is an intent with no outcome (what <span class="tr-kbd">o</span> lists): a tool call still running, in Phase 2 an approval.</span>
+        <span>transient</span><span>the newest outcome is class transient; a retry is scheduled. An exhausted retry that names a time (<b>retry after 23:06</b>) stays transient: the run is parked, not halted, so the word is transient while the event's own chip keeps its class.</span>
+        <span>blocked</span><span>the newest outcome or note is class blocking and the run has not moved since: a halt, a refusal that stopped it.</span>
+        <span>quiet</span><span>a working run with no event for longer than its median gap between intents (the ordinary median: the mean of the two middle gaps when their count is even), and never less than three minutes (with fewer than two intents, three minutes); the station's code is the reference. The word stays <b>working</b>; <b>quiet 4m</b> follows it. The bar counts it inside working: <b>2 working (1 quiet)</b>.</span>
+        <span>idle</span><span>no open run: the bar reads <b>idle</b>; the pane says when the last run closed.</span>
         <span>stale</span><span>server unreachable (board 6): the last known state stays legible, with one snapshot boundary and a persistent disconnect band. The slot says <b>stale</b>; the boundary owns its timestamp.</span>
-        <span>rule</span><span>every fact in the tray is a word or a number; the portraits mirror the words and never add one. Calm hides every portrait and leaves the words. Reduced motion changes nothing here: the tray adds no animation of its own, only board 10's selected detail animates. A shell (Codex, Claude Code, a terminal worker) is an actor like any other; <code>kgme.toml [sprites]</code> decides its face, the stranger until it is given one. Read-only: nothing in the tray dispatches, approves or chooses a model (Phase 2, board 8).</span>
+        <span>rule</span><span>every fact in the tray is a word or a number; the portraits mirror the words and never add one. Calm hides every portrait and leaves the words. A shell (Codex, Claude Code, a terminal worker) is an actor like any other; <code>kgme.toml [sprites]</code> decides its face, the stranger until it is given one. Read-only: nothing in the tray dispatches, approves or chooses a model (Phase 2, board 8).</span>
       </div>
     </div>
   </div>
@@ -1036,9 +1036,9 @@ class Component extends DCLogic {
       hasRuns: runs.length > 0, noRuns: runs.length === 0,
       idleNote: lastSeen ? 'The last run closed at ' + lastSeen + '.' : 'The ledger is live.',
       demos: [
-        demo('live', 'portraits stack like cards, newest run last; the words carry the count per lifecycle, quiet inside working.', live, 'live', ''),
-        demo('idle', 'nothing open: muted idle, no portrait. The slot keeps its place so the bar does not reflow.', [], 'live', ''),
-        demo('stale', 'board 6: the slot retains its last known state; the snapshot boundary says when.', [samples[1], samples[2]], 'stale', '19:52:14')
+        demo('live', 'newest run last', live, 'live', ''),
+        demo('idle', '', [], 'live', ''),
+        demo('stale', '', [samples[1], samples[2]], 'stale', '19:52:14')
       ]
     };
   }

@@ -798,14 +798,14 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 <div data-calm="{{calm}}" style="min-height:100vh;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:24px;background:#0a0c10">
   <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:baseline;justify-content:space-between">
     <div>
-      <div class="lbl">KGME cockpit · whimsy that obeys the rule · v2, louder</div>
+      <div class="lbl">KGME cockpit</div>
       <h1 style="margin:0px 0 0;font-size:22px;font-weight:700;letter-spacing:0">Sprites — the cast and its modes</h1>
     </div>
-    <div style="max-width:760px;font-size:11px;color:#7a8d9b">7 original actors · 7 modes · 2 palettes. Compare the same selected drawing at 72 px and its actual 24 px crop. Mapping and constraints live in Rules below.</div>
+    <div style="max-width:760px;font-size:11px;color:#7a8d9b">Mapping and constraints live in Rules below.</div>
   </div>
   <section class="pnl brk" style="padding:16px">
     <h2 class="h">Reusable cast · 49 static specimens · one selected preview</h2>
-    <p class="sprite-copy">7 actors × 7 modes. Scroll for the palette pairs and context examples. Use Play for the sample controls.</p>
+    <p class="sprite-copy">Scroll for the palette pairs and context examples. Use Play for the sample controls.</p>
     <div class="sprite-scroll" tabindex="0" aria-label="Cast specimens, palettes and context">
       <section class="sprite-panel" aria-labelledby="selected-heading">
         <h3 id="selected-heading" class="h">Selected role · 72 px figure + 24 px portrait</h3>
@@ -829,7 +829,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
       </section>
       <section class="sprite-panel" aria-labelledby="matrix-heading">
         <h3 id="matrix-heading" class="h">49 static specimens · phosphor · 72 CSS px</h3>
-        <p class="sprite-copy">Column headers repeat the mode, lifecycle, class and sample event. Row headers identify the actor. These samples do not read the ledger.</p>
+        <p class="sprite-copy">These samples do not read the ledger.</p>
         <div class="sprite-xscroll">
         <div class="sprite-matrix" role="group" aria-label="Seven actors by seven modes">
           <div class="matrix-label">Actor / mapping</div>
@@ -845,7 +845,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
       </section>
       <section class="sprite-panel" aria-labelledby="palettes-heading">
         <h3 id="palettes-heading" class="h">Same geometry · two material palettes</h3>
-        <p class="sprite-copy">Detail specimens. Mode: idle. Lifecycle: ready. Class: —. Event: sample ready. Fixed ochre cloth is a material, not a warning.</p>
+        <p class="sprite-copy">Mode: idle. Lifecycle: ready. Class: —. Event: sample ready. Fixed ochre cloth is a material, not a warning.</p>
         <div class="sprite-xscroll">
         <div data-precision-columns="specimens" class="palette-grid">
           <sc-for list="{{actors}}" as="actor" hint-placeholder-count="7">
@@ -856,7 +856,6 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
       </section>
       <section class="sprite-panel" aria-labelledby="context-heading">
         <h3 id="context-heading" class="h">Where they stand · original board context</h3>
-        <p class="sprite-copy">Retained design samples. No example submits a command or reads the live ledger.</p>
         <div class="sample-run">
           <div class="run-header"><svg class="chibi portrait actor-builder mode-working pal-phosphor tone-live" viewBox="35 9 167 167" aria-hidden="true" focusable="false"><use href="#chibi-builder"></use></svg><span>▣ run c70d687b…8447</span><span class="muted">claude-code · HANDOFF-0040 · 212 events</span></div>
           <div class="ledger-row"><span class="muted">19:41:48</span><span>◀</span><span>tool:Bash</span><span>Bash ok · 9 passed</span><span class="c-ok">ok</span><span>15 s</span></div>
@@ -865,8 +864,8 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
         </div>
         <p class="context-caption">24 px portraits sit above 22 px event rows. Builder: actor claude-code, mode working, lifecycle active, class ok, event tool:Bash. Reviewer: actor kgme.review, mode transient, lifecycle retrying, class transient, event review:0040.</p>
         <div data-precision-columns="specimens" class="context-pair">
-          <div data-precision-column><div class="detail-context"><svg class="chibi actor-arbiter mode-blocked pal-sticker tone-blocking" viewBox="0 0 240 280" aria-hidden="true" focusable="false"><use href="#chibi-arbiter"></use></svg><div><p class="c-block">detail · note · halt</p><strong>review:HANDOFF-0032 HALT after cycle 3</strong><p class="muted">arbiter claude-opus-5-5 · the skull sits down and burns until the override lands</p></div></div><p class="context-caption">72 px sticker detail. Actor: arbiter. Mode: blocked. Lifecycle: halted. Class: blocking. Event: review:HANDOFF-0032.</p></div>
-          <div data-precision-column><div class="detail-context phase2"><svg class="chibi actor-guard mode-waiting pal-phosphor tone-pending" viewBox="0 0 240 280" aria-hidden="true" focusable="false"><use href="#chibi-guard"></use></svg><div><p>phase 2 · approval pending</p><strong>Bash git push origin main</strong><p>the cherub with the riot shield holds the door until <span class="kbd">y</span> or <span class="kbd">n</span></p></div></div><p class="context-caption">48 px, inactive Phase 2 drawing. Actor: kgme.guard. Mode: waiting. Lifecycle: pending. Class: advisory. Event: sample approval. Keys y/n are reserved and unbound.</p></div>
+          <div data-precision-column><div class="detail-context"><svg class="chibi actor-arbiter mode-blocked pal-sticker tone-blocking" viewBox="0 0 240 280" aria-hidden="true" focusable="false"><use href="#chibi-arbiter"></use></svg><div><p class="c-block">detail · note · halt</p><strong>review:HANDOFF-0032 HALT after cycle 3</strong><p class="muted">arbiter claude-opus-5-5</p></div></div><p class="context-caption">Actor: arbiter. Mode: blocked. Lifecycle: halted. Class: blocking. Event: review:HANDOFF-0032.</p></div>
+          <div data-precision-column><div class="detail-context phase2"><svg class="chibi actor-guard mode-waiting pal-phosphor tone-pending" viewBox="0 0 240 280" aria-hidden="true" focusable="false"><use href="#chibi-guard"></use></svg><div><p>phase 2 · approval pending</p><strong>Bash git push origin main</strong><p><span class="kbd">y</span> or <span class="kbd">n</span></p></div></div><p class="context-caption">Actor: kgme.guard. Mode: waiting. Lifecycle: pending. Class: advisory. Event: sample approval. Keys y/n are reserved and unbound.</p></div>
         </div>
       </section>
     </div>
@@ -895,7 +894,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
       <div style="display:flex;flex-direction:column;gap:8px;font-size:11px">
         <div><span class="lbl">mapping, in kgme.toml</span><p>Actor / mapping in the 7-row table above defines <code>[sprites]</code>.</p><span style="color:#7a8d9b">Matched on <code>actor</code>, first rule wins. A Kimi harness is the stranger until you give it a face.</span></div>
         <div><span class="lbl">what a sprite may do</span><p style="margin:8px 0 0;color:#cfe6ef">Blink, work its own tool, glance, sag, burn, wear a halo or lie in chalk. Up to 2 authored key poses use interpolated transforms. Only the selected visible detail animates. Calm removes artwork without losing actor, lifecycle, class or event text. Hidden, offscreen and reduced-motion previews do no animation work.</p></div>
-        <div><span class="lbl">what a sprite is</span><p style="margin:8px 0 0;color:#cfe6ef">One editable SVG under <code>chibi/</code>, with 6 material roles and restrained cel shading. Smooth source geometry replaces the retired 24 × 24 grid and 3 KB cap. Phosphor stays in the timeline; sticker is confined to detail headers and the illustrated Phase 2 selector. The 22 px event rows, keyboard map and 3 strike boxes stay unchanged.</p></div>
+        <div><span class="lbl">what a sprite is</span><p style="margin:8px 0 0;color:#cfe6ef">One editable SVG under <code>chibi/</code>, with 6 material roles and restrained cel shading. Phosphor stays in the timeline; sticker is confined to detail headers and the illustrated Phase 2 selector. The 22 px event rows, keyboard map and 3 strike boxes stay unchanged.</p></div>
       </div>
     </section>
   </div>

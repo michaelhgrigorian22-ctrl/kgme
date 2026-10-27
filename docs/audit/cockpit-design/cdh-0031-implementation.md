@@ -360,9 +360,15 @@ Standalone fixtures use the installed monospace fallback because external font l
 
 Main was recorded as 6036b8a292f44e282c051e4b0726bf0ce9d99b8d in the initial build and advanced independently to 30fba471279d397b5411f48285c97acd7d65700e during verification. The 17:50 closeout resume recorded 30fba471279d397b5411f48285c97acd7d65700e and confirmed it unchanged. This session neither modified nor merged main, and did not push.
 
+## Coverage addendum, 2026-10-26 19:51
+
+The subsequent [declutter audit](cdh-0019-declutter.md), under Michou’s same-session instruction, found eleven visible station bubble text identities skipped by the shared sampler’s pointer-events hit-test. Original counts above describe that initial coverage. Existing Safari all-text masks and a fresh Chromium supplement now measure the bubbles in CDH-0032, this precision source and declutter. Every bubble passes 4.5:1, with an identical 4.5925801817 minimum across all three versions and no drop greater than 0.3. This preserves the approved verdict.
+
+Chromium’s corrected station default-deck minimum is 4.5925801817 before and after precision, replacing the incomplete 4.9131326053 figure in the original experiment. Its all-state floor remains 4.5925801817; Safari’s all-state floor remains 4.5299063005. Corrected Chromium station unique identities are 204 before and 204 after precision, with 73 default-deck runs in each. The declutter report lists the new captures, hashes, coverage proof and corrected comparisons. The artifact hashes below describe the original delivery at 5a03da1; this addended report’s current hash is recorded in logs/scratch/design-review/cdh-0019-declutter/final-output-sha256.json.
+
 ## Artifact hashes
 
-These are the delivered output bytes after the revised acceptance gate. The handoff is done; native review remains pending. This report’s own hash is recorded externally in `logs/scratch/design-review/cdh-0031/final-output-sha256.json` to avoid a self-referential digest.
+These are the delivered output bytes after the revised acceptance gate. The handoff is done; native review remains pending. The original delivery report’s hash is recorded externally in `logs/scratch/design-review/cdh-0031/final-output-sha256.json` to avoid a self-referential digest.
 
 | Output | SHA-256 |
 | --- | --- |
