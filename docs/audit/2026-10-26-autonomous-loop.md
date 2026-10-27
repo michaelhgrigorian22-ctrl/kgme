@@ -173,3 +173,6 @@ Red tests on the cycle-3 code: `logs/scratch/handoff-0043/red-c3.txt`.
 - **State: ready, diffs pending.** The handoff closes after Michou commits the five diffs together and `make check` is green with them. `completed:` is then AUDIT-0151's `created`, 2026-10-26T19:13:22-07:00.
 - **Before any real queue.** By the arbiters' F2 ruling, HANDOFF-0048 must carry the end-to-end loose-workspace route (build, review and commit under the real pinned permissions) as a named acceptance case, and nothing runs under the loop until then. Michou has already ruled that 0048 is not tonight's queue.
 
+## Closed, 2026-10-27
+Michou's `1b8fe96` lands the five diffs. Each landed file is byte-identical to the reviewed staged copy. `make check` on `main` with them is green: lint 0 blocking, mods 0 blocking, 778 passed. The handoff closes with `completed:` set to AUDIT-0151's `created`.
+
