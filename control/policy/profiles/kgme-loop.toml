@@ -1,0 +1,18 @@
+# Job profile: `kgme loop`, the unattended supervisor over a queue (ADR-013 §1, HANDOFF-0043).
+# A declaration of what the supervisor itself does; the builder it starts runs under its own
+# level (`kgme session loose`, ADR-022) and the reviewer and arbiters under their own profiles.
+# It never edits the handoff's work, never reviews, never pushes, and never merges.
+name = "kgme-loop"
+kind = "python-job"
+max_tier = 2
+# The queue's handoffs, the review prompts it renders for the arbiters, the ledger through
+# kgme/ledger.py (the trusted reader), the configuration.
+read_paths = ["docs/handoff", "docs/audit", "control/review", "kgme.toml", "logs"]
+# The ledger, the builder's stream and the quarantine under logs/scratch/loop/, the payloads.
+write_paths = ["logs"]
+# `spawn`: the builder's process group (`uv run kgme session loose`), the arbiters (`claude -p`,
+# `codex exec`, read-only), `caffeinate -i -w <pid>`, `ps`; `kill`: the stalled or halted group;
+# `git`: the workspace's HEAD and log, read only.
+tools = ["read", "write", "spawn", "kill", "git"]
+# None of its own: the children reach their providers under their own profiles.
+network_destinations = []

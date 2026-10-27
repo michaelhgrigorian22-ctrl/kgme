@@ -103,6 +103,11 @@ cell_timeout = 150
 reviewer = "gpt-6-astra"
 reviewer_alternate = "gpt-5.6-sol"
 arbiter = "claude-opus-5-5"
+# The arbiter pair (HANDOFF-0043 amendment 20): each disputed or two-cycle finding goes to both, in
+# parallel, each a fresh read-only `-p` run. The second is of another family than the reviewer
+# (`gpt-6-astra`) and the builder (`claude-opus-5-5`); both answered `-p` on 2026-10-26 (claude
+# 2.1.310, codex-cli 0.164.0), and `gpt-5.6-sol` was left out as the reviewer's own family.
+arbiters = ["claude-opus-5-5", "claude-fable-5-1"]
 # The model `kgme session` starts every level with (HANDOFF-0047, ADR-022 §1).
 builder = "claude-opus-5-5"
 # The cheap lane (HANDOFF-0053): a model whose provider has the data class `code` runs only as
