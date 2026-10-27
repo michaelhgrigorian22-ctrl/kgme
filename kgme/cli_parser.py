@@ -130,6 +130,24 @@ def build_parser() -> argparse.ArgumentParser:
     override = review_actions.add_parser("override", help="Michou's override of a halt")
     override.add_argument("--handoff", required=True)
     override.add_argument("--reason", required=True)
+    arbitrate = review_actions.add_parser(
+        "arbitrate", help="send one finding to the arbiter pair of [models] arbiters (0043)"
+    )
+    arbitrate.add_argument("--handoff", required=True)
+    arbitrate.add_argument("--finding", required=True, help="the finding id, e.g. F2")
+    arbitrate.add_argument("--argument", help="a file holding the builder's argument")
+    loop_parser = subcommands.add_parser(
+        "loop", help="run adopted handoffs to their close, unattended (HANDOFF-0043)"
+    )
+    loop_parser.add_argument(
+        "--queue", required=True, help="HANDOFF-NNNN[,HANDOFF-MMMM...], in the order to run"
+    )
+    loop_parser.add_argument(
+        "--workspace", help="the worktree the builder runs in (default: the current directory)"
+    )
+    loop_parser.add_argument(
+        "--stall-minutes", type=float, default=15, help="ledger silence with no live call"
+    )
     subcommands.add_parser("cockpit", help="serve the read-only timeline on localhost")
     ledger_parser = subcommands.add_parser("ledger", help="read or append ledger events by hand")
     ledger_actions = ledger_parser.add_subparsers(dest="action", required=True)

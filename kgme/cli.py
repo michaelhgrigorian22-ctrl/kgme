@@ -9,7 +9,9 @@ every note under the configured roots against the schema and exits 1 on a blocki
 (HANDOFF-0033) deletes disposable output by named target, a dry run unless `--yes`. `brief`
 (HANDOFF-0034) writes the day's brief from the vault, Loop 0, no model call. `capture`
 (HANDOFF-0050) puts Michou's words in the vault, one new note or one appended line; `daily`
-drafts the day's note from the ledger, once.
+drafts the day's note from the ledger, once. `loop` (HANDOFF-0043) runs a queue of adopted
+handoffs unattended, one fresh loose session each, in `kgme.loop`; `review arbitrate` sends one
+finding to the arbiter pair.
 Inputs: argv.
 Outputs: exit code; one line per finding or event, a summary, or a review's escalation packet.
 Side effects: `ledger note`, `review`, `review rule`, and `review override` append to the real
@@ -39,6 +41,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_ledger(args)
     if args.command == "review":
         return run_review(args)
+    if args.command == "loop":
+        return run_loop(args)
     if args.command == "sync":
         return run_sync(args)
     if args.command == "clean":
@@ -131,7 +135,7 @@ def run_review(args: argparse.Namespace) -> int:
     worktree it refuses before reading any diff (HANDOFF-0047 review cycle 3 F12)."""
     from pathlib import Path
 
-    from kgme import config, ledger, paths, review_io, review_run
+    from kgme import config, ledger, paths, review, review_io, review_run
 
     refused = ledger.read_worktree_refusal(paths.root())
     if refused:
@@ -156,6 +160,20 @@ def run_review(args: argparse.Namespace) -> int:
     if args.action == "override":
         print(review_io.write_override(args.handoff, args.reason, places))
         return 0
+    if args.action == "arbitrate":
+        template, refused = read_arbiters(settings)
+        if refused:
+            print(f"kgme review: {refused}", file=sys.stderr)
+            return 2
+        argument = review_io.read_text(Path(args.argument)) if args.argument else ""
+        settled = review_run.run_arbiters(
+            args.handoff, args.finding, argument, places, settings["models"]["arbiters"], template
+        )
+        if settled is None:
+            print(f"kgme review: no settlement on {args.finding} (already ruled, or none ruled)")
+            return 1
+        print(f"{args.finding} settled {settled['class']}: {settled['reason']}")
+        return 0
     if not args.handoff:
         print("kgme review: --handoff is required", file=sys.stderr)
         return 2
@@ -166,16 +184,56 @@ def run_review(args: argparse.Namespace) -> int:
     if not patch.strip():
         print("kgme review: nothing staged; stage the handoff's diff first", file=sys.stderr)
         return 2
+    # the settled rulings this cycle knew before its gate, named in its intent (cycle 2 F8)
+    seen = review.loop_state(review_io.read_handoff_events(args.handoff, places.dirs)).rulings
     if not args.skip_check and not args.dry_run:
         code, output = review_io.run_make_check(places.root)
         if code != 0:
             print(output[-1500:], file=sys.stderr)
             print("kgme review: make check failed; a red gate is not reviewed", file=sys.stderr)
-            return 2
+            return review_run.write_gate(args.handoff, code, output, places, arbiter)
+        review_run.write_gate(args.handoff, code, output, places, arbiter)
     model = args.reviewer or settings["models"]["reviewer"]
     dispositions = review_io.read_text(Path(args.dispositions)) if args.dispositions else ""
     return review_run.run_cycle(
-        args.handoff, model, dispositions, patch, places, args.dry_run, arbiter=arbiter
+        args.handoff, model, dispositions, patch, places, args.dry_run, arbiter=arbiter,
+        rulings_seen=tuple(sorted(seen)),
+    )  # fmt: skip
+
+
+def read_arbiters(settings: dict) -> tuple[str | None, str | None]:
+    """The arbiter brief and why the pair cannot run: `kgme.toml [models] arbiters` and
+    `control/review/arbiter-prompt.md` are human paths Michou applies (HANDOFF-0043)."""
+    from kgme import paths
+
+    if len(settings.get("models", {}).get("arbiters", [])) < 2:
+        return None, "kgme.toml [models] arbiters names no pair yet; Michou applies it"
+    brief = paths.root() / "control" / "review" / "arbiter-prompt.md"
+    if not brief.is_file():
+        return None, "control/review/arbiter-prompt.md is missing; Michou applies it"
+    return brief.read_text(encoding="utf-8"), None
+
+
+def run_loop(args: argparse.Namespace) -> int:
+    """`kgme loop --queue A,B [--workspace PATH] [--stall-minutes 15]` (HANDOFF-0043), in
+    `kgme.loop`. The real streams; the arbiter pair only once Michou's diffs are applied."""
+    from datetime import timedelta
+
+    from kgme import config, loop, review_run
+
+    settings = config.read_config()
+    queue = [h.strip() for h in args.queue.split(",") if h.strip()]
+    template, refused = read_arbiters(settings)
+    if refused:
+        print(f"kgme loop: {refused}; findings are not arbitrated until then", file=sys.stderr)
+    return loop.run_loop(
+        queue,
+        Path(args.workspace or ".").resolve(),
+        review_run.read_places(False),
+        settings["models"].get("arbiters", []) if template else [],
+        template,
+        stall=timedelta(minutes=args.stall_minutes),
+        model=settings["models"].get("builder", ""),
     )
 
 

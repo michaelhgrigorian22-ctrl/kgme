@@ -206,12 +206,14 @@ def test_a_halt_is_persisted_and_enforced_until_an_override(
     monkeypatch.setenv("PATH", fake_codex(tmp_path, ONLY_F2))
     handoff = f"HANDOFF-T{os.getpid()}H"
     places = places_for(tmp_path, handoff)
-    assert [cycle(handoff, places, "d" if c > 1 else "") for c in (1, 2, 3)] == [1, 1, 3]
+    # the same diff reviewed twice is measure (b) of HANDOFF-0043 amendment 16
+    assert [cycle(handoff, places, "d" if c > 1 else "") for c in (1, 2)] == [1, 3]
     out = capsys.readouterr().out
     assert "ESCALATION" in out and "If you do nothing" in out and "arbiter opus" in out
+    assert "was reviewed before" in out
     halt = [e for e in recorded(handoff, places) if (e["key"] or "").startswith("halt:")][-1]
     assert "If you do nothing" in (ROOT / halt["payload_ref"]).read_text()
-    latest = sorted(places.audit_dir.glob("*cycle-3.md"))[-1].read_text()
+    latest = sorted(places.audit_dir.glob("*cycle-2.md"))[-1].read_text()
     assert "## Escalation" in latest
     (tmp_path / "argv.txt").unlink()
     assert cycle(handoff, places, "d") == 3
