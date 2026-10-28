@@ -221,3 +221,57 @@ def test_a_halt_is_persisted_and_enforced_until_an_override(
     assert review_io.write_override(handoff, "understood", places)
     assert cycle(handoff, places, "d") == 1
     assert (tmp_path / "argv.txt").exists()
+
+
+@pytest.mark.blocking
+def test_a_task_review_carries_the_tasks_contract_before_the_prompt(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys
+) -> None:
+    """HANDOFF-0048, cycle 2 F20: a crew task's review is judged against the task's own
+    Outputs, acceptance check and description, put before the prompt; a handoff's review
+    carries none."""
+    from kgme import crew_io
+    from kgme.crew import Task
+
+    handoff = f"HANDOFF-T{os.getpid()}K"
+    places = places_for(tmp_path, handoff)
+    check = "uv run --frozen pytest -q tests -k toy_parse"
+    task = Task(handoff, "parse", ("kgme/toy_parse.py",), check, "claude", "claude-opus-5-5",
+                description="Parse the toy's lines.")  # fmt: skip
+    contract = crew_io.task_contract(task)
+    assert "one task of its crew's plan, not the whole handoff" in contract
+    assert "kgme/toy_parse.py" in contract and "Parse the toy's lines." in contract
+    code = review_run.run_cycle(
+        f"{handoff}:parse", "toy", "", "+x\n", places, True, contract=contract
+    )
+    assert code == 0
+    out = capsys.readouterr().out
+    assert out.index("one task of its crew's plan") < out.index("You are the reviewer"), "first"
+    review_run.run_cycle(handoff, "toy", "", "+x\n", places, True)
+    assert "one task of its crew's plan" not in capsys.readouterr().out
+
+
+@pytest.mark.blocking
+def test_a_settled_ruling_reaches_a_builder_whole_not_clipped(tmp_path: Path) -> None:
+    """HANDOFF-0048, cycle 3 F6: a settled ruling's summary is clipped to the writer's cap,
+    so the whole ruling (a split's every option, the chosen one) travels as its payload and
+    `loop.rulings_text` gives a builder the whole text."""
+    from kgme import loop
+
+    handoff = f"HANDOFF-T{os.getpid()}L"
+    places = places_for(tmp_path, handoff)
+    places.payloads.mkdir(parents=True, exist_ok=True)
+    reason = (
+        "split (claude-opus-5-5=blocking: "
+        + "settle every finding before the restart " * 5
+        + "(blast 2, reversible), claude-fable-5-1=blocking: "
+        + "carry the rulings whole " * 6
+        + "(blast 2, reversible)); took claude-opus-5-5: "
+        + "the chosen option, in full " * 4
+    )
+    assert len(reason) > 400
+    note_id = review_io.write_ruling(handoff, "F6", "blocking", reason, "pair", places)
+    (note,) = [e for e in recorded(handoff, places) if e["id"] == note_id]
+    assert len(note["summary"]) <= 200 and note["payload_ref"], "clipped, with its payload"
+    text = loop.rulings_text(handoff, places)
+    assert reason in text and "to execute" in text, text[-300:]

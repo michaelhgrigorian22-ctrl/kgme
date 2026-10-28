@@ -86,7 +86,7 @@ def run_reviewer_attempts(
         code, text, stderr = review_io.run_reviewer(
             prompt,
             model,
-            places.root,
+            places.tree,
             places.scratch / "review-out.md",
             places.scratch / "review-out.jsonl",
         )
@@ -143,8 +143,12 @@ def run_cycle(
     arbiter: str = "opus",
     backoff: tuple[int, ...] = DEFAULT_BACKOFF_SECONDS,
     rulings_seen: tuple[str, ...] | None = None,
+    contract: str = "",
 ) -> int:
-    """One cycle. Returns the exit code; prints one line, or the escalation packet on a halt."""
+    """One cycle. Returns the exit code; prints one line, or the escalation packet on a halt.
+    `contract` is a crew task's own terms (its Outputs, acceptance check and description),
+    put before the prompt so a task's diff is judged against the task, and the handoff's
+    whole What and Acceptance test at integration (HANDOFF-0048, review cycle 2 F20)."""
     handoff_path = review_io.read_handoff_path(places.handoff_dir, handoff)
     if handoff_path is None:
         print(f"kgme review: no file under {places.handoff_dir} carries id {handoff}")
@@ -165,6 +169,11 @@ def run_cycle(
     # the settled rulings known before the gate (from the CLI), else at the cycle's start
     known = rulings_seen if rulings_seen is not None else tuple(sorted(state.rulings))
     patch_path = places.scratch / "review.patch"
+    # from a workspace (HANDOFF-0048), the reviewer reads in that tree: the patch and its
+    # hash are written there too, under its own scratch, so the prompt's paths hold
+    shown_patch = patch_path
+    if places.workspace is not None:
+        shown_patch = places.tree / "logs" / "scratch" / "review.patch"
     prior = ""
     if state.last_audit:
         prior = review_io.read_audit_table(places.audit_dir, state.last_audit)
@@ -174,12 +183,14 @@ def run_cycle(
             "HANDOFF": handoff,
             "HANDOFF_PATH": review_io.shown(handoff_path, places.root),
             "CYCLE": str(cycle),
-            "PATCH_PATH": review_io.shown(patch_path, places.root),
+            "PATCH_PATH": review_io.shown(shown_patch, places.tree),
             "SHA": sha[:16],
             "PRIOR_FINDINGS": prior or "(none recorded)",
             "DISPOSITIONS": dispositions.strip() or "(first cycle; none)",
         },
     )
+    if contract:
+        prompt = contract.rstrip("\n") + "\n\n" + prompt
     if dry_run:
         print(
             f"dry run: {handoff} cycle {cycle}, diff {sha[:16]}, reviewer {model}; nothing written"
@@ -189,6 +200,9 @@ def run_cycle(
     review_io.write_text(patch_path, patch_text)
     review_io.write_text(places.scratch / "review.sha", sha[:16] + "\n")
     review_io.write_text(places.scratch / "review.dispositions", dispositions)
+    if places.workspace is not None:
+        review_io.write_text(shown_patch, patch_text)
+        review_io.write_text(shown_patch.with_name("review.sha"), sha[:16] + "\n")
     parent = review_io.first_intent_id(history)
     key = f"review:{handoff}:{sha[:16]}"
     intent_id = ledger.append(
@@ -226,7 +240,7 @@ def run_cycle(
         code, text, _ = review_io.run_reviewer(
             review_io.render_prompt(RECLASSIFY, {"IDS": ids, "REVIEW": raw}),
             model,
-            places.root,
+            places.tree,
             places.scratch / "review-retry.md",
             places.scratch / "review-retry.jsonl",
         )

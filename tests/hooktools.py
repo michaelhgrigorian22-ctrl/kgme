@@ -14,14 +14,20 @@ import subprocess
 import sys
 from pathlib import Path
 
-from kgme import config, paths
+from kgme import config, ledger, paths
 from kgme.hooks import guard
 
 ROOT = paths.root()
+# the hooks record into the main checkout's streams and scratch from any worktree (HANDOFF-0047
+# §3), so a suite run in a crew workspace (HANDOFF-0048) reads them there too
+MAIN = ledger.read_main_checkout(ROOT)
 SETTINGS = config.read_config()
 BLOCKLIST = [paths.resolve(p) for p in SETTINGS["hooks"]["blocklist"] if not p.startswith("**/")]
 PATTERNS = [p[3:] for p in SETTINGS["hooks"]["blocklist"] if p.startswith("**/")]
-TEST_SCRATCH = paths.scratch_test_dir(SETTINGS)
+TEST_SCRATCH = paths.scratch_test_dir(SETTINGS, MAIN)
+# a probe script a guard test plants must sit inside the repository the guard judges, which
+# from a worktree is the worktree itself
+PROBE_SCRATCH = paths.scratch_test_dir(SETTINGS, ROOT)
 
 
 def run_hook(module: str, payload: object) -> subprocess.CompletedProcess:
@@ -56,7 +62,7 @@ def decide(tool: str, tool_input: dict, **overrides: object) -> guard.Decision:
 
 
 def probe_script(name: str, text: str) -> Path:
-    target = TEST_SCRATCH / name
+    target = PROBE_SCRATCH / name
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(text)
     return target

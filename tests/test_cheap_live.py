@@ -109,8 +109,9 @@ def test_live_the_real_guard_allows_the_export_and_refuses_the_main_checkout() -
             export, "Bash", command="uv run --frozen pytest tests/test_red.py", description="red"
         )
         assert red.returncode == 0, red.stderr
+        main = ledger.read_main_checkout(ROOT)  # this checkout, or the worktree's main one
         home = run_guard_in(
-            export, "Edit", file_path=str(ROOT / "kgme" / "cli.py"), old_string="a", new_string="b"
+            export, "Edit", file_path=str(main / "kgme" / "cli.py"), old_string="a", new_string="b"
         )
         assert home.returncode == 2 and "outside the repository" in home.stderr, home.stderr
     finally:

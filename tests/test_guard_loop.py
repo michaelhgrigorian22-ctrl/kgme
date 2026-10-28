@@ -155,8 +155,9 @@ def run_hook(tool: str, tool_input: dict, env: dict[str, str]) -> subprocess.Com
 @pytest.mark.blocking
 def test_the_live_guard_refuses_the_charter_write_as_a_blocking_outcome() -> None:
     run = events.new_ulid()
-    scratch = paths.scratch_test_dir(SETTINGS)
-    _, digest = loop_outputs.write_outputs(ROOT, scratch, "HANDOFF-9045", run, TOY)
+    main = ledger.read_main_checkout(ROOT)  # the guard reads the list where the hooks live
+    scratch = paths.scratch_test_dir(SETTINGS, main)
+    _, digest = loop_outputs.write_outputs(main, scratch, "HANDOFF-9045", run, TOY)
     env = {
         loop_outputs.ENV_HANDOFF: "HANDOFF-9045",
         loop_outputs.ENV_RUN: run,

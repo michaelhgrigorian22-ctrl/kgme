@@ -46,6 +46,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     session_parser.add_argument("level", choices=("tight", "work", "loose"))
     session_parser.add_argument("--handoff", help="the handoff a loose run builds")
+    session_parser.add_argument("--task", help="one task of a crew handoff, from its workspace")
     session_parser.add_argument("--model", help="a code-class [models] key: the cheap lane (0053)")
     session_parser.add_argument("--red", help="the cheap lane's red command, to make exit 0")
     session_parser.add_argument(
@@ -78,8 +79,8 @@ def build_parser() -> argparse.ArgumentParser:
     approve_parser = subcommands.add_parser(
         "approve", help="Michou's approval of a thing at a commit on main (HANDOFF-0055)"
     )
-    approve_parser.add_argument("--what", help="what is approved, e.g. canvas")
-    approve_parser.add_argument("--sha", help="the approved commit, on main")
+    approve_parser.add_argument("--what", help="what is approved: canvas, or code (HANDOFF-0048)")
+    approve_parser.add_argument("--sha", help="the approved commit: on main, or a crew/* head")
     approve_parser.add_argument("--note", default="", help="his words")
     approve_parser.add_argument("--show", metavar="WHAT", help="print the newest approval")
     clean_parser = subcommands.add_parser(
@@ -119,6 +120,9 @@ def build_parser() -> argparse.ArgumentParser:
     review_parser.add_argument(
         "--dry-run", action="store_true", help="print the prompt; write nothing"
     )
+    review_parser.add_argument(
+        "--workspace", help="review a KGME workspace's staged diff (default: the cwd, if one)"
+    )
     review_parser.add_argument("--test-streams", action="store_true", help=argparse.SUPPRESS)
     review_actions = review_parser.add_subparsers(dest="action", required=False)
     rule = review_actions.add_parser("rule", help="record the arbiter's ruling on one finding")
@@ -148,6 +152,45 @@ def build_parser() -> argparse.ArgumentParser:
     loop_parser.add_argument(
         "--stall-minutes", type=float, default=15, help="ledger silence with no live call"
     )
+    workspace_parser = subcommands.add_parser(
+        "workspace", help="KGME-owned worktrees for crew tasks (HANDOFF-0048)"
+    )
+    workspace_actions = workspace_parser.add_subparsers(dest="action", required=True)
+    create = workspace_actions.add_parser("create", help="a task's worktree on its branch")
+    create.add_argument("--handoff", required=True)
+    create.add_argument("--task", required=True, help="the task name (a-z, 0-9, -)")
+    create.add_argument("--outputs", required=True, help="comma-separated Outputs paths")
+    create.add_argument("--acceptance", default="", help="the task's acceptance command")
+    create.add_argument("--harness", help="claude or codex (default: [crew] harness)")
+    create.add_argument("--model", help="the builder's model (default: [crew] model)")
+    workspace_actions.add_parser("list", help="the workspaces under [crew] root")
+    quarantine = workspace_actions.add_parser("quarantine", help="kill, rename, move, read-only")
+    quarantine.add_argument("name")
+    quarantine.add_argument("--run", help="the crew run id")
+    quarantine.add_argument("--reason", default="")
+    release = workspace_actions.add_parser("release", help="Michou's: writable, moved back")
+    release.add_argument("name")
+    remove = workspace_actions.add_parser("remove", help="Michou's: the worktree removed")
+    remove.add_argument("name")
+    crew_parser = subcommands.add_parser(
+        "crew", help="plan, build and integrate one handoff to awaiting approval (HANDOFF-0048)"
+    )
+    crew_parser.add_argument("--handoff", help="the adopted handoff to crew")
+    crew_parser.add_argument(
+        "--stall-minutes", type=float, default=15, help="ledger silence with no live call"
+    )
+    crew_actions = crew_parser.add_subparsers(dest="action", required=False)
+    check_plan = crew_actions.add_parser("check-plan", help="the mechanical plan gate on a file")
+    check_plan.add_argument("plan", help="the plan file")
+    skills_parser = subcommands.add_parser(
+        "skills", help="link the repository's skills where every harness reads them (0048)"
+    )
+    skills_actions = skills_parser.add_subparsers(dest="action", required=True)
+    install = skills_actions.add_parser("install", help="Michou's: links, and copies on request")
+    install.add_argument(
+        "--copy", action="append", default=[], metavar="DIR",
+        help="a folder that will not follow links; gets a hashed copy",
+    )  # fmt: skip
     subcommands.add_parser("cockpit", help="serve the read-only timeline on localhost")
     ledger_parser = subcommands.add_parser("ledger", help="read or append ledger events by hand")
     ledger_actions = ledger_parser.add_subparsers(dest="action", required=True)

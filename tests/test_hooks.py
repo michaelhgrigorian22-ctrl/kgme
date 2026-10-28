@@ -19,6 +19,7 @@ from pathlib import Path
 
 import pytest
 from hooktools import (
+    MAIN,
     ROOT,
     SETTINGS,
     TEST_SCRATCH,
@@ -50,7 +51,7 @@ def test_read_pair_lands_in_trace_and_edit_pair_in_ledger_with_matching_ref_and_
     assert [e["kind"] for e in in_ledger] == ["intent", "outcome"]
     assert in_ledger[1]["ref"] == in_ledger[0]["id"] and in_ledger[0]["job"] == "tool:Edit"
     assert in_ledger[1]["parent"] == trace[0]["id"]
-    payload_path = ROOT / in_ledger[1]["payload_ref"]
+    payload_path = MAIN / in_ledger[1]["payload_ref"]  # the main checkout's, from any worktree
     assert payload_path.exists() and "payloads/test/" in in_ledger[1]["payload_ref"]
     assert hashlib.sha256(payload_path.read_bytes()).hexdigest() == in_ledger[1]["payload_sha256"]
     assert "not stored" not in " ".join(e["summary"] for e in trace + in_ledger)
@@ -173,7 +174,7 @@ def test_post_wrapper_never_blocks_and_records_a_startup_failure(
 def test_post_hook_never_blocks_and_records_its_own_failure_in_test_scratch() -> None:
     errors = TEST_SCRATCH / "hook-errors.jsonl"
     before = errors.read_text() if errors.exists() else ""
-    live = paths.scratch_dir(SETTINGS) / "hook-errors.jsonl"
+    live = paths.scratch_dir(SETTINGS, MAIN) / "hook-errors.jsonl"
     live_before = live.read_bytes() if live.exists() else None
     result = run_hook("kgme.hooks.post_tool_ledger", "{not json")
     assert result.returncode == 0

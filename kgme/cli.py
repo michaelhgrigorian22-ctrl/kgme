@@ -57,6 +57,12 @@ def main(argv: list[str] | None = None) -> int:
         return run_atlas(args)
     if args.command == "session":
         return run_session(args)
+    if args.command == "workspace":
+        return run_workspace(args)
+    if args.command == "crew":
+        return run_crew(args)
+    if args.command == "skills":
+        return run_skills(args)
     if args.command in ("merge", "approve"):
         return run_track(args)
     if args.command == "cockpit":
@@ -118,6 +124,9 @@ def run_lint(args: argparse.Namespace) -> int:
         from kgme import toolbox_read  # every third-party thing has its row (ADR-020, 0044)
 
         findings += toolbox_read.read_findings(base)
+        from kgme import skills  # a skill copy that drifted from skills/ (HANDOFF-0048 §7)
+
+        findings += skills.read_findings(base)
     for finding in findings:
         if finding.cls != "cosmetic" or args.include_cosmetic:
             print(finding.line())
@@ -143,7 +152,11 @@ def run_review(args: argparse.Namespace) -> int:
         return 2
 
     settings = config.read_config()
-    places = review_run.read_places(args.test_streams)
+    workspace = read_review_workspace(args.workspace, settings)
+    if isinstance(workspace, str):
+        print(f"kgme review: {workspace}", file=sys.stderr)
+        return 2
+    places = review_run.read_places(args.test_streams, workspace)
     arbiter = args.arbiter or settings["models"]["arbiter"]
     if args.action == "rule":
         recorded = review_io.write_ruling(
@@ -180,14 +193,14 @@ def run_review(args: argparse.Namespace) -> int:
     if args.patch:
         patch = review_io.read_text(Path(args.patch))
     else:
-        patch = review_io.read_staged_patch(places.root)
+        patch = review_io.read_staged_patch(places.tree)
     if not patch.strip():
         print("kgme review: nothing staged; stage the handoff's diff first", file=sys.stderr)
         return 2
     # the settled rulings this cycle knew before its gate, named in its intent (cycle 2 F8)
     seen = review.loop_state(review_io.read_handoff_events(args.handoff, places.dirs)).rulings
     if not args.skip_check and not args.dry_run:
-        code, output = review_io.run_make_check(places.root)
+        code, output = review_io.run_make_check(places.tree)
         if code != 0:
             print(output[-1500:], file=sys.stderr)
             print("kgme review: make check failed; a red gate is not reviewed", file=sys.stderr)
@@ -197,8 +210,45 @@ def run_review(args: argparse.Namespace) -> int:
     dispositions = review_io.read_text(Path(args.dispositions)) if args.dispositions else ""
     return review_run.run_cycle(
         args.handoff, model, dispositions, patch, places, args.dry_run, arbiter=arbiter,
-        rulings_seen=tuple(sorted(seen)),
+        rulings_seen=tuple(sorted(seen)), contract=read_task_contract(args.handoff, settings),
     )  # fmt: skip
+
+
+def read_task_contract(unit_name: str, settings: dict) -> str:
+    """The contract of a crew task's review (HANDOFF-0048, cycle 2 F20), from the workspace
+    record `kgme workspace create` wrote; empty for a handoff, a plan or an integration."""
+    from kgme import crew, crew_io, ledger, paths, workspace
+
+    handoff, task = crew.split_unit(unit_name)
+    if not task or task in ("plan", "integration"):
+        return ""
+    main = ledger.read_main_checkout(paths.root())
+    record = workspace.read_record(settings, main, workspace.workspace_name(handoff, task))
+    if not record:
+        return ""
+    return crew_io.task_contract(crew.Task(
+        handoff, task, tuple(record.get("outputs") or ()), str(record.get("acceptance") or ""),
+        str(record.get("harness") or ""), str(record.get("model") or ""),
+        description=str(record.get("description") or ""),
+    ))  # fmt: skip
+
+
+def read_review_workspace(named: str | None, settings: dict) -> Path | str | None:
+    """The tree a review reads: a KGME workspace under `[crew] root` named by `--workspace`,
+    or the working directory when it is one (a `loose` builder runs the main checkout's
+    `kgme review` from its workspace, HANDOFF-0048 amendment 2); None for the main checkout;
+    a string naming why a `--workspace` is refused."""
+    from kgme import paths, workspace
+
+    main = paths.root()
+    here = Path(named).resolve() if named else Path.cwd().resolve()
+    if here == main:
+        return None
+    if workspace.read_is_workspace(here, settings, main):
+        return here
+    if named:
+        return f"{here} is not a KGME workspace under {workspace.read_root(settings, main)}"
+    return None
 
 
 def read_arbiters(settings: dict) -> tuple[str | None, str | None]:
@@ -274,8 +324,35 @@ def run_session(args: argparse.Namespace) -> int:
     extra = list(args.extra)
     return session.run_session(
         args.level, args.handoff, extra, paths.root(), config.read_config(), args.dry_run,
-        model_key=args.model, red=args.red,
+        model_key=args.model, red=args.red, task=args.task,
     )  # fmt: skip
+
+
+def run_workspace(args: argparse.Namespace) -> int:
+    """`kgme workspace create|list|quarantine|release|remove` (HANDOFF-0048 §1)."""
+    from kgme import config, ledger, paths, workspace
+
+    main = ledger.read_main_checkout(paths.root())
+    return workspace.run_workspace(args, main, config.read_config())
+
+
+def run_crew(args: argparse.Namespace) -> int:
+    """`kgme crew --handoff HANDOFF-NNNN`, and `kgme crew check-plan FILE` (HANDOFF-0048)."""
+    from kgme import config, crew_io, ledger, paths
+
+    if args.action is None and not args.handoff:
+        print("kgme crew: --handoff HANDOFF-NNNN, or check-plan FILE", file=sys.stderr)
+        return 2
+    main = ledger.read_main_checkout(paths.root())
+    return crew_io.run_crew_command(args, main, config.read_config())
+
+
+def run_skills(args: argparse.Namespace) -> int:
+    """`kgme skills install [--copy DIR]` (HANDOFF-0048 §7), Michou's command."""
+    from kgme import config, paths, skills
+
+    copies = tuple(Path(c).expanduser().resolve() for c in args.copy)
+    return skills.run_install(paths.root(), config.read_config(), Path.home(), copies)
 
 
 def run_track(args: argparse.Namespace) -> int:

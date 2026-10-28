@@ -63,10 +63,15 @@ def run_approve(base: Path, settings: dict, what: str, sha: str, note: str = "")
         return 2
     main = ledger.read_main_checkout(base)
     full = read_sha(main, sha)
+    if what == CODE:
+        refused = read_code_refusal(main, settings, full)
+        if refused:
+            print(f"kgme approve: refused: {refused}", file=sys.stderr)
+            return 2
     on_trunk = bool(full) and (
         run_git(["merge-base", "--is-ancestor", full, TRUNK], main, check=False).returncode == 0
     )
-    if not on_trunk:
+    if not on_trunk and what != CODE:
         print(f"kgme approve: refused: {sha} is not a commit on {TRUNK}", file=sys.stderr)
         return 2
     words = f"approved {what} at {full[:12]}" + (f": {note}" if note else "")
@@ -80,6 +85,77 @@ def run_approve(base: Path, settings: dict, what: str, sha: str, note: str = "")
     )
     print(ledger.append(event, ledger.read_base_dirs(settings, main)))
     print(f"kgme approve: {words}")
+    if what == CODE:
+        return write_code_landing(main, settings, full)
+    return 0
+
+
+CODE = "code"
+
+
+def read_crew_branch(main: Path, full: str) -> str:
+    """Effect: the `crew/<handoff>/integration` branch whose head is `full`, or "" (HANDOFF-0048
+    amendment 9: an approval of code names an integration branch's head, nothing else)."""
+    listed = run_git(
+        ["for-each-ref", "--format=%(refname:short) %(objectname)", "refs/heads/crew/"],
+        main,
+        check=False,
+    ).stdout
+    for line in listed.splitlines():
+        name, _, sha = line.partition(" ")
+        if sha == full and name.endswith("/integration") and name.count("/") == 2:
+            return name
+    return ""
+
+
+def read_code_refusal(main: Path, settings: dict, full: str) -> str:
+    """Effect: why `full` may not be approved as code, or "": it must be the head of a
+    `crew/<handoff>/integration` branch and the crew must have written `awaiting approval`
+    naming it, which it does only after the gate was green on it and the integration review
+    passed."""
+    if not full:
+        return "no such commit"
+    branch = read_crew_branch(main, full)
+    if not branch:
+        return f"{full[:12]} is not the head of a crew/<handoff>/integration branch"
+    handoff = branch.removeprefix("crew/").removesuffix("/integration")
+    waiting = [
+        e
+        for e in ledger.read(ledger.read_base_dirs(settings, main))
+        if e["job"] == f"crew:{handoff}"
+        and e["kind"] == "outcome"
+        and e["status"] == "ok"
+        and "awaiting approval" in (e["summary"] or "")
+        and full[:12] in (e["summary"] or "")
+    ]
+    if not waiting:
+        return f"the crew has not written `awaiting approval` for {full[:12]} on {branch}"
+    return ""
+
+
+def write_code_landing(main: Path, settings: dict, full: str) -> int:
+    """Effect: `main` fast-forwarded to the approved integration head at a quiet point of
+    the main checkout, then pushed through `kgme sync`; a refusal lands nothing."""
+    from kgme import merge, sync_io
+
+    checkout = merge.read_checkout(main)
+    waiting = merge.is_quiet(checkout, checkout.head)
+    if waiting:
+        print(
+            f"kgme approve: not landed: {waiting}; `git merge --ff-only {full[:12]}` when quiet",
+            file=sys.stderr,
+        )
+        return 1
+    done = run_git(["merge", "--ff-only", "--quiet", full], main, check=False)
+    if done.returncode != 0 or read_sha(main, "HEAD") != full:
+        print(
+            f"kgme approve: the fast-forward of {TRUNK} to {full[:12]} did not land: "
+            f"{(done.stderr or done.stdout).strip()[:200]}",
+            file=sys.stderr,
+        )
+        return 1
+    print(f"kgme approve: {TRUNK} is at {full[:12]}")
+    sync_io.run_sync(main, settings)
     return 0
 
 

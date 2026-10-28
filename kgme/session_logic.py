@@ -19,6 +19,14 @@ LEVELS = {"tight": "plan", "work": "auto", "loose": "dontAsk"}
 TEMPLATES = Path("control") / "policy" / "sessions"
 OUTPUTS = "{outputs}"
 EDIT_OUTPUTS = "Edit({outputs})"
+# HANDOFF-0048 amendment 2: a loose builder in a KGME workspace stages and commits by pathspec,
+# one rule per Outputs entry (review cycle 1 F2): `git add -- <path>` exactly, and
+# `git commit --only <path> -m ...`, the path before the message so a prefix rule pins it; a
+# folder entry takes the folder's prefix. `git add -A`, `git commit -a`, a bare `git commit`
+# and every other git write match no rule and are refused by the level's dontAsk mode.
+GIT_ADD_OUTPUTS = "Bash(git add {outputs})"
+GIT_COMMIT_OUTPUTS = "Bash(git commit {outputs})"
+PLACEHOLDERS = (OUTPUTS, EDIT_OUTPUTS, GIT_ADD_OUTPUTS, GIT_COMMIT_OUTPUTS)
 # The only extra arguments a level takes, with how many values each: output shape, never
 # permission, settings, model, workspace, or caps (review cycle 1 F2).
 EXTRA_FLAGS = {"--verbose": 0, "--output-format": 1, "--input-format": 1}
@@ -30,10 +38,14 @@ def sha256_text(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
-def render(template: dict, repo: Path, tmp: Path, entries: tuple[str, ...] = ()) -> dict:
-    """Pure: the template with its placeholders filled from the resolved `repo` and `tmp` the
-    caller gives (review cycle 1 F8). An `{outputs}` or `Edit({outputs})` element with no
-    entries (no handoff) is refused: a level that confines writes must know where."""
+def render(
+    template: dict, repo: Path, tmp: Path, entries: tuple[str, ...] = (), main: Path | None = None
+) -> dict:
+    """Pure: the template with its placeholders filled from the resolved `repo`, `tmp` and
+    `main` (the main checkout, whose code a workspace's `kgme review` runs; HANDOFF-0048
+    amendment 2) the caller gives (review cycle 1 F8). An `{outputs}` or `Edit({outputs})`
+    element with no entries (no handoff) is refused: a level that confines writes must know
+    where."""
 
     def value(item):
         if isinstance(item, dict):
@@ -41,7 +53,7 @@ def render(template: dict, repo: Path, tmp: Path, entries: tuple[str, ...] = ())
         if isinstance(item, list):
             out: list = []
             for element in item:
-                if element not in (OUTPUTS, EDIT_OUTPUTS):
+                if element not in PLACEHOLDERS:
                     out.append(value(element))
                     continue
                 if not entries:
@@ -49,16 +61,33 @@ def render(template: dict, repo: Path, tmp: Path, entries: tuple[str, ...] = ())
                 for entry in entries:
                     path = os.path.normpath(repo / entry.rstrip("/"))
                     folder = entry.endswith("/") or not Path(entry).suffix
+                    relative = os.path.normpath(entry.rstrip("/"))
                     if element == OUTPUTS:
                         out.append(path)
-                    else:
+                    elif element == EDIT_OUTPUTS:
                         out.append(f"Edit(/{path}/**)" if folder else f"Edit(/{path})")
+                    else:
+                        out.extend(git_rules(element, (relative, path), folder))
             return out
         if isinstance(item, str):
-            return item.replace("{repo}", str(repo)).replace("{tmp}", str(tmp))
+            filled = item.replace("{repo}", str(repo)).replace("{tmp}", str(tmp))
+            return filled.replace("{main}", str(main if main is not None else repo))
         return item
 
     return value(template)
+
+
+def git_rules(element: str, forms: tuple[str, ...], folder: bool) -> list[str]:
+    """Pure: the `git add` or `git commit` rules of one Outputs entry, in each of `forms`
+    (the path as written and absolute): a file is named exactly, a folder by its prefix."""
+    rules = []
+    for form in forms:
+        if element == GIT_ADD_OUTPUTS:
+            rules.append(f"Bash(git add -- {form}/*)" if folder else f"Bash(git add -- {form})")
+        else:
+            tail = f"{form}/*" if folder else f"{form} -m *"
+            rules.append(f"Bash(git commit --only {tail})")
+    return rules
 
 
 def check_extra(extra: list[str]) -> None:

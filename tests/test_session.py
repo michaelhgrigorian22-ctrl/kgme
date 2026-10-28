@@ -249,12 +249,17 @@ def test_the_applied_templates_declare_what_adr_022_says() -> None:
     assert work["sandbox"]["filesystem"]["allowWrite"] == ["{repo}", "{tmp}"]
     assert loose["sandbox"]["filesystem"]["allowWrite"] == ["{outputs}"]
     assert "Edit({outputs})" in loose["permissions"]["allow"]
-    staging = [
-        r
-        for r in loose["permissions"]["allow"]
-        if r.startswith(("Bash(git add", "Bash(git commit"))
-    ]
-    assert staging == [], "a loose builder never stages or commits; the loop commits (Michou)"
+    git_rules = [r for r in loose["permissions"]["allow"] if r.startswith("Bash(git ")]
+    # HANDOFF-0048 amendment 2 (Michou, 2026-10-27): a loose builder in a KGME workspace
+    # commits on its own task branch by pathspec, so `git add` and `git commit` may be on the
+    # list in exactly these forms; a push, a checkout and every other git write never are
+    allowed_git = {
+        session.GIT_ADD_OUTPUTS,
+        session.GIT_COMMIT_OUTPUTS,
+        "Bash(git diff *)",
+        "Bash(git status *)",
+    }
+    assert set(git_rules) <= allowed_git, git_rules
     assert "network" not in loose["sandbox"], "no network domains"
 
 

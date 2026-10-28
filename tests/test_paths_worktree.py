@@ -52,7 +52,13 @@ def test_a_worktree_resolves_to_its_main_checkout(tmp_path: Path) -> None:
     main, worktree = write_repo_with_worktree(tmp_path)
     assert ledger.read_main_checkout(worktree) == main
     assert ledger.read_main_checkout(main) == main
-    assert ledger.read_main_checkout(ROOT) == ROOT
+    common = subprocess.run(
+        ["git", "rev-parse", "--path-format=absolute", "--git-common-dir"], cwd=ROOT,
+        capture_output=True, text=True, check=True,
+    ).stdout.strip()  # fmt: skip
+    assert ledger.read_main_checkout(ROOT) == Path(common).resolve().parent, (
+        "this checkout, or its main checkout when the suite runs in a worktree (HANDOFF-0048)"
+    )
 
 
 @pytest.mark.blocking

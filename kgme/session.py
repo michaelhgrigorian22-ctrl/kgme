@@ -53,6 +53,8 @@ from kgme.session_logic import (  # noqa: F401 - the launcher's pure half, re-ex
     AUTHORS,
     EDIT_OUTPUTS,
     EXTRA_FLAGS,
+    GIT_ADD_OUTPUTS,
+    GIT_COMMIT_OUTPUTS,
     LEVELS,
     OUTPUTS,
     PROJECT_DIR,
@@ -74,6 +76,8 @@ from kgme.session_read import (  # noqa: F401 - the launch's reads, re-exported 
     read_workspace,
     uv_env,
 )
+
+BASH_TIMEOUTS = {"BASH_DEFAULT_TIMEOUT_MS": "1500000", "BASH_MAX_TIMEOUT_MS": "1800000"}
 
 
 @dataclass(frozen=True)
@@ -123,10 +127,19 @@ def read_route(
 
 
 def read_launch(
-    level: str, handoff: str | None, extra: list[str], base: Path, settings: dict, run: str
+    level: str,
+    handoff: str | None,
+    extra: list[str],
+    base: Path,
+    settings: dict,
+    run: str,
+    task: str | None = None,
 ) -> tuple[Launch, dict]:
     """Effect: check the level can start as configured and build what it starts; the launch
-    and the record its note carries, or `ValueError` naming what is missing."""
+    and the record its note carries, or `ValueError` naming what is missing. With `task`
+    (HANDOFF-0048), a `loose` run builds one task of the handoff from the task's own
+    workspace: its fence is the task's `Outputs` from the record `kgme workspace create`
+    wrote in the main checkout, and the handoff is still read for its adoption."""
     if level not in LEVELS:
         raise ValueError(f"unknown level {level!r}; levels: {', '.join(LEVELS)}")
     check_extra(extra)
@@ -138,25 +151,34 @@ def read_launch(
         raise ValueError("kgme.toml [sessions] max_turns and max_budget_usd are not set")
     if level == "loose" and not handoff:
         raise ValueError("loose runs one handoff: --handoff HANDOFF-NNNN")
+    if task and (level != "loose" or not handoff):
+        raise ValueError("--task is loose's, with --handoff: one task of a crew handoff")
     template_path = base / TEMPLATES / f"{level}.json"
     if not template_path.is_file() or template_path.is_symlink():
         raise ValueError(f"{template_path.relative_to(base)} is missing; Michou applies it")
     template_text = template_path.read_text(encoding="utf-8")
     workspace = read_workspace(base) if level == "loose" else base.resolve()
+    main = ledger.read_main_checkout(base)
     entries: tuple[str, ...] = ()
     env: dict[str, str] = {}
+    task_record: dict | None = None
     if handoff:
         text = read_handoff(base, settings, handoff)
         entries = tuple(loop_outputs.parse_outputs(text)) + loop_outputs.ALWAYS
         env = {loop_outputs.ENV_HANDOFF: handoff, loop_outputs.ENV_RUN: run}
+    if task:
+        task_record = read_task_record(main, settings, handoff, task, workspace)
+        entries = tuple(task_record["outputs"]) + loop_outputs.ALWAYS
     if level == "loose":
         # measured live (2026-10-21): uv opens its cache at start, and ~/.cache/uv is outside the
         # sandbox's writes, so the pinned `uv run --frozen pytest` failed; the cache goes inside
         # the fence and uv uses the workspace's synced environment as it is
         env |= uv_env(workspace)
+        # `make check` and a review cycle run as one Bash call and take minutes; Claude Code's
+        # default Bash timeout is two, so an unattended builder would lose its gate (HANDOFF-0048)
+        env |= BASH_TIMEOUTS
     tmp = Path(tempfile.gettempdir()).resolve()
-    rendered = render(json.loads(template_text), workspace, tmp, entries)
-    main = ledger.read_main_checkout(base)
+    rendered = render(json.loads(template_text), workspace, tmp, entries, main)
     policy_sha = None
     if level == "loose":
         rendered, policy_sha = carry_policy(rendered, read_main_policy(main), main)
@@ -166,6 +188,8 @@ def read_launch(
     if level == "loose":
         claude_md, carried = read_carried_prompt(main, workspace, settings, handoff)
         claude_path = copy.with_name("CLAUDE.md")
+    if task_record and task_record.get("model"):  # the task's model, resolved at create (F9)
+        model = str(task_record["model"])
     plugin_dirs = read_mod_dirs(base, level, settings)
     if plugin_dirs:
         # the project `/capture`'s `uv run --frozen kgme capture` runs in: the checkout this
@@ -176,6 +200,8 @@ def read_launch(
         "level": level,
         "mods": [folder.name for folder in plugin_dirs],
         "handoff": handoff,
+        "task": task,
+        "task_outputs": list(task_record["outputs"]) if task_record else None,
         "workspace": str(workspace),
         "template": template_path.relative_to(base).as_posix(),
         "template_sha256": sha256_text(template_text),
@@ -193,6 +219,27 @@ def read_launch(
     return Launch(argv, env, body, claude_md), record
 
 
+def read_task_record(main: Path, settings: dict, handoff: str, task: str, workspace: Path) -> dict:
+    """Effect: the record of `task` of `handoff` (`kgme workspace create` wrote it in the
+    main checkout's scratch), checked to name this workspace; `ValueError` otherwise."""
+    from kgme import workspace as ws
+
+    name = ws.workspace_name(handoff, task)
+    record = ws.read_record(settings, main, name)
+    if record is None:
+        raise ValueError(f"no record for task {task} of {handoff}: `kgme workspace create` first")
+    if Path(str(record.get("workspace", ""))).resolve() != workspace.resolve():
+        raise ValueError(f"task {task}'s workspace is {record.get('workspace')}, not {workspace}")
+    if record.get("state") != "open" or not record.get("outputs"):
+        raise ValueError(f"task {task} is {record.get('state')} or names no Outputs")
+    from kgme.sync_git import run_git
+
+    branch = run_git(["rev-parse", "--abbrev-ref", "HEAD"], workspace, check=False).stdout.strip()
+    if branch != record.get("branch"):
+        raise ValueError(f"the workspace is on {branch!r}, not the task's {record.get('branch')!r}")
+    return record
+
+
 def write_start(
     record: dict, launch: Launch, base: Path, settings: dict, run: str, dirs: ledger.Dirs
 ) -> dict[str, str]:
@@ -206,6 +253,8 @@ def write_start(
     env = dict(launch.env)
     if record["handoff"]:
         text = read_handoff(base, settings, record["handoff"])
+        if record.get("task_outputs"):  # the task's fence, not the handoff's (HANDOFF-0048)
+            text = "## Outputs\n" + ", ".join(f"`{p}`" for p in record["task_outputs"]) + "\n"
         scratch = paths.scratch_dir(settings, main)
         _, digest = loop_outputs.write_outputs(main, scratch, record["handoff"], run, text)
         env[loop_outputs.ENV_SHA] = digest
@@ -242,6 +291,7 @@ def run_session(
     model_key: str | None = None,
     red: str | None = None,
     run_claude: Callable | None = None,
+    task: str | None = None,
 ) -> int:
     """The command: build, record, then replace this process with `claude`. A dry run prints
     the argv, the settings, and any carried file, and records one note; nothing else is
@@ -258,7 +308,7 @@ def run_session(
         return cheap.run_cheap(model_key, red, base, settings, dry_run, **more)
     run = events.new_ulid()
     try:
-        launch, record = read_launch(level, handoff, extra, base, settings, run)
+        launch, record = read_launch(level, handoff, extra, base, settings, run, task)
     except (ValueError, OSError, RuntimeError) as error:
         print(f"kgme session: {error}", file=sys.stderr)
         return 2
@@ -280,5 +330,8 @@ def run_session(
         ledger.append(event, dirs)
         return 0
     env = write_start(record, launch, base, settings, run, dirs)
-    execute(launch.argv[0], launch.argv, {**os.environ, **env})
+    # another checkout's active environment would be ignored with a warning on every uv call
+    # in the session (seen on the live route of 2026-10-27, HANDOFF-0048)
+    inherited = {k: v for k, v in os.environ.items() if k != "VIRTUAL_ENV"}
+    execute(launch.argv[0], launch.argv, {**inherited, **env})
     return 0

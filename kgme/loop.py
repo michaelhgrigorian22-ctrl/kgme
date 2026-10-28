@@ -220,7 +220,7 @@ def add_usage(total: dict, usage: dict, cost: float | None) -> dict:
     return summed
 
 
-def execution_request(handoff: str, path: str) -> str:
+def execution_request(handoff: str, path: str, findings: str = "") -> str:
     """Pure: the one line a fresh session is given (review cycle 1 F1), as Michou gives it:
     the handoff and its path; the rest is the committed CLAUDE.md `loose` carries."""
     return (
@@ -267,6 +267,10 @@ def read_stream(text: str) -> dict:
             found["cost_usd"] = record.get("total_cost_usd")
             if record.get("is_error") and record.get("result"):
                 found["plain"].append(str(record["result"]))
+        elif kind in ("error", "turn.failed"):  # Codex's stream (HANDOFF-0048 §2, cycle 1 F6)
+            message = record.get("message") or (record.get("error") or {}).get("message") or ""
+            if message:
+                found["plain"].append(str(message))
     return found
 
 
@@ -449,8 +453,23 @@ def run_loop(
     env: dict | None = None,
     run_arbiters: Callable | None = None,
     arbiter_retry: timedelta = ARBITER_RETRY,
+    request_for: Callable[..., str] = execution_request,
+    parent: str | None = None,
+    adapter=None,
+    on_process: Callable | None = None,
+    after_exit: Callable | None = None,
 ) -> int:
-    """The command: each handoff of the queue to its close, then the closing screen."""
+    """The command: each handoff of the queue to its close, then the closing screen. A queue
+    entry `HANDOFF-NNNN:<task>` is one crew task (HANDOFF-0048): its events are keyed by that
+    unit, its builder's argv and request come from the task's adapter through `argv_for` and
+    `request_for(unit, path, findings)`, and it closes on a PASS and a commit on its branch,
+    with no move to `done/` (the crew closes the handoff at approval). `parent` is the crew's
+    intent, the parent of the loop's own (cycle 1 F8); `adapter.events` turns a stream into
+    ledger events for a harness without hooks and `adapter.close_open` answers what a killed
+    builder left open (F7); `on_process(proc or None)` tells the crew the builder's process
+    group, for the workspace record (F10); `after_exit(run)` is the supervisor's turn once
+    a builder without the reviewer's reach has exited (Codex: stage, gate, review, commit) and
+    returns ("again", findings), ("done", "") or ("halted", reason) (F6)."""
     from kgme import review_run
 
     run_arbiters = run_arbiters or review_run.run_arbiters
@@ -464,7 +483,8 @@ def run_loop(
             runs.append(run)
             _run_one(
                 run, workspace, places, arbiters, arbiter_template, argv_for, stall, poll,
-                grace, retry, now, sleep, model, env, run_arbiters,
+                grace, retry, now, sleep, model, env, run_arbiters, request_for, parent,
+                adapter, on_process, after_exit,
             )  # fmt: skip
     finally:
         if caffeinate is not None:
@@ -498,6 +518,11 @@ def _run_one(
     model,
     env,
     run_arbiters,
+    request_for=execution_request,
+    crew_parent: str | None = None,
+    adapter=None,
+    on_process=None,
+    after_exit=None,
 ) -> None:
     """One handoff: refuse, or start the builder and supervise it until it closes."""
     dirs = places.dirs
@@ -508,14 +533,15 @@ def _run_one(
     if refused:
         run.status, run.reason = "refused", refused
         ledger.append(
-            _loop_event("outcome", run, review_io.first_intent_id(history), f"loop {refused}",
-                        status="error", class_="blocking"),
+            _loop_event("outcome", run, crew_parent or review_io.first_intent_id(history),
+                        f"loop {refused}", status="error", class_="blocking"),
             dirs,
         )  # fmt: skip
         return
     argv = argv_for(run.handoff, workspace)
     handoff_path = review_io.read_handoff_path(places.handoff_dir, run.handoff)
-    request = execution_request(run.handoff, review_io.shown(handoff_path, places.root))
+    shown_path = review_io.shown(handoff_path, places.root)
+    request = request_for(run.handoff, shown_path)
     versions = read_versions()
     record = {"level": "loose", "handoff": run.handoff, "model": model, "argv": argv,
               "workspace": str(workspace), "versions": versions}  # fmt: skip
@@ -526,7 +552,7 @@ def _run_one(
         _loop_event(
             "intent",
             run,
-            review_io.first_intent_id(history),
+            crew_parent or review_io.first_intent_id(history),
             f"loop {run.handoff} level=loose model={model or '?'} claude={versions['claude']} "
             f"codex={versions['codex']}",
             payload_ref=ref,
@@ -538,17 +564,22 @@ def _run_one(
     start_head = read_head(workspace)
     folder = places.scratch / "loop" / run.run
     child_env = {**(env if env is not None else os.environ), "KGME_LOOP_PARENT": parent or ""}
-    while True:  # one pass per builder start; a limit starts the same handoff again
-        out = folder / f"builder-{len(run.pauses)}.jsonl"
+    starts = 0
+    while True:  # one pass per builder start; a limit, or a supervisor's fix cycle, starts again
+        out = folder / f"builder-{starts}.jsonl"
+        starts += 1
         proc = start_builder(argv, workspace, out, child_env, request)
+        if on_process is not None:
+            on_process(proc)
         ended = _supervise(run, proc, out, places, parent, intent_id, arbiters, template,
-                           stall, poll, grace, now, sleep, run_arbiters)  # fmt: skip
+                           stall, poll, grace, now, sleep, run_arbiters, adapter)  # fmt: skip
+        if on_process is not None:
+            on_process(None)
         stream = read_stream(review_io.read_text(out) if out.exists() else "")
         if out.exists():
             run.usage = add_usage(run.usage, stream["usage"], stream["cost_usd"])
         if ended != "exited":
             break
-        lifted = None
         limit_text = "\n".join(stream["plain"])
         after = [e for e in review_io.read_handoff_events(run.handoff, dirs) if e["id"] > intent_id]
         if LIMIT.search(limit_text) and close_status(after, "-", True) == "ended":
@@ -563,6 +594,19 @@ def _run_one(
             )  # fmt: skip
             sleep(max(0.0, (lifted - now()).total_seconds()))
             continue
+        if after_exit is None:
+            break
+        verdict, findings = after_exit(run)  # the supervisor's turn (HANDOFF-0048, F6)
+        if verdict == "again":
+            # a finding that stood two cycles is settled before the next builder starts, and
+            # the settled rulings go with the findings (review cycle 2 F6)
+            _arbitrate(run, places, arbiters, template, now, run_arbiters)
+            request = request_for(
+                run.handoff, shown_path, findings + rulings_text(run.handoff, places)
+            )
+            continue
+        if verdict == "halted":
+            run.status, run.reason = "halted", findings
         break
     after = [e for e in review_io.read_handoff_events(run.handoff, dirs) if e["id"] > intent_id]
     run.audits = [m["audit"] for e in after if (m := review.AUDIT_TOKEN.search(e["summary"] or ""))]
@@ -571,12 +615,12 @@ def _run_one(
         if e["kind"] == "outcome" and e["status"] == "ok" and " PASS " in f" {e['summary']} "
         and not (e["key"] or "").startswith("loop:")
     ]  # fmt: skip
-    run.commit = read_commit(
-        workspace, start_head, run.handoff, _ts(passes[-1]) if passes else None
-    )
+    handoff_id, _, task = run.handoff.partition(":")
+    run.commit = read_commit(workspace, start_head, handoff_id, _ts(passes[-1]) if passes else None)
     if run.status == "open":
         finished = review_io.read_handoff_path(places.handoff_dir, run.handoff)
         done = finished is not None and finished.parent == places.handoff_dir / "done"
+        done = done or bool(task)  # a task closes on its branch; the crew closes the handoff
         run.status = close_status(after, run.commit, done)
         if run.status == "ready":
             run.reason = "PASS on a green gate, nothing committed: ready, diffs pending"
@@ -604,6 +648,40 @@ def _run_one(
     )  # fmt: skip
 
 
+def _arbitrate(run, places, arbiters, template, now, run_arbiters, history=None) -> None:
+    """Effect: every finding blocking two consecutive cycles with no settled ruling goes to
+    the pair, once, retried after the interval when the pair did not settle it (F5)."""
+    if history is None:
+        history = review_io.read_handoff_events(run.handoff, places.dirs)
+    state_now = review.loop_state(history)
+    for finding in state_now.to_arbiters:
+        if finding in run.arbitrated or not arbiters or template is None:
+            continue
+        last = run.tried.get(finding)
+        if last is not None and now() - last < run.arbiter_retry:
+            continue  # pending: the pair is tried again after the interval (F5)
+        run.tried[finding] = now()
+        if run_arbiters(run.handoff, finding, "", places, arbiters, template) is not None:
+            run.arbitrated.append(finding)
+
+
+def rulings_text(unit_name: str, places) -> str:
+    """Effect: the settled rulings of a unit as a builder is given them: one line each, from
+    the `ruling:<id>=<class>` notes (class, option, reason); empty when there is none."""
+    lines = [
+        review_io.read_ruling_text(e, places.root)  # whole, not the clipped summary (F6)
+        for e in review_io.read_handoff_events(unit_name, places.dirs)
+        if e["kind"] == "note"
+        and (e["key"] or "").startswith("ruling:")
+        and "@" not in (e["key"] or "")
+    ]
+    if not lines:
+        return ""
+    return "\n\nThe arbiter pair's settled rulings, to execute:\n" + "\n".join(
+        f"- {ln}" for ln in lines
+    )
+
+
 def _counts(event: dict) -> bool:
     """Pure: an event a halt measure reads: a review cycle, a gate, or a halt note."""
     key = event["key"] or ""
@@ -629,17 +707,31 @@ def _supervise(
     now,
     sleep,
     run_arbiters,
+    adapter=None,
 ) -> str:
     """Effect: watch one builder until it exits ("exited"), halts ("halted") or stalls
-    ("stalled"); arbitrate and log compactions on the way."""
+    ("stalled"); arbitrate and log compactions on the way; with an `adapter`, write the
+    stream's events to the ledger as they appear and close what a killed builder left open."""
     dirs = places.dirs
     logged = 0
+    state: dict | None = None
+    child_run = f"{adapter.name}-{run.run}" if adapter is not None else run.run
     suspect = False  # a stall must hold on two consecutive polls: a call that just ended and
     # the post hook's outcome are a moment apart
+
+    def write_stream_events(text: str) -> None:
+        nonlocal state
+        if adapter is None:
+            return
+        new, state = adapter.events(text, child_run, parent, state)
+        for event in new:
+            ledger.append(event, dirs)
+
     while True:
         exited = proc.poll() is not None
         text = review_io.read_text(out) if out.exists() else ""
         stream = read_stream(text)
+        write_stream_events(text)
         for compaction in stream["compactions"][logged:]:
             run.compactions += 1
             ledger.append(
@@ -670,32 +762,34 @@ def _supervise(
             run.status, run.reason = "halted", reason
             if not exited:
                 kill_group(proc, grace)
+                if adapter is not None:
+                    for event in adapter.close_open(state, child_run, parent):
+                        ledger.append(event, dirs)
             state = review.loop_state(history)
             if not state.active_halt:  # a measure fired with no halt note yet: write it
                 from kgme import review_run
 
                 review_run.write_halt(run.handoff, state, [], "pair", places, label="loop")
             return "halted"
-        state = review.loop_state(history)
-        for finding in state.to_arbiters:
-            if finding in run.arbitrated or not arbiters or template is None:
-                continue
-            last = run.tried.get(finding)
-            if last is not None and now() - last < run.arbiter_retry:
-                continue  # pending: the pair is tried again after the interval (F5)
-            run.tried[finding] = now()
-            if run_arbiters(run.handoff, finding, "", places, arbiters, template) is not None:
-                run.arbitrated.append(finding)
+        _arbitrate(run, places, arbiters, template, now, run_arbiters, history)
         if exited:
+            if adapter is not None:
+                for event in adapter.close_open(state, child_run, parent):
+                    ledger.append(event, dirs)
             return "exited"
         window = [e for e in history if e["id"] >= intent_id]
         if stream["session_id"]:
             window += ledger.read(dirs, run_id=stream["session_id"])
+        if adapter is not None:
+            window += ledger.read(dirs, run_id=child_run)
         newest = max((_ts(e) for e in window), default=now())
         children = live_children(read_group(), proc.pid)
         stalled = is_stalled(newest, now(), stall, children)
         if stalled and suspect:
             kill_group(proc, grace)
+            if adapter is not None:
+                for event in adapter.close_open(state, child_run, parent):
+                    ledger.append(event, dirs)
             stream = read_stream(review_io.read_text(out) if out.exists() else "")
             run.usage = add_usage(run.usage, stream["usage"], stream["cost_usd"])
             quarantine = places.scratch / "loop" / "quarantine" / run.run
