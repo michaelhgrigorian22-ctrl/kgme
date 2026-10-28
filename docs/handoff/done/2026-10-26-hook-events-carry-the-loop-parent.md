@@ -4,7 +4,9 @@ type: handoff
 created: 2026-10-26T20:30:00-07:00
 from: michou
 to: claude-code
-status: open
+status: done
+completed: 2026-10-27T23:05:29-07:00
+report: docs/audit/2026-10-27-hook-events-under-the-loop-parent.md
 tier: 2
 depends_on: [HANDOFF-0043]
 audit_ref: "AUDIT-0148 F4, ruled advisory by the arbiter pair (claude-opus-5-5, claude-fable-5-1), both asking for this follow-up"

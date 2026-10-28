@@ -4,8 +4,8 @@ Purpose: keep the two hook scripts small and identical where they should be.
 Inputs: stdin JSON from Claude Code; `kgme.toml`.
 Outputs: dicts, strings, a `Places` naming the streams and the scratch directories.
 Side effects: `read_payload` reads stdin. `read_places` reads `kgme.toml`. `read_session_parent`
-reads the ledger. `read_script_text` reads one script file. `read_guard_root` checks that one
-folder exists. Nothing here writes.
+reads the ledger, and the environment for the loop's parent. `read_script_text` reads one
+script file. `read_guard_root` checks that one folder exists. Nothing here writes.
 """
 
 import hashlib
@@ -17,12 +17,16 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
-from kgme import cheap, config, ledger, paths
+from kgme import cheap, config, events, ledger, paths
 
 SUMMARY_BUDGET = 150
 # HANDOFF-0032: the one ambient switch, and only for a canary run id (adopted exception to
 # ADR-015's explicit configuration; recorded in AUDIT-0026). A stray value routes nothing.
 CANARY_STREAMS = re.compile(r"^canary:[0-7][0-9A-HJKMNP-TV-Z]{25}$")
+# HANDOFF-0063: the second ambient switch, and only for the loop's parent. `kgme loop` sets it
+# in the builder's environment to its run's first intent id, which the session's own tools
+# cannot change; a value without an event id's shape is ignored, never trusted.
+LOOP_PARENT_ENV = "KGME_LOOP_PARENT"
 FILE_TOOLS = ("Read", "Edit", "Write", "NotebookEdit", "MultiEdit", "Glob", "Grep", "LS")
 
 
@@ -107,10 +111,19 @@ def call_key(payload: dict) -> str:
     return "call:" + hashlib.sha256(material.encode("utf-8")).hexdigest()[:24]
 
 
-def read_session_parent(session_id: str, dirs: ledger.Dirs) -> str | None:
-    """The first event of this session, so hook pairs nest under it (ADR-019 §3), else null."""
+def read_session_parent(
+    session_id: str, dirs: ledger.Dirs, env: Mapping[str, str] = os.environ
+) -> str | None:
+    """The first event of this session, so hook pairs nest under it (ADR-019 §3); before the
+    session has one, the loop's first intent that `KGME_LOOP_PARENT` names when it has the
+    exact shape of an event id (HANDOFF-0063), so the session's first event sits under the
+    loop's intent and every later pair under that event, as today; else null. A value of any
+    other shape, a trailing newline included, is ignored, never trusted (review cycle 1 F1)."""
     first = ledger.read(dirs, run_id=session_id)
-    return first[0]["id"] if first else None
+    if first:
+        return first[0]["id"]
+    named = env.get(LOOP_PARENT_ENV, "")
+    return named if events.ULID_PATTERN.fullmatch(named) else None
 
 
 def read_script_text(path: Path) -> str | None:

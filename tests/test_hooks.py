@@ -11,8 +11,10 @@ Side effects: the gitignored test streams and test scratch; files under `tmp_pat
 """
 
 import hashlib
+import json
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -24,7 +26,7 @@ from hooktools import (
     run_hook,
 )
 
-from kgme import ledger, paths
+from kgme import events, ledger, paths
 from kgme.hooks import common
 
 
@@ -180,3 +182,93 @@ def test_post_hook_never_blocks_and_records_its_own_failure_in_test_scratch() ->
     assert "JSONDecodeError" in after.splitlines()[-1]
     live_after = live.read_bytes() if live.exists() else None
     assert live_after == live_before
+
+
+def _loop_env(parent: str | None) -> dict[str, str]:
+    """The hook's environment with the loop's parent set to `parent`, or unset for None."""
+    env = {k: v for k, v in os.environ.items() if k != common.LOOP_PARENT_ENV}
+    if parent is not None:
+        env[common.LOOP_PARENT_ENV] = parent
+    return env
+
+
+def _run_hook_in(module: str, call: object, env: dict[str, str]) -> subprocess.CompletedProcess:
+    """Effect: one hook entry point as Claude Code runs it, on the test streams, with `env` as
+    its whole environment (HANDOFF-0063 reads the loop's parent from it)."""
+    return subprocess.run(
+        [sys.executable, "-m", module, "--test-streams"],
+        input=json.dumps(call),
+        capture_output=True,
+        text=True,
+        cwd=ROOT,
+        timeout=60,
+        env=env,
+    )
+
+
+def _run_pair(session: str, env: dict[str, str], tool: str = "Edit", **tool_input) -> None:
+    """Effect: one allowed call's pre and post hooks under `env`, writing its intent and
+    outcome to the test streams; asserts both exit 0."""
+    call = payload(tool, session, **(tool_input or dict(file_path="kgme/cli.py")))
+    assert _run_hook_in("kgme.hooks.pre_tool_guard", call, env).returncode == 0
+    call["tool_response"] = {"ok": True}
+    assert _run_hook_in("kgme.hooks.post_tool_ledger", call, env).returncode == 0
+
+
+@pytest.mark.blocking
+def test_a_loop_sessions_first_pair_sits_under_the_loops_intent_and_later_pairs_under_it() -> None:
+    """HANDOFF-0063: the production pre and post hooks, with `KGME_LOOP_PARENT` set to an
+    intent id and a fresh session, write the first pair with that id as `parent`; every later
+    pair, the variable still set, has the session's first event as `parent`, as today."""
+    dirs = ledger.read_test_dirs(SETTINGS)
+    session = f"hooktest-loopparent-{os.getpid()}"
+    loop_intent = events.new_ulid()
+    _run_pair(session, _loop_env(loop_intent))
+    _run_pair(session, _loop_env(loop_intent), "Bash", command="uv run --frozen pytest -q tests")
+    found = ledger.read(dirs, run_id=session, stream="ledger")
+    assert [e["kind"] for e in found] == ["intent", "outcome", "intent", "outcome"]
+    assert found[0]["parent"] == loop_intent and found[1]["parent"] == loop_intent
+    assert found[2]["parent"] == found[0]["id"] and found[3]["parent"] == found[0]["id"]
+    ended = payload("Bash", session) | {"hook_event_name": "SessionEnd", "reason": "other"}
+    assert _run_hook_in("kgme.hooks.session_end", ended, _loop_env(loop_intent)).returncode == 0
+    assert ledger.read(dirs, run_id=session)[-1]["parent"] == found[0]["id"]
+
+
+@pytest.mark.blocking
+def test_without_the_loop_parent_the_chain_is_todays() -> None:
+    dirs = ledger.read_test_dirs(SETTINGS)
+    session = f"hooktest-noparent-{os.getpid()}"
+    _run_pair(session, _loop_env(None))
+    _run_pair(session, _loop_env(None), "Bash", command="uv run --frozen pytest -q tests")
+    found = ledger.read(dirs, run_id=session, stream="ledger")
+    assert [e["parent"] for e in found] == [None, None, found[0]["id"], found[0]["id"]]
+
+
+@pytest.mark.blocking
+@pytest.mark.parametrize(
+    "value",
+    ["", "not-an-event-id", "8" + events.new_ulid()[1:], events.new_ulid().lower(),
+     events.new_ulid()[:-1], "canary:" + events.new_ulid(), "../" + events.new_ulid(),
+     events.new_ulid() + "\n", " " + events.new_ulid()],
+)  # fmt: skip
+def test_a_malformed_loop_parent_is_ignored_never_trusted(value: str) -> None:
+    dirs = ledger.read_test_dirs(SETTINGS)
+    session = f"hooktest-badparent-{os.getpid()}-{abs(hash(value)) % 10**6}"
+    _run_pair(session, _loop_env(value))
+    found = ledger.read(dirs, run_id=session, stream="ledger")
+    assert [e["parent"] for e in found] == [None, None]
+    ended = payload("Bash", session) | {"hook_event_name": "SessionEnd", "reason": "other"}
+    assert _run_hook_in("kgme.hooks.session_end", ended, _loop_env(value)).returncode == 0
+    assert ledger.read(dirs, run_id=session)[-1]["parent"] == found[0]["id"]
+
+
+@pytest.mark.blocking
+def test_a_session_end_alone_under_the_loop_parent_sits_under_the_loops_intent() -> None:
+    """A session that made no tool call still ends under the loop's intent (HANDOFF-0063)."""
+    dirs = ledger.read_test_dirs(SETTINGS)
+    session = f"hooktest-endonly-{os.getpid()}"
+    loop_intent = events.new_ulid()
+    ended = {"session_id": session, "hook_event_name": "SessionEnd", "reason": "other"}
+    assert _run_hook_in("kgme.hooks.session_end", ended, _loop_env(loop_intent)).returncode == 0
+    (note,) = ledger.read(dirs, run_id=session)
+    assert note["key"] == "session:end" and note["parent"] == loop_intent
