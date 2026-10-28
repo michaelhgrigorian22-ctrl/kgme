@@ -25,3 +25,4 @@ Format: `- YYYY-MM-DD HH:MM — what happened — what KGME should have done`
 - 2026-10-16 — "right now they are fragmented" (the brain and command files across folders) — "some merged mass folder ... that cleanly delegates and separates and holds the central brain and command files"
 - 2026-10-16 — "all this juggling i'm doing between the claude app and terminal and chat and codex terminal tabs" — "all centralized on KGME"
 - 2026-10-16 — "daily notes flopped and the obsidian literally never expanded or got added to once" —
+- 2026-10-28 00:56 — 14% usage left till nov 1st
