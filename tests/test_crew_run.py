@@ -373,6 +373,50 @@ def test_a_settled_ruling_reaches_the_planner_and_the_same_plan_may_return(
 
 
 @pytest.mark.blocking
+def test_a_long_split_ruling_reaches_the_planner_whole_not_clipped(tmp_path, monkeypatch) -> None:
+    """Cycle 4 F21: a settled ruling's ledger summary is clipped at the writer's cap, so a split
+    that takes the second option can lose the chosen instruction there; the planner's next
+    request reads the ruling whole from the note's payload, as a builder's does (cycle 3 F6)."""
+    monkeypatch.setenv("PATH", bin_with_fake_codex(tmp_path))
+    h = unit_id("RW")
+    main, settings, places = fixture_main(tmp_path, h)
+    seeded_a = PLAN_GOOD.replace("Module b", "Module b SEED").replace(HANDOFF, h)
+    seeded_b = seeded_a.replace("Module a.", "Module a, first.")
+    plans = iter([seeded_a, seeded_b, PLAN_GOOD.replace(HANDOFF, h)])
+    asked: list[str] = []
+    chosen = "drop the seed and split module b into its own task, named in the plan's order"
+    reason = (
+        "split (claude-opus-5-5=blocking: keep the seed and fence it behind the acceptance "
+        "check, with a note on the screen (blast 3, reversible); claude-fable-5-1=blocking: "
+        + chosen
+        + " (blast 1, reversible)); took claude-fable-5-1: "
+        + chosen
+    )
+    assert len(reason) > 200
+
+    def planner(request: str, cycle: int) -> str:
+        asked.append(request)
+        return next(plans)
+
+    def arbitrate(unit_name, finding, argument, places_, models, template):
+        review_io.write_ruling(unit_name, finding, "blocking", reason, "pair", places_)
+        return {"class": "blocking"}
+
+    code = crew_io.run_crew(
+        h, main, settings, places, ["arbiter-one", "arbiter-two"], "brief $FINDING",
+        planner=planner, run_task=stub_task({}), merge_gate=stub_gate(), arbitrate=arbitrate,
+    )  # fmt: skip
+    assert code == 0, asked[-1][-400:]
+    notes = [
+        e for e in review_io.read_handoff_events(f"{h}:plan", places.dirs)
+        if e["kind"] == "note" and (e["key"] or "").startswith("ruling:F1=")
+    ]  # fmt: skip
+    assert len(notes) == 1 and len(notes[0]["summary"]) <= 200, "the summary is clipped"
+    assert "took claude-fable-5-1: " + chosen not in notes[0]["summary"], "the choice is cut"
+    assert "ruled F1=blocking" in asked[2] and reason in asked[2], asked[2][-600:]
+
+
+@pytest.mark.blocking
 def test_integration_reruns_every_tasks_check_and_the_review_reads_the_candidate_tree(
     tmp_path, monkeypatch, capsys
 ) -> None:

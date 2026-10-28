@@ -156,12 +156,21 @@ def test_a_persistent_blocker_goes_to_the_arbiters_and_the_ruling_reaches_the_ne
         places.dirs,
     )  # fmt: skip
     asked: list[tuple[str, str]] = []
+    # a split over the writer's cap whose chosen option is the second (cycle 4, under F6):
+    # the builder's request carries it whole from the note's payload
+    chosen = "keep the seed, it is required by the acceptance check"
+    reason = (
+        "split (claude-opus-5-5=advisory: remove the seed and let the task fail "
+        "(blast 2, reversible); claude-fable-5-1=advisory: "
+        + chosen
+        + " (blast 1, reversible)); took claude-fable-5-1: "
+        + chosen
+    )
+    assert len(reason) > 200
 
     def arbiters(unit_name, finding, argument, places_, models, template):
         asked.append((unit_name, finding))
-        review_io.write_ruling(
-            unit_name, finding, "advisory", "keep the seed, it is required", "pair", places_
-        )
+        review_io.write_ruling(unit_name, finding, "advisory", reason, "pair", places_)
         return {"class": "advisory"}
 
     monkeypatch.setattr(crew_io.loop, "ARBITER_RETRY", timedelta(seconds=0))
@@ -185,6 +194,7 @@ def test_a_persistent_blocker_goes_to_the_arbiters_and_the_ruling_reaches_the_ne
     assert "settled rulings" in last_prompt and "ruled F1=advisory" in last_prompt, last_prompt[
         -600:
     ]
+    assert reason in last_prompt, "the whole ruling, past the summary's cap (cycle 4 F21)"
     assert "| F1 | blocking" in last_prompt, "the findings table travels with the ruling"
     stuck = review_io.read_handoff_events(f"{handoff}:codex-stuck", places.dirs)
     verdicts = [

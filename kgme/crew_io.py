@@ -289,10 +289,11 @@ def run_plan_loop(
 
 
 def read_rulings_text(unit_name: str, places: review_io.Places) -> str:
-    """Effect: the settled rulings of a unit, one line each, as the planner is given them
-    (the `ruling:<id>=<class>` notes' summaries carry the class, the option and the reason)."""
+    """Effect: the settled rulings of a unit, one line each, as the planner is given them:
+    each `ruling:<id>=<class>` note whole (the class, the option, the reason) from its payload,
+    never the clipped summary (cycle 4 F21; a builder's `loop.rulings_text` since F6)."""
     lines = [
-        e["summary"]
+        review_io.read_ruling_text(e, places.root)
         for e in review_io.read_handoff_events(unit_name, places.dirs)
         if e["kind"] == "note"
         and (e["key"] or "").startswith("ruling:")
