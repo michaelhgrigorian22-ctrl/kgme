@@ -106,6 +106,15 @@ def test_spacing_stays_on_the_grid(file):
                     and bool(classes & {"row", "ledger-row", "tr-row"})
                 )
                 permitted |= number == 1 and "gap" in prop and bool(classes & RULE_GAPS)
+                # CW40: projected chips use the existing 4px row inset budget
+                # and a 1px line gap. Only their own gap, not descendants',
+                # is an additional grid exception; the overlap gate is below.
+                permitted |= (
+                    file == "station/index.html"
+                    and context.strip() == ".chip-room"
+                    and prop == "gap"
+                    and number == 1
+                )
                 permitted |= (
                     number == -1 and prop == "margin" and bool(classes & {"vh", "sr-only", "tr-vh"})
                 )
@@ -322,6 +331,88 @@ chrome.stdio[4].on('data',chunk=>{buf+=chunk.toString();let n;while((n=buf.index
 }});
 chrome.on('exit',code=>{for(const p of pending.values()){clearTimeout(p.timer);p.reject(Error('Chrome exited '+code+' '+stderr));}pending.clear();});
 async function evaluate(s,expression){const r=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true},s);if(r.exceptionDetails)throw Error(JSON.stringify(r.exceptionDetails));return r.result.value;}
+// CW40: project the source's seven chip anchors without loading WebGL/Three.
+// CSS2DObject's default center is (.5,.5); Chrome measures the actual wrapper
+// and chip CSS, including the chip's own transform. No vendor files are needed.
+function stationChipProgram(source, eventText) {
+  function between(start,end) {
+    const a=source.indexOf(start),b=source.indexOf(end,a+start.length);
+    if(a<0||b<0)throw Error('Station projection contract changed: '+start);
+    return source.slice(a,b);
+  }
+  function match(pattern) {
+    const m=source.match(pattern);if(!m)throw Error('Station projection contract changed: '+pattern);return m[1];
+  }
+  if(!source.includes('new THREE.OrthographicCamera(')||source.includes('camera.up.')||
+     !source.includes('camera.position.copy(target).add(CAM); camera.lookAt(target);'))
+    throw Error('Station default camera requires a new projection adapter');
+  const rooms=between('const ROOMS =','const DOCK_GATE');
+  const sprites=between('const SPRITES =','const ACTORS');
+  const ledger=between('const T0 =','// ---------------------------------------------------------------- the deck');
+  const apply=between('function apply(e) {','function fixtureSpeaks(');
+  const snapshot=between('function summarize(list) {','function renderWords(now) {');
+  const create=between("const el = document.createElement('button'); el.type = 'button';",'const chip = new CSS2DObject');
+  const update=between('o.chipEl.className =','// light carries the same state as the words');
+  const center=match(/for \(const r of ROOMS\) \{\s*(const cx =[^;]+), lines =/);
+  const anchor=match(/chip\.position\.set\(([^)]+)\)/);
+  const cam=match(/const CAM = new THREE\.Vector3\(([^)]+)\)/);
+  const home=match(/const HOME = new THREE\.Vector3\(([^)]+)\)/);
+  const zoom=match(/let target = HOME\.clone\(\), zoom = ([\d.]+),/);
+  const bounds=match(/(camera\.left =[^\n]+camera\.updateProjectionMatrix\(\);)/);
+  const dimensions=match(/(const w = stage\.clientWidth[^;]+;)/);
+  return `(()=>{
+    const location={search:'?at=19:45:00&speed=1'};
+    ${rooms}${sprites}${ledger}
+    const now0=10000,following=null,roomObjs={};let arbiter=null;
+    const fixtures={guard:{last:null,until:0},michou:{last:null,until:0}};
+    const placeRun=()=>{},retireRun=()=>{},say=()=>{},follow=()=>{};
+    function fixtureSpeaks(f,e){f.last=e;f.until=now0+9000;}
+    function arbiterSpeaks(e){arbiter={last:e};}
+    ${apply}${snapshot}
+    const anchors=[];
+    for(const r of ROOMS){
+      ${center};${create}
+      const wrapper=document.createElement('div');wrapper.style.position='absolute';
+      wrapper.style.userSelect='none';wrapper.append(el);document.getElementById('labels').append(wrapper);
+      roomObjs[r.id]={r,chipEl:el,flash:0};anchors.push({r,wrapper,point:[${anchor}]});
+    }
+    events=${JSON.stringify(eventText)}.trim().split('\\n').map(l=>JSON.parse(l)).sort((a,b)=>a.ts.localeCompare(b.ts));
+    for(const e of events)if(Date.parse(e.ts)<=START)apply(e);
+    const snap=snapshot(START);
+    for(const {r,state,cls} of snap.rooms){const o=roomObjs[r.id];${update}}
+    const stage=document.getElementById('stage'),camera={updateProjectionMatrix(){}};
+    ${dimensions}${bounds}
+    const home=[${home}],offset=[${cam}],zoom=${zoom};
+    const dot=(a,b)=>a.reduce((n,x,i)=>n+x*b[i],0);
+    const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+    const unit=a=>{const n=Math.hypot(...a);if(!n)throw Error('Degenerate station camera');return a.map(v=>v/n);};
+    const back=unit(offset),right=unit(cross([0,1,0],back)),up=cross(back,right);
+    for(const {wrapper,point}of anchors){
+      const delta=point.map((v,i)=>v-home[i]-offset[i]);
+      const x=(2*dot(delta,right)-camera.right-camera.left)/(camera.right-camera.left)*zoom;
+      const y=(2*dot(delta,up)-camera.top-camera.bottom)/(camera.top-camera.bottom)*zoom;
+      wrapper.style.transform='translate(-50%,-50%) translate('+(x*w/2+w/2)+'px,'+(-y*h/2+h/2)+'px)';
+    }
+    return {snapshot:fmtClock(START),chips:anchors.map(({r})=>{
+      const el=roomObjs[r.id].chipEl,b=el.getBoundingClientRect(),s=getComputedStyle(el);
+      return {id:r.id,text:el.textContent,left:b.left,right:b.right,top:b.top,bottom:b.bottom,
+        width:b.width,height:b.height,visible:s.display!=='none'&&s.visibility==='visible'};
+    })};
+  })()`;
+}
+async function measureStationChips() {
+  const source=read('station/index.html'),program=stationChipProgram(source,read('station/sample-events.jsonl')),result={};
+  for(const [width,height]of [[400,700],[800,600],[1440,900]]){
+    const {targetId}=await send('Target.createTarget',{url:'about:blank'}),{sessionId:s}=await send('Target.attachToTarget',{targetId,flatten:true});
+    await send('Page.enable',{},s);await send('Network.enable',{},s);await send('Network.setBlockedURLs',{urls:['*']},s);
+    await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:false},s);
+    const {frameTree}=await send('Page.getFrameTree',{},s);
+    await send('Page.setDocumentContent',{frameId:frameTree.frame.id,html:'<!doctype html><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'"><style>'+css(source)+'</style><div id="stage"></div><div id="labels"></div>'},s);
+    result[width+'x'+height]=await evaluate(s,program);
+    await send('Target.closeTarget',{targetId});
+  }
+  return result;
+}
 (async()=>{const result={};try{
   await send('Browser.getVersion');
   for(const [file,size]of Object.entries(canvas.boards)){
@@ -359,6 +450,7 @@ async function evaluate(s,expression){const r=await send('Runtime.evaluate',{exp
     })()`);
     await send('Target.closeTarget',{targetId});
   }
+  result.stationChips=await measureStationChips();
   process.stdout.write(JSON.stringify(result));
 }finally{try{await send('Browser.close');}catch{}chrome.kill();}})().catch(e=>{console.error(e.stack);process.exitCode=1;chrome.kill();});
 """  # noqa: E501 (embedded source-only Node/CDP fixture)
@@ -390,6 +482,31 @@ def projected_columns(tmp_path_factory):
     )
     assert run.returncode == 0, run.stderr
     return json.loads(run.stdout)
+
+
+@pytest.mark.parametrize("size", ["400x700", "800x600", "1440x900"])
+def test_station_room_chips_have_zero_overlaps_at_default_framing(size, projected_columns):
+    projection = projected_columns["stationChips"][size]
+    chips = projection["chips"]
+    assert projection["snapshot"] == "19:45:00", projection
+    assert {chip["id"] for chip in chips} == {
+        "bridge",
+        "workshop",
+        "review",
+        "airlock",
+        "archive",
+        "dock",
+        "engine",
+    }, (size, chips)
+    assert all(chip["visible"] and chip["width"] > 0 and chip["height"] > 0 for chip in chips)
+    overlaps = []
+    for i, a in enumerate(chips):
+        for b in chips[i + 1 :]:
+            width = min(a["right"], b["right"]) - max(a["left"], b["left"])
+            height = min(a["bottom"], b["bottom"]) - max(a["top"], b["top"])
+            if width > 0 and height > 0:
+                overlaps.append((a["id"], b["id"], width, height))
+    assert len(overlaps) == 0, (size, "Room-chip overlap count", len(overlaps), overlaps)
 
 
 @pytest.mark.parametrize("file", FILES[:-1])
