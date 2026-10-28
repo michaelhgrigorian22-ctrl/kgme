@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-body{margin:0;background:#0a0c10;color:#cfe6ef;font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.45}
+body{margin:0;background:#0a0c10;color:#cfe6ef;font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.45;font-variant-numeric:tabular-nums}
 a{color:#39d0ff}a:hover{color:#cfe6ef}
 .hud{position:relative;width:2560px;height:1080px;box-sizing:border-box;display:flex;flex-direction:column;background:#0a0c10;isolation:isolate;overflow:hidden}
 .frame{position:absolute;inset:0;pointer-events:none;border:1px solid var(--f);box-shadow:inset 0 0 0 1px rgba(0,0,0,.6),inset 0 0 120px var(--fg)}
@@ -26,17 +26,17 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .brk::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
 .brk::after{bottom:-1px;right:-1px;border-left:0;border-top:0}
 .lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#7a8d9b}
-.chip{display:inline-block;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:0 6px;border:1px solid currentColor;line-height:15px;border-radius:1px;white-space:nowrap}
+.chip{display:inline-block;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:0 8px;border:1px solid currentColor;line-height:15px;border-radius:1px;white-space:nowrap}
 .c-ok{color:#4de38a}.c-block{color:#ff3d7f}.c-trans{color:#ffb02e}.c-none{color:#7a8d9b}.c-live{color:#39d0ff}
-.row{display:grid;grid-template-columns:70px 16px 112px minmax(0,1fr) 92px 56px;gap:10px;align-items:center;padding:3px 10px;border-bottom:1px solid #141b22;min-height:22px}
-.grp{display:flex;gap:12px;align-items:baseline;padding:8px 10px 4px;border-bottom:1px solid #1e2a33;color:#39d0ff;font-size:11px}
-.focus{outline:1px solid #39d0ff;outline-offset:-1px;background:#0e1a22}
+.row{display:grid;grid-template-columns:70px 16px 112px minmax(0,1fr) 92px 56px;gap:12px;align-items:center;padding:3px 12px;border-bottom:1px solid #1e2a33;min-height:22px}
+.grp{display:flex;gap:16px;align-items:baseline;padding:8px 8px 8px;border-bottom:1px solid #1e2a33;color:#39d0ff;font-size:11px}
+.focus{outline:2px solid #39d0ff;outline-offset:-2px;background:#0e1a22}
 .mut{color:#7a8d9b}
 /* CDH-0017 CW17: the focused row's muted lines read #7a8d9b on the focus tint (5.14:1 on #0e1a22, 5.41:1 on #1c0f16, 5.28:1 on #1a150c) */
 .focus .mut{color:#7a8d9b}
-.kbd{display:inline-block;min-width:16px;padding:0 5px;border:1px solid #39d0ff;color:#39d0ff;font-size:10px;line-height:16px;text-align:center;border-radius:2px}
-.seg{display:flex;gap:2px}.seg i{display:block;width:7px;height:12px;background:#1e2a33}.seg i.on{background:#39d0ff}.seg i.warn{background:#ffb02e}
-.raw{font-size:10px;line-height:1.5;color:#7a8d9b;white-space:pre-wrap;overflow-wrap:anywhere}
+.kbd{display:inline-block;min-width:16px;padding:0 4px;border:1px solid #39d0ff;color:#39d0ff;font-size:11px;line-height:16px;text-align:center;border-radius:2px}
+.seg{display:flex;gap:0px}.seg i{display:block;width:7px;height:12px;background:#1e2a33}.seg i.on{background:#39d0ff}.seg i.warn{background:#ffb02e}
+.raw{font-size:11px;line-height:1.45;color:#7a8d9b;white-space:pre-wrap;overflow-wrap:anywhere}
 .raw b{font-weight:400;color:#cfe6ef}
 .raw i{font-style:normal;color:#39d0ff}
 .step{display:flex;align-items:center;gap:8px;font-size:11px;white-space:nowrap}
@@ -46,17 +46,17 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .step .mine{border-color:#ffb02e;color:#ffb02e}
 .blink{animation:blink 1.2s steps(2,end) infinite}
 @keyframes blink{50%{opacity:.2}}
-@media (prefers-reduced-motion:reduce){.blink{animation:none}.scan{display:none}}
+
 .quota-alert{display:flex;align-items:center;gap:8px;min-height:24px;font-size:11px}.quota-track{width:80px;height:7px;border:1px solid currentColor}.quota-track i{display:block;height:100%;background:currentColor}
 
 /* CDH-0025: count is height; marks and accessible names survive without colour. */
-.activity-chart{display:grid;grid-template-columns:repeat(var(--buckets),minmax(0,1fr));gap:1px;height:109px;padding-top:16px;box-sizing:border-box;border-bottom:1px solid #7a8d9b}
+.activity-chart{display:grid;grid-template-columns:repeat(var(--buckets),minmax(0,1fr));gap:1px;height:109px;padding-top:16px;box-sizing:border-box;border-bottom:1px solid #1e2a33}
 .activity-column{position:relative;min-width:0;height:100%}.activity-bar{position:absolute;bottom:0;left:0;right:0;height:var(--height);background:var(--tint);box-shadow:inset 0 0 0 1px #39d0ff}
 .activity-mark{position:absolute;bottom:var(--height);right:0;color:#cfe6ef;background:#0a0c10;font-size:11px;line-height:13px;white-space:nowrap;z-index:1}.activity-mark:empty{display:none}
-.activity-column:hover{outline:1px solid #cfe6ef;outline-offset:0}.activity-summary{font-size:11px;line-height:1.45;color:#7a8d9b;margin:6px 0 0;overflow-wrap:anywhere}.activity-axis{display:flex;justify-content:space-between;gap:4px;margin-top:6px;color:#7a8d9b;font-size:9px}
+.activity-column:hover{outline:1px solid #cfe6ef;outline-offset:0}.activity-summary{font-size:11px;line-height:1.45;color:#7a8d9b;margin:8px 0 0;overflow-wrap:anywhere}.activity-axis{display:flex;justify-content:space-between;gap:8px;margin-top:8px;color:#7a8d9b;font-size:9px}
 
 /* CDH-0026: one selection mark links responsibility, event and evidence. */
-.selection-mark{color:#39d0ff;margin-right:6px}.causal-trace{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:11px;line-height:1.6;padding:10px 0;border-top:1px solid #1e2a33}.causal-trace a{display:inline-flex;align-items:center;min-height:24px}.causal-link{flex:1 0 24px;min-width:24px;border-top:1px solid currentColor;position:relative}.causal-link::after{content:'›';position:absolute;right:-1px;top:-12px;font-size:16px}.causal-open{border-left:1px dashed #ffb02e;padding:8px 10px;margin:0 10px 10px;font-size:11px;color:#ffb02e}.causal-open .landing{display:block;border:1px dashed #ffb02e;margin-top:6px;padding:6px}.selection-evidence{border-top:2px solid #39d0ff}.selection-band{grid-column:2/-1;padding:8px 10px;background:#0e1a22;border-bottom:1px solid #39d0ff;font-size:11px;display:flex;gap:6px 14px;flex-wrap:wrap}.selection-band .event-summary{flex-basis:100%}.causal-trace a:focus-visible,.selection-evidence:focus-visible{outline:2px solid #39d0ff;outline-offset:-2px}
+.selection-mark{color:#39d0ff;margin-right:8px}.causal-trace{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:11px;line-height:1.45;padding:8px 0;border-top:1px solid #1e2a33}.causal-trace a{display:inline-flex;align-items:center;min-height:24px}.causal-link{flex:1 0 24px;min-width:24px;border-top:1px solid currentColor;position:relative}.causal-link::after{content:'›';position:absolute;right:-1px;top:-12px;font-size:14px}.causal-open{border-left:1px dashed #ffb02e;padding:8px 8px;margin:0 8px 8px;font-size:11px;color:#ffb02e}.causal-open .landing{display:block;border:1px dashed #ffb02e;margin-top:8px;padding:8px}.selection-evidence{border-top:2px solid #39d0ff}.selection-band{grid-column:2/-1;padding:8px 8px;background:#0e1a22;border-bottom:1px solid #39d0ff;font-size:11px;display:flex;gap:8px 16px;flex-wrap:wrap}.selection-band .event-summary{flex-basis:100%}.causal-trace a:focus-visible,.selection-evidence:focus-visible{}
 
 /* CDH-0032: isolated ground, negative decoration, then normal-flow text (0+). */
 .pnl{isolation:isolate}
@@ -67,7 +67,22 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
 .micro{background:#0a0c10}
 /* Repeat the original scan on opaque panel surfaces, behind their words. */
 .hud:has(.scan) .pnl{background-image:repeating-linear-gradient(0deg,rgba(207,230,239,.035) 0 1px,transparent 1px 3px);background-attachment:fixed}
-@media (prefers-reduced-motion:reduce){.hud:has(.scan) .pnl{background-image:none}}
+
+
+.row{box-sizing:border-box;height:22px;line-height:15px}.row .chip{line-height:13px}
+/* CDH-0031: one spacing/type/motion contract; signature decoration is unchanged. */
+:root{--precision-ease:cubic-bezier(0,0,.2,1);--precision-response:120ms;--precision-state:240ms;--precision-travel:480ms}
+:where(button,a,summary,input,select,textarea,[tabindex]){outline:2px solid transparent;outline-offset:-2px;transition:outline-color var(--precision-response) var(--precision-ease),background-color var(--precision-response) var(--precision-ease),border-color var(--precision-response) var(--precision-ease)}
+:where(button,a,summary,input,select,textarea,[tabindex]):focus-visible{outline:2px solid #39d0ff;outline-offset:-2px}
+.row,.tr-row{transition:background-color var(--precision-state) var(--precision-ease),outline-color var(--precision-response) var(--precision-ease)}
+[data-precision-columns]{align-items:stretch!important;align-content:stretch!important}
+[data-precision-column]{min-width:0;box-sizing:border-box}
+[data-precision-columns="desk"]{display:grid!important;grid-template-columns:minmax(200px,232px) minmax(0,1fr) minmax(300px,352px);grid-template-rows:minmax(0,1fr)}
+[data-precision-columns="desk"]>[data-precision-column]{height:100%;min-height:0}
+[data-precision-column]>:last-child:not(:only-child){flex-grow:1}
+[data-precision-columns="wall"]>[data-precision-column]{overflow:auto}
+[data-precision-columns="wall"]>[data-precision-column]>*{flex-shrink:0}
+@media (prefers-reduced-motion:reduce){.blink{animation:none}.scan{display:none}.hud:has(.scan) .pnl{background-image:none}*,*::before,*::after{transition:none!important;animation:none!important}}
 </style>
 </helmet>
 <div class="hud" style="--f:#39d0ff;--fg:rgba(57,208,255,.10)">
@@ -85,17 +100,18 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   <div class="micro" style="bottom:7px;right:30px">· · ·</div>
 </sc-if>
 
-<header style="position:relative;z-index:1;display:flex;gap:28px;align-items:flex-end;padding:30px 40px 10px">
-  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">clock</span><span style="font-size:26px;font-weight:700;letter-spacing:.04em">19:52:14<span class="mut" style="font-size:12px;font-weight:400"> −07:00 · Wed 8 Oct 2026</span></span></div>
-  <div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">ledger</span><span style="font-size:14px"><span class="c-live blink">●</span> live · <b style="font-weight:500">1 479</b> events · 70 runs · 1 127 this month</span></div>
+<header style="position:relative;z-index:1;display:flex;gap:32px;align-items:flex-end;padding:32px 40px 8px">
+  <div style="display:flex;flex-direction:column;gap:0px"><span class="lbl">clock</span><span style="font-size:22px;font-weight:700;letter-spacing:0">19:52:14<span class="mut" style="font-size:12px;font-weight:400"> −07:00 · Wed 8 Oct 2026</span></span></div>
+  <div style="display:flex;flex-direction:column;gap:0px"><span class="lbl">ledger</span><span style="font-size:14px"><span class="c-live blink">●</span> live · <b style="font-weight:500">1 479</b> events · 70 runs · 1 127 this month</span></div>
   <dc-import name="Tray" view="bar" runs="{{trayRuns}}" calm="{{calm}}" hint-size="300px,38px"></dc-import>
   <sc-for list="{{quotaAlerts}}" as="q"><div class="quota-alert" style="{{q.color}}"><span>{{q.label}}</span><div class="quota-track"><i style="{{q.fill}}"></i></div><span>{{q.text}}</span></div></sc-for>
 </header>
 
-<div style="position:relative;z-index:1;display:grid;grid-template-columns:440px minmax(0,1fr) 620px 400px;grid-template-rows:auto minmax(0,1fr);gap:14px;padding:4px 40px 8px;flex:1 1 auto;min-height:0">
+  <div class="selection-band" style="position:relative;z-index:1;margin:0 40px 8px" role="group" aria-label="selected event context"><span class="selection-mark">◆ selected</span><span>{{selection.id}}</span><span>{{selection.ts}}</span><span>{{selection.actor}} · run {{selection.run}}</span><span class="event-summary">{{selection.summary}}</span></div>
+<div data-precision-columns="wall" style="position:relative;z-index:1;display:grid;grid-template-columns:440px minmax(0,1fr) 620px 400px;grid-template-rows:minmax(0,1fr);gap:16px;padding:8px 40px 8px;flex:1 1 auto;min-height:0">
 
-  <aside style="grid-row:1/3;display:flex;flex-direction:column;gap:12px;min-height:0">
-    <section class="pnl brk" style="padding:12px">
+  <aside style="display:flex;flex-direction:column;gap:16px;min-height:0" data-precision-column>
+    <section class="pnl brk" style="padding:16px">
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px"><span class="lbl">runs · events per minute</span><span class="lbl">4 hours</span></div>
       <div class="activity-chart" style="--buckets:240;height:157px" role="list" aria-label="240 one-minute activity buckets, fixed scale zero to five events">
         <sc-for list="{{cells}}" as="c" hint-placeholder-count="240"><div class="activity-column" role="listitem" aria-label="{{c.label}}" title="{{c.label}}" style="{{c.style}}"><span class="activity-bar" aria-hidden="true"></span><span class="activity-mark" aria-hidden="true">{{c.mark}}</span></div></sc-for>
@@ -103,10 +119,10 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
       <div class="activity-axis"><span>{{activityStart}}</span><span>4 hours · 1 min/bucket</span><span>{{activityEnd}}</span></div>
       <p class="activity-summary">{{activitySummary}}</p>
     </section>
-    <section class="pnl brk" style="padding:12px;display:flex;flex-direction:column;min-height:0">
+    <section class="pnl brk" style="padding:16px;display:flex;flex-direction:column;min-height:0">
       <dc-import name="Tray" view="pane" runs="{{trayRuns}}" calm="{{calm}}" hint-size="100%,200px"></dc-import>
     </section>
-    <section class="pnl brk" style="padding:12px;display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:6px 14px;font-size:11px">
+    <section class="pnl brk" style="padding:16px;display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:8px 16px;font-size:11px">
       <span class="lbl" style="grid-column:span 2">today · by kind and class</span>
       <span>▶ intents</span><span style="text-align:right">212</span>
       <span>◀ outcomes</span><span style="text-align:right">209</span>
@@ -116,19 +132,18 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
       <span class="c-block">blocking</span><span style="text-align:right">4</span>
       <span class="c-trans">transient</span><span style="text-align:right">3</span>
       <span class="c-block">refused</span><span style="text-align:right">1</span>
-      <span class="lbl" style="grid-column:span 2;margin-top:6px">reviews this week</span>
+      <span class="lbl" style="grid-column:span 2;margin-top:8px">reviews this week</span>
       <span>0032 · 7 cycles</span><span style="text-align:right" class="c-ok">PASS</span>
       <span>0040 · cycle 1</span><span style="text-align:right" class="c-trans">exhausted</span>
     </section>
-    <section class="pnl brk" style="padding:12px">
+    <section class="pnl brk" style="padding:16px">
       <div class="lbl" style="margin-bottom:8px">ADR-016 strikes · review:HANDOFF-0040</div>
-      <div style="display:flex;gap:8px;align-items:center"><div style="width:34px;height:22px;background:#39d0ff"></div><div style="width:34px;height:22px;border:1px dashed #39d0ff"></div><div style="width:34px;height:22px;border:1px dashed #39d0ff"></div><span style="margin-left:6px;font-size:11px">cycle 1 · 0 blocking</span></div>
+      <div style="display:flex;gap:8px;align-items:center"><div style="width:34px;height:22px;background:#39d0ff"></div><div style="width:34px;height:22px;border:1px dashed #39d0ff"></div><div style="width:34px;height:22px;border:1px dashed #39d0ff"></div><span style="margin-left:8px;font-size:11px">cycle 1 · 0 blocking</span></div>
     </section>
   </aside>
 
-  <div class="selection-band" role="group" aria-label="selected event context"><span class="selection-mark">◆ selected</span><span>{{selection.id}}</span><span>{{selection.ts}}</span><span>{{selection.actor}} · run {{selection.run}}</span><span class="event-summary">{{selection.summary}}</span></div>
-  <main class="pnl brk selection-evidence" style="display:flex;flex-direction:column;min-height:0">
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid #1e2a33"><span class="lbl"><span class="selection-mark" role="img" aria-label="{{selection.label}}">◆</span>timeline · newest at bottom · <span class="c-live">following</span></span><span class="lbl">time · kind · job · summary · class · Δt</span></div>
+  <main class="pnl brk selection-evidence" style="display:flex;flex-direction:column;min-height:0" data-precision-column>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 8px;border-bottom:1px solid #1e2a33"><span class="lbl"><span class="selection-mark" role="img" aria-label="{{selection.label}}">◆</span>timeline · newest at bottom · <span class="c-live">following</span></span><span class="lbl">time · kind · job · summary · class · Δt</span></div>
     <div style="flex:1 1 auto;overflow:auto">
       <sc-for list="{{rows}}" as="row" hint-placeholder-count="30">
         <sc-if value="{{row.isGroup}}" hint-placeholder-val="{{ false }}"><div class="grp"><sc-if value="{{row.selected}}"><span class="selection-mark" role="img" aria-label="{{row.selectionLabel}}">◆</span></sc-if><sc-if value="{{row.unselected}}"><span>▣ run {{row.run}}</span></sc-if><span class="mut">{{row.meta}}</span></div></sc-if>
@@ -147,16 +162,16 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
     </div>
   </main>
 
-  <section class="pnl brk selection-evidence" aria-label="selected reviewer event payload" style="display:flex;flex-direction:column;min-height:0">
-    <div style="padding:8px 10px;border-bottom:1px solid #1e2a33"><span class="selection-mark" role="img" aria-label="{{selection.label}}">◆</span><span class="lbl">raw payload · read-only</span></div>
-    <pre class="raw" style="margin:0;flex:1 1 auto;overflow:auto;padding:8px 10px">{{selectedPayload}}</pre>
-    <p style="padding:0 10px;font-size:11px;color:#7a8d9b">Drawn payload excerpt: attempt, exit code and text from the selected event's summary. Full payload bytes are not supplied in this sample.</p>
+  <section class="pnl brk selection-evidence" aria-label="selected reviewer event payload" style="display:flex;flex-direction:column;min-height:0" data-precision-column>
+    <div style="padding:8px 8px;border-bottom:1px solid #1e2a33"><span class="selection-mark" role="img" aria-label="{{selection.label}}">◆</span><span class="lbl">raw payload · read-only</span></div>
+    <pre class="raw" style="margin:0;flex:1 1 auto;overflow:auto;padding:8px 8px">{{selectedPayload}}</pre>
+    <p style="padding:0 8px;font-size:11px;color:#7a8d9b">Drawn payload excerpt: attempt, exit code and text from the selected event's summary. Full payload bytes are not supplied in this sample.</p>
   </section>
 
-  <aside style="display:flex;flex-direction:column;gap:12px;min-height:0">
-    <section class="pnl brk selection-evidence" style="padding:12px;display:flex;flex-direction:column;gap:8px;flex:1 1 auto;overflow-wrap:anywhere">
+  <aside style="display:flex;flex-direction:column;gap:16px;min-height:0" data-precision-column>
+    <section class="pnl brk selection-evidence" style="padding:16px;display:flex;flex-direction:column;gap:8px;flex:1 1 auto;overflow-wrap:anywhere">
       <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="lbl"><span class="selection-mark" role="img" aria-label="{{selection.label}}">◆</span>detail</span><span class="lbl"><span class="kbd">Esc</span> closes</span></div>
-      <div style="display:grid;grid-template-columns:96px minmax(0,1fr);gap:3px 10px;font-size:11px">
+      <div style="display:grid;grid-template-columns:96px minmax(0,1fr);gap:0px 8px;font-size:11px">
         <span class="mut">kind · class</span><span>outcome · <span class="chip c-trans">transient</span> · status error</span>
         <span class="mut">job · key</span><span>review:HANDOFF-0040 · review:HANDOFF-0040:6627ac35ffb583ad</span>
         <span class="mut">ref</span><span>01M4F8NR8147T0KJA7TD08P04E <span class="mut">· the cycle intent</span></span>
@@ -164,9 +179,9 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
       </div>
       <div style="font-size:11px;color:#7a8d9b;border-top:1px solid #1e2a33;padding-top:8px">Three transient attempts become one <span class="c-block">blocking</span> tooling outcome, which is not a strike (ADR-016). The loop reruns the cycle after the usage window resets.</div>
     </section>
-    <section class="pnl brk" style="padding:12px;display:flex;flex-direction:column;gap:6px">
+    <section class="pnl brk" style="padding:16px;display:flex;flex-direction:column;gap:8px">
       <div class="lbl">phase 1 · build order · handoffs</div>
-      <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:4px 12px">
+      <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:8px 16px">
         <div class="step"><span class="box done">✓</span>0025 packaging</div>
         <div class="step"><span class="box done">✓</span>0026 ledger</div>
         <div class="step"><span class="box done">✓</span>0027 settings</div>
@@ -188,7 +203,7 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   </aside>
 </div>
 
-<footer style="position:relative;z-index:1;display:flex;gap:18px;align-items:center;padding:8px 40px 26px;font-size:11px;color:#7a8d9b">
+<footer style="position:relative;z-index:1;display:flex;gap:16px;align-items:center;padding:8px 40px 24px;font-size:11px;color:#7a8d9b">
   <span><span class="kbd">j</span> <span class="kbd">k</span> move</span>
   <span><span class="kbd">/</span> filter</span>
   <span><span class="kbd">Enter</span> detail</span>
@@ -198,7 +213,6 @@ a{color:#39d0ff}a:hover{color:#cfe6ef}
   <span><span class="kbd">w</span> desk layout</span>
   <span><span class="kbd">c</span> calm</span>
   <span><span class="kbd">?</span> keys + system</span>
-  <span style="margin-left:auto">wall · four columns · same ledger</span>
 </footer>
 </div>
 </x-dc>
