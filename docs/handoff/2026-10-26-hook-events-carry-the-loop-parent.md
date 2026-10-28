@@ -2,15 +2,15 @@
 id: HANDOFF-0063
 type: handoff
 created: 2026-10-26T20:30:00-07:00
-from: claude-code
+from: michou
 to: claude-code
-status: proposed
+status: open
 tier: 2
 depends_on: [HANDOFF-0043]
 audit_ref: "AUDIT-0148 F4, ruled advisory by the arbiter pair (claude-opus-5-5, claude-fable-5-1), both asking for this follow-up"
 ---
 
-# Handoff 0063 (proposed): a loop session's hook events sit under the loop's first intent
+# Handoff 0063: a loop session's hook events sit under the loop's first intent
 
 ## Why
 HANDOFF-0043's acceptance test asks for one tree under the loop's first intent. The toy meets it, because its builder stub writes `parent` from `KGME_LOOP_PARENT`. A real `kgme session loose` session's events come from the live hooks, which take `parent` from `kgme/hooks/common.py` `read_session_parent`: the session's own first event. So a real run's tool events form their own tree. `kgme loop` writes a `loop:` note naming the session id, so the run is reachable through its run id, but not through `parent`. The arbiter pair ruled AUDIT-0148 F4 advisory, on the ground that the live hook modules are outside 0043's Outputs, and both arbiters asked for this proposal.
