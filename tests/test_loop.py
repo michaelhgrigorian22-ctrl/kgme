@@ -22,6 +22,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+import time
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -394,6 +395,55 @@ def test_stall_needs_silence_and_no_live_call() -> None:
     rows = [(10, 1, 10), (11, 10, 10), (12, 11, 10), (13, 12, 10), (20, 1, 20)]
     assert loop.live_children(rows, 10) == 2, "the launcher and the session are not calls"
     assert loop.live_children(rows[:2], 10) == 0
+    detached = [(10, 1, 10), (11, 10, 10), (12, 11, 12), (13, 12, 12), (20, 1, 20)]
+    assert loop.descendants(detached, 10) == {11, 12, 13}
+    assert loop.live_children(detached, 10) == 2, (
+        "a call the harness detached into its own group is live (the toy crew of 2026-10-28)"
+    )
+
+
+@pytest.mark.blocking
+def test_the_kill_reaches_a_call_detached_into_its_own_group(tmp_path: Path) -> None:
+    """The toy crew of 2026-10-28: Claude Code runs a Bash call in its own process group, so
+    a kill of the leader's group left the call running; the kill now follows descent."""
+    script = tmp_path / "leader.py"
+    script.write_text(
+        "import subprocess, time\n"
+        "subprocess.Popen(['sleep', '60'], start_new_session=True)\n"
+        "time.sleep(60)\n"
+    )
+    proc = subprocess.Popen([sys.executable, str(script)], start_new_session=True)
+    deadline = time.monotonic() + 5
+    below: set[int] = set()
+    while time.monotonic() < deadline and not below:
+        below = loop.descendants(loop.read_group(), proc.pid)
+        time.sleep(0.1)
+    assert below, "the detached sleep is below the leader by descent"
+    loop.kill_group(proc, grace=2.0)
+    alive = {pid for pid, _, _ in loop.read_group()}
+    assert proc.pid not in alive and not (below & alive), "the leader and its detached call"
+
+
+@pytest.mark.blocking
+def test_the_kill_reaches_a_child_spawned_on_the_way_out(tmp_path: Path) -> None:
+    """Cycle 6 F23: a SIGTERM handler that spawns a child and exits leaves that child in the
+    leader's group after the leader is reaped; the kill keeps a group as its target while the
+    group stays occupied, so the child is killed at the deadline."""
+    script = tmp_path / "leader.py"
+    script.write_text(
+        "import signal, subprocess, sys, time\n"
+        "def out(*_):\n"
+        "    subprocess.Popen(['sleep', '60'])\n"
+        "    time.sleep(0.2)\n"
+        "    sys.exit(0)\n"
+        "signal.signal(signal.SIGTERM, out)\n"
+        "time.sleep(60)\n"
+    )
+    proc = subprocess.Popen([sys.executable, str(script)], start_new_session=True)
+    time.sleep(0.8)  # the handler is installed
+    loop.kill_group(proc, grace=2.0)
+    left = [pid for pid, _, pgid in loop.read_group() if pgid == proc.pid]
+    assert not left, "nothing left in the group, the child spawned on the way out included"
 
 
 @pytest.mark.blocking

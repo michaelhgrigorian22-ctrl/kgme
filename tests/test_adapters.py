@@ -20,7 +20,7 @@ from pathlib import Path
 
 import pytest
 
-from kgme import adapters
+from kgme import adapters, session_logic
 from kgme.adapters.claude import ClaudeAdapter
 from kgme.adapters.codex import CodexAdapter
 from kgme.workspace import Task
@@ -49,6 +49,32 @@ def test_the_claude_adapter_launches_loose_with_the_task() -> None:
         "docs/handoff/x.md",
     ):
         assert word in request, word
+    # the live toy crew of 2026-10-28: a builder was refused `git add` with two paths and a
+    # review without `--project`, so the line names the level's exact forms
+    exact = adapter.request(TASK, "docs/handoff/x.md", main="/main")
+    for form in (
+        "`git add -- kgme/toy.py`",
+        "`git add -- tests/test_toy.py`",
+        "`uv run --frozen --project /main kgme review --handoff HANDOFF-9048:parse`",
+        '`git commit --only kgme/toy.py -m "crew: parse (HANDOFF-9048)"`',
+        '`git commit --only tests/test_toy.py -m "crew: parse (HANDOFF-9048)"`',
+    ):
+        assert form in exact, form
+    assert "git add -- kgme/toy.py tests/test_toy.py" not in exact, "one path per call"
+    # cycle 6 F24: a folder Output, with or without its trailing slash, takes the renderer's
+    # prefix forms, a path under the folder, never the bare folder
+    folders = Task("HANDOFF-9048", "widgets",
+                   ("kgme/widgets", "tests/fixtures/toy/", "kgme/toy.py"), "true", "claude",
+                   "claude-opus-5-5")  # fmt: skip
+    text = adapter.request(folders, "docs/handoff/x.md", main="/main")
+    assert "`git add -- kgme/widgets/<file>`" in text
+    assert "`git add -- tests/fixtures/toy/<file>`" in text
+    assert "`git add -- kgme/widgets`" not in text, "never the bare folder"
+    assert "`git add -- tests/fixtures/toy/`" not in text
+    assert '`git commit --only kgme/widgets/<file> -m "crew: widgets (HANDOFF-9048)"`' in text
+    assert session_logic.is_folder("kgme/widgets")
+    assert session_logic.is_folder("tests/fixtures/toy/")
+    assert not session_logic.is_folder("kgme/toy.py")
     assert adapter.events("anything", "run", "parent", None) == ([], {})
     assert adapter.close_open({}, "run", "parent") == []
 

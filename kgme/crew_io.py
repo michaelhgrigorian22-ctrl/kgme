@@ -291,7 +291,8 @@ def run_plan_loop(
 def read_rulings_text(unit_name: str, places: review_io.Places) -> str:
     """Effect: the settled rulings of a unit, one line each, as the planner is given them:
     each `ruling:<id>=<class>` note whole (the class, the option, the reason) from its payload,
-    never the clipped summary (cycle 4 F21; a builder's `loop.rulings_text` since F6)."""
+    the clipped summary only when the payload is gone or does not hash (cycle 4 F21, cycle 5
+    F22; a builder's `loop.rulings_text` since F6)."""
     lines = [
         review_io.read_ruling_text(e, places.root)
         for e in review_io.read_handoff_events(unit_name, places.dirs)
@@ -649,7 +650,7 @@ def run_task_in_loop(
         stall=stall,
         model=model,
         env=dict(os.environ),
-        request_for=lambda _u, path, findings="": adapter.request(task, path, findings),
+        request_for=lambda _u, path, findings="": adapter.request(task, path, findings, str(main)),
         parent=parent,
         adapter=adapter,
         on_process=lambda proc: write_process(settings, main, record_name, proc),

@@ -46,7 +46,7 @@ class CodexAdapter:
             argv += ["-m", task.model]
         return argv + ["-"]
 
-    def request(self, task: Task, handoff_path: str, findings: str = "") -> str:
+    def request(self, task: Task, handoff_path: str, findings: str = "", main: str = "") -> str:
         """Pure: the builder's instruction: the task, its Outputs, its acceptance check, and
         on a fix cycle the findings to answer; it builds and writes its dispositions; the
         supervisor stages, gates, reviews and commits (git is read-only for it, F3)."""

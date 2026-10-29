@@ -60,7 +60,7 @@ def render(
                     raise ValueError("this level confines writes to a handoff's Outputs")
                 for entry in entries:
                     path = os.path.normpath(repo / entry.rstrip("/"))
-                    folder = entry.endswith("/") or not Path(entry).suffix
+                    folder = is_folder(entry)
                     relative = os.path.normpath(entry.rstrip("/"))
                     if element == OUTPUTS:
                         out.append(path)
@@ -75,6 +75,12 @@ def render(
         return item
 
     return value(template)
+
+
+def is_folder(entry: str) -> bool:
+    """Pure: an Outputs entry names a folder when it ends with `/` or has no suffix; the
+    renderer's git rules and a builder's commands share this one test (cycle 6 F24)."""
+    return entry.endswith("/") or not Path(entry).suffix
 
 
 def git_rules(element: str, forms: tuple[str, ...], folder: bool) -> list[str]:

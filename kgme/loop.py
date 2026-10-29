@@ -103,11 +103,30 @@ def next_handoff(queue: list[str], finished: set[str]) -> str | None:
     return next((h for h in queue if h not in finished), None)
 
 
+def descendants(rows: list[tuple[int, int, int]], root: int) -> set[int]:
+    """Pure: every process below `root` by parent, whatever its group: a harness runs a call
+    in its own group (Claude Code's Bash tool does), so the group alone misses it."""
+    children: dict[int, list[int]] = {}
+    for pid, ppid, _ in rows:
+        children.setdefault(ppid, []).append(pid)
+    found: set[int] = set()
+    stack = [root]
+    while stack:
+        for child in children.get(stack.pop(), []):
+            if child not in found:
+                found.add(child)
+                stack.append(child)
+    return found
+
+
 def live_children(rows: list[tuple[int, int, int]], leader: int) -> int:
-    """Pure: the processes of `leader`'s group below the session itself. The leader is the
+    """Pure: the processes of `leader`'s tree below the session itself. The leader is the
     launcher (`uv run`), its direct child the session (`claude`), and a call the session runs
-    sits below that; rows are (pid, ppid, pgid)."""
-    return sum(1 for pid, ppid, pgid in rows if pgid == leader and pid != leader and ppid != leader)
+    sits below that, in its own group when the harness detaches it (the toy crew of
+    2026-10-28: a `make check` call was invisible by group and a healthy builder was killed at
+    five minutes); rows are (pid, ppid, pgid)."""
+    below = descendants(rows, leader)
+    return sum(1 for pid, ppid, _ in rows if pid in below and ppid != leader)
 
 
 def is_stalled(newest: datetime, now: datetime, stall: timedelta, children: int) -> bool:
@@ -355,16 +374,44 @@ def signal_group(pgid: int, sig: int) -> None:
                     pass
 
 
+def tree_groups(
+    rows: list[tuple[int, int, int]], leader: int, known: frozenset[int] | set[int] = frozenset()
+) -> set[int]:
+    """Pure: the process groups of `leader`'s tree now: the leader's own, every group a
+    descendant of the leader or of a member of a known group sits in, and every known group
+    that still has a member. A group id can be reused only once its group is empty, so a
+    known group kept while occupied at every poll is the same group (cycle 6 F23)."""
+    occupied = {pgid for _, _, pgid in rows}
+    kept = set(known) & occupied
+    roots = {leader} | {pid for pid, _, pgid in rows if pgid in kept}
+    below: set[int] = set()
+    for root in roots:
+        below |= descendants(rows, root)
+    return kept | {pgid for pid, _, pgid in rows if pid in below or pid == leader}
+
+
 def kill_group(proc: subprocess.Popen, grace: float) -> None:
-    """Effect: SIGTERM to the whole group, SIGKILL after `grace` seconds if any is left."""
-    signal_group(proc.pid, signal.SIGTERM)
+    """Effect: SIGTERM to the whole tree, the leader's group and every group a call detached
+    into, then SIGKILL after `grace` seconds to whatever of it is left. The tree is re-read at
+    every poll, so a child spawned on the way out is covered, and a group stays a target only
+    while it has stayed occupied at every poll. Two residuals stand, ruled advisory by the
+    arbiter pair (HANDOFF-0048 cycle 7 F23): a child that detaches into a new session and is
+    reparented between two polls escapes the tree, and a group id emptied and reused between
+    two polls is kept; both windows are the poll's 100 ms, an escaped process meets a
+    read-only quarantined worktree, and the follow-up is an inherited `KGME_LOOP_RUN` marker
+    read through `ps -E` (proposal HANDOFF-0068)."""
+    groups = tree_groups(read_group(), proc.pid)
+    for pgid in sorted(groups):
+        signal_group(pgid, signal.SIGTERM)
     deadline = time.monotonic() + grace
     while time.monotonic() < deadline:
         proc.poll()
-        if not any(pgid == proc.pid for _, _, pgid in read_group()):
+        groups = tree_groups(read_group(), proc.pid, groups)
+        if not groups:
             return
         time.sleep(0.1)
-    signal_group(proc.pid, signal.SIGKILL)
+    for pgid in sorted(groups):
+        signal_group(pgid, signal.SIGKILL)
     proc.wait()
 
 

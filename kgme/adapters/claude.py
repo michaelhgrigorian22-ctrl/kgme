@@ -10,7 +10,7 @@ session's id and, since HANDOFF-0063, under the loop's parent, so `events` has n
 add. `kill` is the loop's group kill.
 Inputs: the task, its workspace, the output path, the environment.
 Outputs: the process; an empty event list.
-Side effects: one process group; its stream file.
+Side effects: one process tree; its stream file.
 """
 
 import subprocess
@@ -18,6 +18,7 @@ from pathlib import Path
 
 from kgme import loop
 from kgme.crew import Task, unit
+from kgme.session_logic import is_folder
 
 
 class ClaudeAdapter:
@@ -31,17 +32,31 @@ class ClaudeAdapter:
             "--output-format", "stream-json", "--verbose",
         ]  # fmt: skip
 
-    def request(self, task: Task, handoff_path: str, findings: str = "") -> str:
-        """Pure: the line the session is given on stdin: the task, its handoff, its Outputs
-        and its acceptance check; the route (review, then a commit on the task branch by
-        pathspec) is the builder skill's and the level's."""
+    def request(self, task: Task, handoff_path: str, findings: str = "", main: str = "") -> str:
+        """Pure: the line the session is given on stdin: the task, its handoff, its Outputs,
+        its acceptance check and the route's exact commands, since the level's pinned list
+        matches these forms and no other (the toy crew of 2026-10-28: a builder was refused
+        `git add` with two paths and a review without `--project`, and stopped there); a
+        folder Output takes its prefix rules' forms, a path under it (cycle 6 F24);
+        `findings` is unused, a Claude builder reviews within its session."""
+        project = f" --project {main}" if main else ""
+        paths = [f"{p.rstrip('/')}/<file>" if is_folder(p) else p for p in task.outputs]
+        adds = ", ".join(f"`git add -- {p}`" for p in paths)
+        message = f'-m "crew: {task.name} ({task.handoff})"'
+        commits = ", ".join(f"`git commit --only {p} {message}`" for p in paths)
         return (
             f"Task {task.name} of {task.handoff} ({handoff_path}), adopted by Michou, is yours "
             f"in this workspace. Outputs: {', '.join(task.outputs)}. Acceptance check: "
             f"`{task.acceptance}`, red now, green when you are done. {task.description}\n"
-            f"Execute it under CLAUDE.md to a PASS review (`kgme review --handoff "
-            f"{unit(task.handoff, task.name)}`) and one commit of your Outputs on this branch by "
-            "pathspec, with nobody watching.\n"
+            f"Execute it under CLAUDE.md with nobody watching, by these exact commands, the "
+            f"only git and review forms this level allows, one path per call and a file under "
+            f"a folder Output by its own path (a `git add` or `git commit` naming two paths, a "
+            f"bare commit and a review without `--project` are refused): build inside the "
+            f"Outputs and get `make check` green; stage with {adds}; review with `uv run "
+            f"--frozen{project} kgme review --handoff {unit(task.handoff, task.name)}`, and on "
+            f"a BLOCK fix what blocks, write `logs/scratch/dispositions.md` and review again "
+            f"with `--dispositions logs/scratch/dispositions.md`; on PASS commit once per path, "
+            f"by pathspec, with {commits}; then stop.\n"
         )
 
     def start(
