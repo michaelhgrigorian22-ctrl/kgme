@@ -6,7 +6,7 @@ author: codex
 source: inferred
 sources: [CDH-0033, AUDIT-CDH-0033-DIRECTION]
 tier: 2
-status: draft
+status: final
 handoff: CDH-0033
 period: "2026-10-28"
 reviewed_sha: 9c360af
@@ -34,3 +34,5 @@ Timing uses Chrome/Metal, M4 Pro, DPR 1, 5 seconds, 301 GPU samples per rendered
 All 3 calm captures differ by **0 of 1,296,000 pixels**, with 7 rooms and 0 render calls. Default deck chip overlaps are 0 at 1440; 400/800 remain unchecked. Page errors and external requests are 0. Reduced-motion branches snap travel and stop decorative motion; whole-stage stillness is unverified. No tests, contrast/focus sweep, phone timing, Safari pass or acceptance gate ran.
 
 I recommend **1** to put the night into the crew; **3** makes the largest departure. The choice scores 4 × 0.8 = 3.2. Evidence and source hashes: [1](../../../logs/scratch/design-review/cdh-0033/sketch-1/measurements.json), [2](../../../logs/scratch/design-review/cdh-0033/sketch-2/measurements.json), [3](../../../logs/scratch/design-review/cdh-0033/sketch-3/measurements.json). Only this draft is committed; the station is untouched. Stop for Michou's pick; record the ruling and tally on resumption.
+
+Decision closure, 2026-10-28T23:00:00-07:00: Michou selected direction 1 from the second brief, with the conditions recorded on the handoff README's Asked-and-answered line. This direction record is final; its observations above remain those of the draft, and it certifies no implementation.

@@ -6,7 +6,9 @@ from: michou
 to: codex
 model: gpt-6-astra
 tier: 2
-status: proposed
+status: open
+adopted_by: michou
+adopted: 2026-10-28T23:00:00-07:00
 depends_on: [CDH-0019]
 design_track: HANDOFF-0036
 ---

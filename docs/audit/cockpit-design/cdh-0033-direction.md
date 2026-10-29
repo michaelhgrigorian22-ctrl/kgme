@@ -6,7 +6,7 @@ author: codex
 source: inferred
 sources: [CDH-0033]
 tier: 2
-status: draft
+status: final
 handoff: CDH-0033
 period: "2026-10-28"
 reviewed_sha: 9c360af
@@ -39,3 +39,5 @@ Michou's 3 choices each score stakes 4 × edge 0.5 = 2.0 and await his answer:
 3. **Screen framing:** keep the opaque copper bezel or use a larger transparent hologram. I recommend this compact console, 352 px on deck and 75% scale following, because its rows stay readable against the sky and clear the crew.
 
 Calm has **0 changed pixels out of 1,296,000** and 0 render calls. Captures recorded 0 page errors and 0 external requests, using local Three.js 0.182.0 and its CSS3D addon. [Source](../../../logs/scratch/design-review/cdh-0033/sketch/station.html), [measurements and hashes](../../../logs/scratch/design-review/cdh-0033/sketch/cost-summary.json) remain in ignored scratch. No tests or acceptance gate ran. Stop here; record his answers on the README's Asked-and-answered line only when resuming CDH-0033.
+
+Decision closure, 2026-10-28T23:00:00-07:00: Michou selected direction 1 from the second brief, with the conditions recorded on the handoff README's Asked-and-answered line. This direction record is final; its observations above remain those of the draft, and it certifies no implementation.
