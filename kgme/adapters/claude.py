@@ -50,13 +50,17 @@ class ClaudeAdapter:
             f"`{task.acceptance}`, red now, green when you are done. {task.description}\n"
             f"Execute it under CLAUDE.md with nobody watching, by these exact commands, the "
             f"only git and review forms this level allows, one path per call and a file under "
-            f"a folder Output by its own path (a `git add` or `git commit` naming two paths, a "
-            f"bare commit and a review without `--project` are refused): build inside the "
-            f"Outputs and get `make check` green; stage with {adds}; review with `uv run "
+            f"a folder Output by its own path (a staging or commit call naming two paths, a "
+            f"bare commit and a review without the project flag are refused): build inside "
+            f"the Outputs until your acceptance check, red first, is green; do not take `make "
+            f"check` run here as the gate, since this sandbox denies the network the server "
+            f"tests need and its loop fence colours the hook tests, so it is red here while "
+            f"green at the gate: the review runs `make check` outside the sandbox as the gate "
+            f"and reports a red one to you. Stage with {adds}; review with `uv run "
             f"--frozen{project} kgme review --handoff {unit(task.handoff, task.name)}`, and on "
-            f"a BLOCK fix what blocks, write `logs/scratch/dispositions.md` and review again "
-            f"with `--dispositions logs/scratch/dispositions.md`; on PASS commit once per path, "
-            f"by pathspec, with {commits}; then stop.\n"
+            f"a BLOCK fix what blocks, write logs/scratch/dispositions.md and review again "
+            f"with `--dispositions logs/scratch/dispositions.md`; on PASS commit once per "
+            f"path, by pathspec, with {commits}; then stop.\n"
         )
 
     def start(

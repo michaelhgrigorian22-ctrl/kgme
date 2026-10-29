@@ -380,7 +380,8 @@ def tree_groups(
     """Pure: the process groups of `leader`'s tree now: the leader's own, every group a
     descendant of the leader or of a member of a known group sits in, and every known group
     that still has a member. A group id can be reused only once its group is empty, so a
-    known group kept while occupied at every poll is the same group (cycle 6 F23)."""
+    known group kept while occupied at every poll is taken as the same group; a group emptied
+    and refilled between two polls is the residual `kill_group` names (cycle 7 F23)."""
     occupied = {pgid for _, _, pgid in rows}
     kept = set(known) & occupied
     roots = {leader} | {pid for pid, _, pgid in rows if pgid in kept}

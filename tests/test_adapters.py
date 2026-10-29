@@ -15,6 +15,7 @@ Side effects: one short child process per adapter under `tmp_path`.
 
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -61,6 +62,13 @@ def test_the_claude_adapter_launches_loose_with_the_task() -> None:
     ):
         assert form in exact, form
     assert "git add -- kgme/toy.py tests/test_toy.py" not in exact, "one path per call"
+    # run 2 of the live toy crew (2026-10-28): a builder told to get `make check` green stopped
+    # on a red `make check` inside the sandbox (the server tests cannot bind there, the hook
+    # tests run fenced); the review runs the gate, and the line says so
+    assert "do not take `make check` run here as the gate" in exact
+    assert "get `make check` green" not in exact
+    # cycle 9 F25, as the pair ruled in cycle 11: the commands the line names are matched
+    # against the rendered committed loose.json below, never against prefixes written here
     # cycle 6 F24: a folder Output, with or without its trailing slash, takes the renderer's
     # prefix forms, a path under the folder, never the bare folder
     folders = Task("HANDOFF-9048", "widgets",
@@ -77,6 +85,44 @@ def test_the_claude_adapter_launches_loose_with_the_task() -> None:
     assert not session_logic.is_folder("kgme/toy.py")
     assert adapter.events("anything", "run", "parent", None) == ([], {})
     assert adapter.close_open({}, "run", "parent") == []
+
+
+def _strings(value):
+    """Every string inside a rendered settings document, whatever its shape."""
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, dict):
+        for inner in value.values():
+            yield from _strings(inner)
+    elif isinstance(value, list):
+        for inner in value:
+            yield from _strings(inner)
+
+
+@pytest.mark.blocking
+def test_every_command_the_claude_line_names_matches_the_committed_loose_rules() -> None:
+    """Cycle 11 F25: the line's commands are matched against the committed `loose.json`
+    rendered for the task, by the harness's rule forms (an exact `Bash(x)` or a trailing `*`
+    prefix), not against prefixes the test hard-codes; a ruff command and a `git add` with
+    two paths are refused by the same rules."""
+    from kgme import loop_outputs, session
+    from kgme.paths import root
+
+    template = json.loads((root() / session.TEMPLATES / "loose.json").read_text())
+    entries = list(TASK.outputs) + list(loop_outputs.ALWAYS)
+    rendered = session.render(template, Path("/ws"), Path("/tmp/x"), entries, main=Path("/main"))
+    bash = [s for s in _strings(rendered) if s.startswith("Bash(") and s.endswith(")")]
+    rules = sorted({s[5:-1] for s in bash})
+
+    def permitted(command: str) -> bool:
+        return any(command == r or (r.endswith("*") and command.startswith(r[:-1])) for r in rules)
+
+    line = ClaudeAdapter().request(TASK, "docs/handoff/x.md", main="/main")
+    named = [c for c in re.findall(r"`([^`]+)`", line) if c.split()[0] in ("uv", "make", "git")]
+    assert named and all(permitted(c) for c in named), [c for c in named if not permitted(c)]
+    assert not permitted("uv run --frozen ruff check ."), "ruff is the gate's, off the list"
+    assert not permitted("git add -- kgme/toy.py tests/test_toy.py"), "one path per call"
+    assert not permitted("uv run --frozen kgme review --handoff HANDOFF-9048:parse"), "--project"
 
 
 @pytest.mark.blocking
