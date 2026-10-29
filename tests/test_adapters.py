@@ -123,6 +123,15 @@ def test_every_command_the_claude_line_names_matches_the_committed_loose_rules()
     assert not permitted("uv run --frozen ruff check ."), "ruff is the gate's, off the list"
     assert not permitted("git add -- kgme/toy.py tests/test_toy.py"), "one path per call"
     assert not permitted("uv run --frozen kgme review --handoff HANDOFF-9048:parse"), "--project"
+    # run 3 of the live toy crew (2026-10-28): a review command with `2>&1` or a pipe appended
+    # stays inside the sandbox, since the exclusion matches the command whole; the line names
+    # the exact form alone and says so, and that form matches the rendered exclusion
+    assert "alone, with nothing appended (no redirection, no pipe)" in line
+    excluded = [s for s in _strings(rendered) if not s.startswith("Bash(") and "kgme review" in s]
+    review = [c for c in named if "kgme review" in c]
+    assert excluded and review, (excluded, review)
+    for c in review:
+        assert any(c == x or (x.endswith("*") and c.startswith(x[:-1])) for x in excluded), c
 
 
 @pytest.mark.blocking

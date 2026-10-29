@@ -57,10 +57,12 @@ class ClaudeAdapter:
             f"tests need and its loop fence colours the hook tests, so it is red here while "
             f"green at the gate: the review runs `make check` outside the sandbox as the gate "
             f"and reports a red one to you. Stage with {adds}; review with `uv run "
-            f"--frozen{project} kgme review --handoff {unit(task.handoff, task.name)}`, and on "
-            f"a BLOCK fix what blocks, write logs/scratch/dispositions.md and review again "
-            f"with `--dispositions logs/scratch/dispositions.md`; on PASS commit once per "
-            f"path, by pathspec, with {commits}; then stop.\n"
+            f"--frozen{project} kgme review --handoff {unit(task.handoff, task.name)}`, run "
+            f"exactly so, alone, with nothing appended (no redirection, no pipe): only that "
+            f"exact form leaves the sandbox, and its output is one line, PASS or BLOCK with the "
+            f"audit's path; on a BLOCK fix what blocks, write logs/scratch/dispositions.md and "
+            f"review again with `--dispositions logs/scratch/dispositions.md`; on PASS commit "
+            f"once per path, by pathspec, with {commits}; then stop.\n"
         )
 
     def start(
