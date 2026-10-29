@@ -130,6 +130,28 @@ slice_budget = 3000
 max_turns = 60
 max_budget_usd = 15
 
+[crew]
+# `kgme crew` (HANDOFF-0048): KGME-owned worktrees, one per task, under this root, beside
+# brain/ and design/ (amendment 1); the cheap lane's exports share it and never a subfolder.
+root = "~/Projects/KGME/work"
+# Tasks built at once (amendment 4: start at 1; a clean run is the condition for raising it,
+# by Michou's edit of this key).
+parallel = 1
+# The plan gate's cap on independent tasks (§3): `parallel` serialises any plan at dispatch, so
+# the gate's cap is its own key, never below `parallel`; the amended acceptance test's toy has
+# two independent tasks at width 1.
+max_width = 3
+# The plan loop stops at this many planner cycles, red gates included, with nothing dispatched.
+max_plan_cycles = 6
+# The default builder harness and model of a task the plan leaves unnamed (answer 3: Codex
+# may take a task; it builds at loose only once its conformance cells are green).
+harness = "claude"
+model = "claude-opus-5-5"
+# The secret scanner the merge gate runs on a task's diff (§5): a pinned tool and its
+# arguments, the diff on stdin, a nonzero exit meaning hits; unset, the built-in rules of
+# kgme/crew.py run. gitleaks 8.30.1 is the proposed tool (docs/toolbox.md row pending).
+# scanner = "gitleaks stdin --no-banner --redact"
+
 [mods]
 # KGME's own Claude Code mods (HANDOFF-0059, ADR-024): the folders under mods/ each level
 # loads with --plugin-dir. loose and cheap load none, whatever is written here; emptying a

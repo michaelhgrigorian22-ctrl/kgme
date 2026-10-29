@@ -9,7 +9,10 @@
       "Bash(make check)",
       "Bash(uv run --frozen pytest *)",
       "Bash(git diff *)",
-      "Bash(git status *)"
+      "Bash(git status *)",
+      "Bash(git add {outputs})",
+      "Bash(git commit {outputs})",
+      "Bash(uv run --frozen --project {main} kgme review *)"
     ]
   },
   "sandbox": {
@@ -21,6 +24,9 @@
         "{outputs}"
       ]
     },
-    "autoAllowBashIfSandboxed": false
+    "autoAllowBashIfSandboxed": false,
+    "excludedCommands": [
+      "uv run --frozen --project {main} kgme review *"
+    ]
   }
 }
