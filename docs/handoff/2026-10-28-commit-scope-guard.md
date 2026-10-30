@@ -2,15 +2,15 @@
 id: HANDOFF-0067
 type: handoff
 created: 2026-10-28T13:20:00-07:00
-from: cowork
+from: michou
 to: claude-code
 tier: 2
-status: proposed
+status: open
 depends_on: [HANDOFF-0040, HANDOFF-0045]
 plan_ref: PLAN-PHASE-1 step 10d
 ---
 
-# Handoff 0067 (proposed) — A commit from Michou's shell holds human paths only
+# Handoff 0067 — A commit from Michou's shell holds human paths only
 
 ## Why
 Twice a commit from Michou's shell has swept Claude Code's staged, unreviewed work onto `main`: on 2026-10-25 (`9865a93`, `9d6f9db`, corrections entry of 23:08) and on 2026-10-28 (`7849748`, thirty-five files of HANDOFF-0048 under a merge's title, corrections entry of 10:21). Both times the rule was a sentence ("name the files on the commit") and the box that broke it was Cowork's. The second case is one the sentence cannot cover: a merge commit takes no pathspec, and a refused `git merge` followed by a bare `git commit` commits the whole index. Michou asked for the guard on 2026-10-28 ("this seems pretty inconvenient to fuck up").

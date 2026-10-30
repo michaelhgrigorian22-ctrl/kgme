@@ -2,15 +2,15 @@
 id: HANDOFF-0066
 type: handoff
 created: 2026-10-28T01:20:00-07:00
-from: claude-code
+from: michou
 to: michou
-status: proposed
+status: open
 tier: 2
 depends_on: [HANDOFF-0048]
 audit_ref: "AUDIT-0157 F2, ruled advisory by the arbiter pair (claude-opus-5-5, claude-fable-5-1), both asking for this follow-up"
 ---
 
-# Proposal 0066: the guard validates a loose builder's `git add` and `git commit` arguments before each call
+# Handoff 0066 — the guard validates a loose builder's `git add` and `git commit` arguments before each call
 
 ## Why
 HANDOFF-0048 amendment 2 lets a `loose` builder in a KGME workspace stage and commit on its own task branch by pathspec. The pinned list does the first half: one `Bash(git add -- <path>)` rule per Outputs entry and one `Bash(git commit --only <path> -m *)`, so `git add -A`, `git commit -a`, a bare commit and a checkout are refused (measured live, 2026-10-28). A prefix rule cannot see what follows the message: `--amend`, a second pathspec, a flag. The merge gate refuses a branch that carries a path outside the Outputs, so nothing lands, but the builder's own commit is not refused at the call. The arbiter pair ruled AUDIT-0157 F2 advisory on that ground and asked for a guard-side check as the follow-up.

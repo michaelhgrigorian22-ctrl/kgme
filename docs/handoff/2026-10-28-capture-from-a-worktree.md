@@ -2,15 +2,15 @@
 id: HANDOFF-0065
 type: handoff
 created: 2026-10-28T00:55:00-07:00
-from: cowork
+from: michou
 to: claude-code
 tier: 2
-status: proposed
+status: open
 depends_on: [HANDOFF-0047, HANDOFF-0050]
 plan_ref: PLAN-PHASE-1 step 10d
 ---
 
-# Handoff 0065 (proposed) — `kgme capture` from a worktree writes that worktree, not the one vault and the one ledger
+# Handoff 0065 — `kgme capture` from a worktree writes that worktree, not the one vault and the one ledger
 
 ## Why
 Found by the design session on 2026-10-28 00:50 and measured by Cowork: the design worktree (`~/Projects/KGME/design`) has two dirty files that neither Codex nor the design session touched. `logs/ledger/2026-10.jsonl` holds five events, all `kgme.capture` (two intents, two outcomes, one note) between 2026-10-27T16:50:59 and 16:51:17; `memory/inbox/friction-log.md` holds one new line, `- 2026-10-27 16:51 — 14% usage left till nov 1st`. Michou ran `kgme capture friction` from a shell whose working directory was the design worktree. HANDOFF-0047 §3 says every checkout writes the one ledger, and `ledger.read_record_root` is built to return the main checkout for any git checkout (review cycle 1 F4, cycle 2 F10), falling back to `base` only when `read_main_checkout` raises. From the design worktree it wrote the worktree's copy, so either the fallback fired or capture does not go through it for the vault write. The vault is `main`'s: a line captured into the design branch's `memory/inbox/` can never land, because the design track's lanes do not include `memory/` and `kgme merge design` refuses the commit.
