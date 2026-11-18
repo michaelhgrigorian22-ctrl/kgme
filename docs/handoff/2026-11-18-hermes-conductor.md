@@ -41,7 +41,7 @@ depends_on: [HANDOFF-0071, HANDOFF-0045, HANDOFF-0047]
 - **Order.** §1, the read-only measurement, may run now in a `tight` session alongside 0071's build. §§2–6 start only after 0071 passes, in a fresh `work` session.
 - **The fence is Hermes's own `pre_tool_call` hook (Cowork as arbiter, 2026-11-18, on the §1 measurement).** No Docker and no second user. The hook runs inside Hermes's process, the same trust class as KGME's guard inside Claude Code, so it is weaker than a separate user and the audit says so. The §1 measurement is recorded verbatim in the report.
   - **Scope.** The hook applies inside `~/Projects/KGME/` only, so Hermes stays fully useful elsewhere.
-  - **Inside the repo:** the terminal may run `kgme …`, read-only git (`status`, `log`, `diff`, `show`) and read-only views (`ls`, `cat`, `grep`, `rg`), and nothing else. `write_file`, `patch` and `execute_code` are refused.
+  - **Inside the repo:** the terminal may run `kgme …`, read-only git (`status`, `log`, `diff`, `show`) and read-only views (`ls`, `cat`, `grep`, `rg`), and nothing else. `execute_code` is refused. `write_file` and `patch` are allowed only under `docs/handoff/`, `docs/adr/`, `docs/readers/` and `docs/STATUS.md`, the paths the conductor writes as architect (CLAUDE.md "Who does what", Michou 2026-11-18). They are refused everywhere else in the repository.
   - **Fail closed.** `fail_closed: true`, so a failing hook blocks the call.
   - **If the hook can't place `execute_code` in a folder,** `code_execution` comes off the CLI toolsets globally instead. `file` stays on globally.
   - **Allowlist.** `git add *` and `git commit *` come out of `command_allowlist`.
@@ -49,7 +49,14 @@ depends_on: [HANDOFF-0071, HANDOFF-0045, HANDOFF-0047]
   - **Attribution.** `KGME_CONDUCTOR=hermes` goes in `~/.hermes/.env`, and the gateway is restarted after it.
   - **Skills.** The repo root joins `skills.trusted_project_dirs`, and `kgme-conductor` is linked under `.agents/skills/`.
   - **Michou's part.** All of these are in his home folder: the builder delivers them as a diff plus a script he runs, saves a copy of `config.yaml` first, and he gives the hook its one-time consent.
-  - **Acceptance** adds two cases: a `write_file` into the repo is refused, and a blocked command fails closed when the hook script is renamed away.
+  - **Acceptance** adds two cases: a `write_file` into `kgme/` is refused while one into `docs/handoff/proposed/` succeeds, and a blocked command fails closed when the hook script is renamed away.
+- **The conductor skill carries Michou's working preferences** (Michou, 2026-11-18, at the switch from Cowork):
+  - Draft any handoff, brief or review prompt for another harness before he asks, as a pasteable block labelled with where it goes ("→ Claude Code", "→ Codex").
+  - Never drive Codex through shell launch commands; give him the prompt to paste.
+  - He runs every git write. Give him exact commands; in zsh, never with `#` comment lines inside a block he pastes.
+  - Substantive proposals get the conductor's review and ruling before a builder sees them; design-track (CDH) work stays on the `design` branch.
+  - When a review returns in the design loop, commit and keep going; no ceremony.
+  - Keep `docs/STATUS.md` current at every ruling and close, since it is the conductor's memory between sessions.
 
 ## Outputs
 `kgme/` attribution (the event writers), the role under `roles/conductor/`, `skills/kgme-conductor/`, canary cells under `tests/`, the measurement report under `docs/audit/`.

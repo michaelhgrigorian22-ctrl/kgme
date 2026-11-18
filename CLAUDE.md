@@ -42,6 +42,21 @@ Michou sets three things: the objective (an adopted handoff), the boundary (leve
 
 No score and no ruling ever crosses the boundary. The non-negotiables are its hardest form.
 
+## How agents are built (Bilal's framework; ADR-025)
+
+Every agent in KGME is built to these rules. The reasoning behind them is in `docs/readers/agent-framework.md`.
+
+- **Context is attention.** An agent sees what its task needs and nothing more: an atlas slice, not the tree (`kgme atlas --slice`), and its role's tools, not every tool. Before adding to an agent's context, ask what it would stop attending to.
+- **Tools follow the objective, and KGME builds first.** Start from the objective and work back to the tools. When a tool is missing, write it. Take a dependency only where it is hard, already well solved and costly to get wrong (ADR-025 §6). Where there is no API, build the way in: on Michou's own accounts, and inside the guard, the egress list and the tiers.
+- **Score the trace, gate what matters.** Every role carries a rubric (`roles/<department>/rubrics/`) scored on its ledger trace, not only its output. Two gates stand for every role. **Intent:** the end matches the goal the run stated first. **Context:** the run read what the task needed before acting. Fail a gate and the run fails, whatever else scored. A rubric states what good is now; revise it when that changes.
+- **One conductor, many workers.** Michou talks to one conductor. It plans, dispatches and reviews, and does no work itself.
+  - Managers start per task, and workers end with their task.
+  - At most three levels.
+  - The cheap tier at the bottom, the strongest model at the top.
+  - A rubric gate on every handoff between agents.
+- **Count the cost of the frontier.** Before adopting a new technique, name the problem it solves and what it costs. Fan-out is for problems that need it; a frequent job gets one agent with a tight slice.
+- **Resolve, don't ask.** Resolve an ambiguous reference (which thesis, which deal, which file) from the record before acting. Ask only as "How decisions are made" allows.
+
 ## Conventions
 
 - Python through `uv` only. No system Python; no `pip install` outside `uv`.
@@ -100,7 +115,8 @@ Outside this repository, beside it: the design worktree on branch `design` (`~/P
 
 ## Who does what
 
-- **Cowork** (Claude in the desktop app; cloud sandbox with this folder mounted): architect, researcher, reviewer. Writes docs and handoffs, reads reports back. Cannot run macOS commands or install software.
+- **Conductor** (Opus through Hermes Agent, from HANDOFF-0073's close): architect, reviewer and arbiter, and the one agent Michou talks to. Writes docs, handoffs and ADRs (under `docs/` only), rules on findings, and dispatches only through `kgme` (`loop`, `crew`, `session`, `agent run`). Never edits code, `control/`, `memory/` or `logs/`, and never runs git writes; its `pre_tool_call` hook enforces that.
+- **Cowork** (Claude in the desktop app): the conductor until HANDOFF-0073 closes; after that, design canvases, Claude Docs, connectors and phone access.
 - **Claude Code** (you, natively on the Mac): builder and operator. Executes handoffs, installs, configures, commits.
 - **Codex CLI**: second builder and independent reviewer.
 - **KGME runtime** (later): launchd → Python → `claude -p` / `codex exec` / Groq / Ollama.
