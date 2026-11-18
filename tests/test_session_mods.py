@@ -127,6 +127,26 @@ def test_the_listing_is_hook_events_and_dollar_nouns() -> None:
 
 
 @pytest.mark.blocking
+def test_handoff_0074_a_trailing_note_is_dropped_from_a_hooked_event() -> None:
+    """The validate format of 2026-11-17, verbatim: a note in parentheses after the event."""
+    noted = report(
+        "./register.tsx hooks: session.start, ui.render{component=Pane, requestId=kgme-cockpit}"
+        " (default matcher key: plugin)",
+        *COCKPIT_REPORT["contents"][0]["notes"][1:],
+    )
+    assert mods.listing(noted) == set(COCKPIT)
+    bare = report("./register.tsx hooks: ui.render (default matcher key: plugin)")
+    assert mods.listing(bare) == {"ui.render"}
+    assert mods.check_mod("kgme-cockpit", noted, ALLOWS) == []
+    stranger = report(
+        "./register.tsx hooks: tool.call{tool=Bash} (default matcher key: plugin), ui.renderX"
+    )
+    assert mods.check_mod("kgme-cockpit", stranger, ALLOWS) == [
+        "hooks or calls its handoff did not name: tool.call, ui.renderX"
+    ]
+
+
+@pytest.mark.blocking
 def test_the_exact_listing_passes_and_anything_more_is_blocking() -> None:
     assert mods.check_mod("kgme-capture", CAPTURE_REPORT, ALLOWS) == []
     assert mods.check_mod("kgme-cockpit", COCKPIT_REPORT, ALLOWS) == []

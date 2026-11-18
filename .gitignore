@@ -21,6 +21,8 @@ atlas/
 memory/attachments/*.tmp
 # copies kgme capture keeps beside a file it adds a line to, removed by `kgme clean kept`
 memory/**/.*.capture-*
+# Claude Code regenerates a mod's tsconfig.json, as it does its .claude-plugin/types/ (HANDOFF-0074)
+mods/*/tsconfig.json
 __pycache__/
 .venv/
 *.pyc

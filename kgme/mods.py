@@ -26,6 +26,8 @@ MODS = "mods"
 NO_MODS = ("loose", "cheap")
 NAME = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 MATCHER = re.compile(r"\{[^}]*\}")
+# a note validate writes after a hooked event since 2026-11-17: `(default matcher key: plugin)`
+NOTE = re.compile(r"\s*\([^)]*\)")
 
 
 def level_mods(level: str, settings: dict) -> list[str]:
@@ -41,13 +43,15 @@ def level_mods(level: str, settings: dict) -> list[str]:
 
 def listing(report: dict) -> set[str]:
     """Pure: what a `claude plugin validate --json` report says the modules hook and call: each
-    event name without its matcher (`ui.render`), and each `$` call by its noun (`$.ui`)."""
+    event name without its matcher or its trailing note (`ui.render`), and each `$` call by
+    its noun (`$.ui`)."""
     found: set[str] = set()
     for content in report.get("contents", []):
         for note in content.get("notes", []):
             _, _, hooked = note.partition(" hooks: ")
             if hooked:
-                found |= {e.strip() for e in MATCHER.sub("", hooked).split(",") if e.strip()}
+                events = NOTE.sub("", MATCHER.sub("", hooked))
+                found |= {e.strip() for e in events.split(",") if e.strip()}
             _, _, called = note.partition(" calls: ")
             if called:
                 found |= {
