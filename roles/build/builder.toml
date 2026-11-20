@@ -1,0 +1,13 @@
+# A Build worker, the crew's builder (HANDOFF-0048, HANDOFF-0071, ADR-025).
+id = "build.builder"
+department = "build"
+purpose = "Build one crew task inside its Outputs, red first, to a PASS review and one commit by pathspec."
+kind = "worker"
+skill = "kgme-builder"
+model = "inherit"
+level = "loose"
+slice = ["kgme/loop_outputs.py", "kgme/review.py"]
+tools = ["Read", "Grep", "Glob", "Edit", "Bash"]
+tier_max = 2
+escalates_to = "build.planner"
+rubric = "roles/build/rubrics/builder.md"

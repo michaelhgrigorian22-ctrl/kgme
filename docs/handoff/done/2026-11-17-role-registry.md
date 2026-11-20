@@ -5,7 +5,9 @@ created: 2026-11-17T23:45:00-08:00
 from: michou
 to: claude-code
 tier: 2
-status: open
+status: done
+completed: 2026-11-20T11:07:52-08:00
+report: docs/audit/AUDIT-0175-review-handoff-0071-cycle-3.md
 depends_on: [HANDOFF-0045, HANDOFF-0047, HANDOFF-0048, HANDOFF-0056]
 ---
 
@@ -67,6 +69,21 @@ Remove `roles/`, `kgme/roles.py` and the atlas and lint additions in one revert.
 - Accept ADR-025.
 - Adopt this handoff ahead of the 0065, 0067 and 0066 queue. That queue has not moved since the loop's first real run on 0065 stopped on 2026-10-30: AUDIT-0169 returned BLOCK with F1 and F2 open, then a write was refused and the loop ended in error. The three stay adopted and resume after 0071.
 - Run 0071 in an interactive `work` session reviewed with `kgme review`, not under `kgme loop`, because the loop's first real queue has not yet run clean.
+
+## Rulings on review cycle 1 (Cowork as arbiter, 2026-11-18, AUDIT-0173)
+- **F1, accepted.** Outcomes carry `ref` to their intent. Test that runs that succeed and runs that fail both leave no open `agent:run` intent.
+- **F2, accepted.** This is the core of ADR-025 §3. `kgme agent run` enforces the role's `tools` (and its profile, if it names one) in the launch itself, by narrowing the rendered settings or the launch flags, never only in prompt text. A role whose restriction can't be expressed at its level is refused at launch with a named reason. Test the effective permissions.
+- **F3, accepted, ruled narrower.** `cheap` is not a role level in v1. The role pass blocks `level = "cheap"`, and `kgme agent run` refuses it. Carrying a role's context through the code-only lane is a follow-up, so nothing new crosses the Tier 3 boundary now. This is the smaller blast radius, and it's reversible.
+- **F4, accepted.** Every intent written gets an outcome: preparation, launch and interruption failures are classified and closed. Add tests for the failure paths.
+- **F5, accepted.** Validate scalar types before using them. One malformed role produces findings and never crashes the pass.
+- **F6, accepted.** Default lint reads indexed blobs, and `--all` reads the working tree. Test a role and a rubric whose staged and unstaged copies differ, including a deletion.
+- **F7 (cosmetic), accepted.** Split `tests/test_roles.py` by concern, and give the effect helpers their prefixes and full annotations.
+
+## Rulings on review cycle 2 (Cowork as arbiter, 2026-11-20, AUDIT-0174)
+Five of the seven cycle-1 findings are resolved, and blocking findings fell from six to two. The two left are residual holes in the narrowing contract, not the same root cause coming back, so the loop continues (ADR-023).
+- **F2, accepted.** A role tool must be one complete, supported bare tool name. Lint and launch share one validator, so they can never disagree. Comma-separated, prefixed or malformed entries are blocking in lint and refused at launch, before any intent or child exists.
+- **F8, accepted.** The source path is preserved through role lookup and selects the findings. A role whose `id` doesn't match its path is itself a blocking finding, so `build.alias` declared in `reader.toml` is refused. Add the regression from the finding.
+- **F7 (cosmetic), accepted.** Annotate the three parameters.
 
 ## Report
 `docs/audit/` per the usual route, with the acceptance test's commands and output.

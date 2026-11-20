@@ -11,7 +11,8 @@ every note under the configured roots against the schema and exits 1 on a blocki
 (HANDOFF-0050) puts Michou's words in the vault, one new note or one appended line; `daily`
 drafts the day's note from the ledger, once. `loop` (HANDOFF-0043) runs a queue of adopted
 handoffs unattended, one fresh loose session each, in `kgme.loop`; `review arbitrate` sends one
-finding to the arbiter pair.
+finding to the arbiter pair. `agent` (HANDOFF-0071) lists, shows, writes and runs the roles
+under `roles/`, and `lint` checks them.
 Inputs: argv.
 Outputs: exit code; one line per finding or event, a summary, or a review's escalation packet.
 Side effects: `ledger note`, `review`, `review rule`, and `review override` append to the real
@@ -63,6 +64,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_crew(args)
     if args.command == "skills":
         return run_skills(args)
+    if args.command == "agent":
+        return run_agent(args)
     if args.command in ("merge", "approve"):
         return run_track(args)
     if args.command == "cockpit":
@@ -127,6 +130,10 @@ def run_lint(args: argparse.Namespace) -> int:
         from kgme import skills  # a skill copy that drifted from skills/ (HANDOFF-0048 §7)
 
         findings += skills.read_findings(base)
+    if not args.root:
+        from kgme import roles_io  # every role under roles/, index or tree (HANDOFF-0071)
+
+        findings += roles_io.read_findings(base, settings, index=not args.all)
     for finding in findings:
         if finding.cls != "cosmetic" or args.include_cosmetic:
             print(finding.line())
@@ -325,6 +332,25 @@ def run_session(args: argparse.Namespace) -> int:
     return session.run_session(
         args.level, args.handoff, extra, paths.root(), config.read_config(), args.dry_run,
         model_key=args.model, red=args.red, task=args.task,
+    )  # fmt: skip
+
+
+def run_agent(args: argparse.Namespace) -> int:
+    """`kgme agent list|show|new|run` (HANDOFF-0071), in `kgme.roles_io` and `kgme.roles_run`."""
+    from kgme import config, paths, roles_io
+
+    base, settings = paths.root(), config.read_config()
+    if args.action == "list":
+        return roles_io.run_list(base)
+    if args.action == "show":
+        return roles_io.run_show(base, settings, args.id)
+    if args.action == "new":
+        return roles_io.run_new(base, settings, args.department, args.role)
+    from kgme import roles_run
+
+    return roles_run.run_agent(
+        base, settings, args.id, args.task,
+        headless=args.print, handoff=args.handoff, dry_run=args.dry_run,
     )  # fmt: skip
 
 

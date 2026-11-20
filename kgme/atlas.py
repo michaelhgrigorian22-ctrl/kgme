@@ -7,10 +7,12 @@ modules it imports, read with `ast` and never executed, to the tests that import
 the ADRs its text cites); each test; each ADR (linked to the ADRs it supersedes or cites and
 to the handoffs that cite it); each handoff (`depends_on`, `plan_ref`, the files of its
 `Outputs`, its `report`, the ADRs it cites); each row of the phase plan; each reader (the
-folders and modules it names); each audit (its handoff, the ADRs it cites); each skill; and,
-opt-in, each project `kgme.toml` `[atlas] projects` lists. Each note opens with one line saying
-what the node is and links the real file: a Markdown document as `[[docs/...]]`, code as a
-plain relative link. Frontmatter `kind:` gives the graph's colour groups. The output is a
+folders and modules it names); each audit (its handoff, the ADRs it cites); each skill; the
+org chart (HANDOFF-0071): each role under `roles/` (linked to the role or `michou` it
+escalates to, and to its skill) and each department (linked to its roles); and, opt-in,
+each project `kgme.toml` `[atlas] projects` lists. Each note opens with one line saying what
+the node is and links the real file: a Markdown document as `[[docs/...]]`, code as a plain
+relative link. Frontmatter `kind:` gives the graph's colour groups. The output is a
 function of its inputs alone: no clock, no machine state, sorted throughout, so a second run
 on the same tree writes identical bytes.
 Inputs: `Source` records (path and text) the effects half read from the tracked tree, and
@@ -21,6 +23,8 @@ Side effects: none. Reading the tree and writing `atlas/` is `kgme.atlas_read`.
 
 import ast
 import re
+import tomllib
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from fnmatch import fnmatchcase
 from pathlib import PurePosixPath
@@ -139,6 +143,7 @@ def build_graph(
         return node
 
     texts = {s.path: s.text for s in sources}
+    roles_by_node: dict[str, dict] = {}
     for path in sorted(tracked):  # every top-level folder, whatever it holds (review F4)
         if "/" in path:
             top = path.split("/", 1)[0]
@@ -154,6 +159,8 @@ def build_graph(
             top == "tests" and path.endswith(".py") and PurePosixPath(path).name.startswith("test")
         ):
             add(module_name(path), "test", f"Tests: `{path}`.", path)
+        elif top == "roles" and path.endswith(".toml"):
+            add_role(path, texts[path], add, roles_by_node)
         elif top == "skills" and path.endswith("SKILL.md"):
             add(f"skill-{PurePosixPath(path).parent.name}", "skill", f"Skill: `{path}`.", path)
         elif path.startswith("docs/") and path.endswith(".md"):
@@ -182,6 +189,8 @@ def build_graph(
         elif path.endswith(".sh"):
             node.links |= {m for m in SHELL_MODULE.findall(text) if m in nodes}
         link_document(node, text, nodes, files)
+    for name, data in roles_by_node.items():
+        link_role(nodes[name], data, add, nodes)
     for handoff in [n for n in nodes.values() if n.kind == "handoff"]:
         for adr in [link for link in handoff.links if nodes[link].kind == "adr"]:
             nodes[adr].links.add(handoff.name)  # the handoffs that cite an ADR
@@ -189,6 +198,39 @@ def build_graph(
         node = add(f"project-{project.name}", "project", f"Project `{project.name}`, outside KGME.")
         node.links |= {u for u in project.uses if u in nodes}
     return nodes
+
+
+def add_role(
+    path: str, text: str, add: Callable[..., Node], roles_by_node: dict[str, dict]
+) -> None:
+    """Pure: the node of a role file and the node of its department; the templates and a
+    file that is not TOML make none."""
+    parts = PurePosixPath(path).parts
+    if len(parts) != 3 or parts[1] == "templates":
+        return
+    try:
+        data = tomllib.loads(text)
+    except tomllib.TOMLDecodeError:
+        return
+    ident = str(data.get("id") or f"{parts[1]}.{PurePosixPath(path).stem}")
+    node = add(f"role-{ident}", "role", f"Role {ident} ({data.get('kind')}): `{path}`.", path)
+    department = add(f"department-{parts[1]}", "department", f"Department `{parts[1]}`.")
+    department.links.add(node.name)
+    roles_by_node[node.name] = data
+
+
+def link_role(node: Node, data: dict, add: Callable[..., Node], nodes: dict[str, Node]) -> None:
+    """Pure: a role's edges: to the role it escalates to, or to `michou`, where every chain
+    ends; and to its skill."""
+    target = str(data.get("escalates_to") or "")
+    if target == "michou":
+        add("michou", "head", "Michou: where every escalation chain ends (ADR-025).")
+        node.links.add("michou")
+    elif f"role-{target}" in nodes:
+        node.links.add(f"role-{target}")
+    skill = f"skill-{data.get('skill')}"
+    if skill in nodes:
+        node.links.add(skill)
 
 
 def file_line(path: str) -> str:

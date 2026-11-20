@@ -1,0 +1,13 @@
+# The Build department's manager, the crew's planner (HANDOFF-0048, HANDOFF-0071, ADR-025).
+id = "build.planner"
+department = "build"
+purpose = "Plan one adopted handoff for the crew as tasks the plan gate parses; dispatch and review, never build."
+kind = "manager"
+skill = "kgme-planner"
+model = "strong"
+level = "tight"
+slice = ["kgme/crew.py", "kgme/crew_io.py"]
+tools = ["Read", "Grep", "Glob"]
+tier_max = 2
+escalates_to = "michou"
+rubric = "roles/build/rubrics/planner.md"

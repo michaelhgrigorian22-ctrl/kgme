@@ -99,6 +99,7 @@ memory/              BRAIN: the Obsidian vault (Tier 2/3 only)
   templates/         note templates
   attachments/
 control/             COMMANDS: hooks/, git-hooks/, policy/, review/ prompts, schema/ entry point
+roles/               COMMANDS: one file per agent role, its rubric beside it, linted (ADR-025, HANDOFF-0071)
 kgme/                ENGINE: the Python package (ledger, lint, review, sync, clean, brief, cli)
 jobs/                ENGINE: one folder per job: job.md, manifest.toml, run.py
 cockpit/             ENGINE: the local app, a view over the ledger (ADR-017; built by HANDOFF-0037)

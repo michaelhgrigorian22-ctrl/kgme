@@ -1,0 +1,13 @@
+# A Build worker, the crew's integrator (HANDOFF-0048, HANDOFF-0071, ADR-025).
+id = "build.integrator"
+department = "build"
+purpose = "Read a crew run's integration branch, gate and diff, and write the one approval screen."
+kind = "worker"
+skill = "kgme-integrator"
+model = "standard"
+level = "tight"
+slice = ["kgme/crew_io.py", "kgme/approve.py"]
+tools = ["Read", "Grep", "Glob"]
+tier_max = 2
+escalates_to = "build.planner"
+rubric = "roles/build/rubrics/integrator.md"

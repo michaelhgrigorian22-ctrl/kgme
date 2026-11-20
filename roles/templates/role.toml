@@ -1,0 +1,14 @@
+# A role (ADR-025 §2, HANDOFF-0071), written by `kgme agent new`. It grants nothing its level
+# does not: `kgme lint` checks every field. Fill `purpose`, then the skill and the rubric.
+id = "{id}"
+department = "{department}"
+purpose = "One line: what {id} is for."
+kind = "worker"
+skill = "{skill}"
+model = "inherit"
+level = "tight"
+slice = []
+tools = ["Read", "Grep", "Glob"]
+tier_max = 2
+escalates_to = "{escalates_to}"
+rubric = "roles/{department}/rubrics/{role}.md"

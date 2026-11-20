@@ -1,0 +1,13 @@
+# Audit, outside every department; its skill is a stub until HANDOFF-0046 (ADR-025 §1).
+id = "audit.auditor"
+department = "audit"
+purpose = "Score a run's trace in the ledger against its role's rubric; answers to Michou, outside every department."
+kind = "worker"
+skill = "kgme-auditor"
+model = "strong"
+level = "tight"
+slice = ["kgme/ledger.py", "kgme/events.py"]
+tools = ["Read", "Grep", "Glob"]
+tier_max = 2
+escalates_to = "michou"
+rubric = "roles/audit/rubrics/auditor.md"

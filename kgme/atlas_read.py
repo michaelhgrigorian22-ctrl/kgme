@@ -45,7 +45,8 @@ def read_sources(base: Path, tracked: list[str] | None = None) -> list[atlas.Sou
     sources: list[atlas.Source] = []
     for name in read_tracked(base) if tracked is None else tracked:
         hooks = name.startswith("control/git-hooks/")
-        if not name.startswith(READ_ROOTS) or not (name.endswith(READ_SUFFIXES) or hooks):
+        role = name.startswith("roles/") and name.endswith(".toml")  # the org chart (0071)
+        if not (name.startswith(READ_ROOTS) and (name.endswith(READ_SUFFIXES) or hooks) or role):
             continue
         try:
             data = clean_fs.read_regular_bytes(base, base / name)

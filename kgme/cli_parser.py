@@ -191,6 +191,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--copy", action="append", default=[], metavar="DIR",
         help="a folder that will not follow links; gets a hashed copy",
     )  # fmt: skip
+    add_agent(subcommands)
     subcommands.add_parser("cockpit", help="serve the read-only timeline on localhost")
     ledger_parser = subcommands.add_parser("ledger", help="read or append ledger events by hand")
     ledger_actions = ledger_parser.add_subparsers(dest="action", required=True)
@@ -207,3 +208,20 @@ def build_parser() -> argparse.ArgumentParser:
     )
     sync_parser.add_argument("--base", help="the checkout to sync (default: this one)")
     return parser
+
+
+def add_agent(subcommands: argparse._SubParsersAction) -> None:
+    """`kgme agent list|show|new|run` (HANDOFF-0071): the role registry."""
+    agent = subcommands.add_parser("agent", help="the role registry: list, show, new, run (0071)")
+    actions = agent.add_subparsers(dest="action", required=True)
+    actions.add_parser("list", help="the roles by department")
+    actions.add_parser("show", help="one role, what its level allows, its chain").add_argument("id")
+    new = actions.add_parser("new", help="a lint-clean role, rubric and stub skill")
+    new.add_argument("department")
+    new.add_argument("role")
+    run = actions.add_parser("run", help="start the role's level on a task, in the ledger")
+    run.add_argument("id")
+    run.add_argument("task")
+    run.add_argument("--handoff", help="the handoff a loose role builds")
+    run.add_argument("--print", action="store_true", help="headless (claude -p); tight only")
+    run.add_argument("--dry-run", action="store_true", help="print the argv and prompt only")
