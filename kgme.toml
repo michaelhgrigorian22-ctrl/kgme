@@ -127,7 +127,7 @@ slice_budget = 3000
 [sessions]
 # The hard stops of a `loose` run (HANDOFF-0047, ADR-022 §2): headless, unattended, so it ends
 # itself at a turn count or an estimated spend, whichever comes first.
-max_turns = 60
+max_turns = 150
 max_budget_usd = 15
 
 [crew]
