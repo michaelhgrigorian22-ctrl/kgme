@@ -1,9 +1,9 @@
 ---
-name: agent-architect
+name: kgme-agent-architect
 description: Design, build, evaluate and narrow an agent (a KGME role) from an objective, covering context, tools, topology, rubric, eval set and registry. Use before creating any new agent or role, when turning a workflow into an agent, or when an agent underperforms. Works in Claude Code and Hermes.
 ---
 
-# agent-architect
+# kgme-agent-architect
 
 An agent is a model inside a frame. The frame is a word-based reality (what the agent sees) plus code that holds what must hold (what it may do, and what counts as done). This skill is the procedure for building that frame well.
 
