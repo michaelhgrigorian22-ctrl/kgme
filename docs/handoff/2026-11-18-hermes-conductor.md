@@ -81,3 +81,14 @@ Remove the role, the skill and the attribution field in one revert, and restore 
 - Adopt after 0071 passes.
 - Rule on Nous: the recommendation is `none`, since Opus already runs on the `anthropic` provider and Nous adds nothing KGME needs.
 - If the measurement shows Hermes can't fence its own tools, choose between the Docker backend and a separate macOS user.
+
+## Rulings on review cycle 1 (Cowork as arbiter, 2026-11-23, AUDIT-0176-review-handoff-0073-cycle-1)
+All five blocking findings are real ways around the fence. Their shared root cause is that the fence tries to *model* shell and patch semantics in order to allow things. The ruling inverts that: **the fence allows only what it fully understands, and refuses everything else inside KGME.** The conductor needs only simple commands, so this costs it nothing.
+- **F1, accepted, ruled stricter.** A call is inside KGME if the process directory, the session directory (read from the installed Hermes, citing its source line), or any argument resolves inside the root. A relative path argument whose base directory isn't known for certain is refused.
+- **F2, accepted, ruled stricter.** Don't simulate `cd`. Inside KGME, or with the directory unknown, a terminal command must be **one simple command**: no `;`, `&&`, `||`, `|`, `&`, redirection, backticks, `$(`, subshells, newlines or `cd`, and it must match the allowlist exactly. Anything else is refused. Test failed, skipped, piped and chained `cd` cases.
+- **F3, accepted.** Implement the installed Hermes patch grammar, read from its source with the line cited. Check both endpoints of a move. A patch with any operation the fence doesn't recognise is refused whole. Test mixed allowed and forbidden patches.
+- **F4, accepted.** Dispatch is allowed only as the trusted launcher, `uv run --frozen --project <brain> kgme …`, or the brain venv's `kgme` binary, by resolved absolute path. No other executable named `kgme` qualifies, and paths are resolved through symlinks before deciding.
+- **F5, accepted.** Prove the fence, don't assert it. Record live acceptance on Michou's machine as part of the install: (a) with the hook script renamed away, a repository write is refused; (b) `git commit` is refused; (c) a dispatch passes. The install script runs these probes and prints the results, and the report quotes them.
+- **F6 (cosmetic), accepted.** Split effects from policy (`read_*`, `run_*`). Keep the decision functions pure.
+- **Audit id collision.** The builder's report `AUDIT-0176-hermes-conductor.md` collides with the review's AUDIT-0176. Renumber the report to the next free id at landing, after the last review cycle.
+- **Access.** Read the installed Hermes source under `~/.hermes/hermes-agent` for F1 and F3. This fix runs in an interactive `work` session, where those reads are allowed. Do not fetch from GitHub.

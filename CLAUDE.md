@@ -65,6 +65,7 @@ Every agent in KGME is built to these rules. The reasoning behind them is in `do
 - Git: small commits; message `<area>: <what> (<handoff id if any>)`. Commit at the end of each handoff.
 - Every commit is pushed by the post-commit hook; the ledger is committed by `kgme sync`, never by hand.
 - Logs are append-only JSONL under `logs/`. Never edit a log line — append a correction (ADR-003).
+- Readers in `docs/readers/` end with **How to check it** (the one command that proves the part works) and, for a part that can be taken out, **How to remove it** (what depends on it, what to delete). Known gaps go in `docs/DEBT.md`, not scattered across reports.
 - Prefer editing an existing file to creating a new one. Prefer deleting machine output to accumulating it; it is regenerable by design.
 
 ## Repository map

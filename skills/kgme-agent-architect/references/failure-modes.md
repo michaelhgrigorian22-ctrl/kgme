@@ -16,3 +16,5 @@ Each entry gives the symptom, the cause, and the prevention, written as code whe
 | Untracked handoff | `git mv` refused; script stopped | Adoption moved an untracked file | Adoption adds the file to git; scripts check before moving |
 | Asset missing in a clean copy | Design trial red with 47 errors | Tests depended on an asset in a gitignored folder | Assets fetched by `make assets` in the trial, or tests skip with a named reason |
 | State in private memory | Agents lose track of the project and stop collaborating (Anthropic's early multi-agent attempts) | Task state kept in context or per-agent memory | One shared store with transactions; memory holds only preferences and pointers |
+| Fence that models semantics | Fence allowed `cd /dev/null; rm …` and a `/tmp/kgme` impostor (0073 F2, F4) | The allow decision simulated shell behavior | Allow only what's fully understood (simple commands, trusted absolute paths); refuse the rest |
+| Bypass by flag | An agent commits with `--no-verify` or rewrites `core.hooksPath` | A rule stated only in prompts | The guard refuses the flags; canary tests prove the refusal |
