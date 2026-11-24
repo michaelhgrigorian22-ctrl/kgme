@@ -35,7 +35,7 @@ import sys
 from collections.abc import Callable
 from pathlib import Path
 
-from kgme import clean_fs, events, ledger, paths, roles, roles_io, session
+from kgme import clean_fs, conductor, events, ledger, paths, roles, roles_io, session
 
 JOB = "agent:run"
 PARENT_ENV = "KGME_LOOP_PARENT"
@@ -140,7 +140,7 @@ def write_event(
     """Effect: one `agent:run` event of the role's run; its id."""
     event = events.make_event(
         source="kgme", actor="kgme.agent", kind=kind, job=JOB, key=f"agent:{role_id}",
-        run_id=run, summary=events.clip(summary), **more,
+        run_id=run, summary=conductor.tag(events.clip(summary)), **more,
     )  # fmt: skip
     return ledger.append(event, dirs)
 
@@ -215,6 +215,7 @@ def run_agent(
         "tools": tools, "settings_sha256": session.sha256_text(body),
         "role_prompt": prompt_file.relative_to(main).as_posix(),
         "role_prompt_sha256": session.sha256_text(prompt), "slice_error": slice_error,
+        **conductor.record(),
     }  # fmt: skip
     intent = write_intent(main, settings, dirs, run, role_id, record)
     stage = "preparation"

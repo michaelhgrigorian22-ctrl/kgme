@@ -1,0 +1,16 @@
+# The conductor: Opus through Hermes Agent, the one agent Michou talks to (HANDOFF-0073, ADR-025 §1).
+# It plans, dispatches only through `kgme` and reviews; it does no work itself. In the
+# repository its own tools are fenced by Hermes's `pre_tool_call` hook (AUDIT-0176); the
+# level and tools here are what a `kgme agent run conductor.hermes` launch would get: reads.
+id = "conductor.hermes"
+department = "conductor"
+purpose = "Plan, dispatch through kgme loop, crew, session and agent run, review, and report to Michou; never edit."
+kind = "manager"
+skill = "kgme-conductor"
+model = "strong"
+level = "tight"
+slice = ["docs/STATUS.md", "kgme/cli_parser.py"]
+tools = ["Read", "Grep", "Glob"]
+tier_max = 2
+escalates_to = "michou"
+rubric = "roles/conductor/rubrics/hermes.md"

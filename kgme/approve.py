@@ -31,6 +31,7 @@ AGENT_MARKERS = (
     "CODEX_SANDBOX",
     "CODEX_THREAD_ID",
     "CODEX_SESSION_ID",
+    "KGME_CONDUCTOR",  # a conductor's terminal (HANDOFF-0073): it dispatches, never approves
 )
 
 
