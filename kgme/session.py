@@ -48,7 +48,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
-from kgme import clean_fs, events, ledger, loop_outputs, paths
+from kgme import clean_fs, conductor, events, ledger, loop_outputs, paths
 from kgme.session_logic import (  # noqa: F401 - the launcher's pure half, re-exported
     AUTHORS,
     EDIT_OUTPUTS,
@@ -264,7 +264,9 @@ def write_start(
 
 def write_note(record: dict, main: Path, settings: dict, run: str, dirs: ledger.Dirs) -> str:
     """Effect: the start note, its payload the record, both in the main checkout; the note's
-    id. The canary cells write the same note for the run copy they launch (F6)."""
+    id. The canary cells write the same note for the run copy they launch (F6). A run started
+    under `KGME_CONDUCTOR` carries it in the record and the summary (HANDOFF-0073 §3)."""
+    record = {**record, **conductor.record()}
     payload_text = json.dumps(record, indent=2, sort_keys=True) + "\n"
     payload = paths.payloads_dir(settings, main) / f"session-{run}.json"
     clean_fs.write_payload(main, payload, payload_text)
@@ -274,7 +276,7 @@ def write_note(record: dict, main: Path, settings: dict, run: str, dirs: ledger.
     )
     event = events.make_event(
         source="kgme", actor="kgme.session", kind="note", job="session",
-        key=f"session:{record['level']}", run_id=run, summary=summary,
+        key=f"session:{record['level']}", run_id=run, summary=conductor.tag(summary),
         payload_ref=payload.relative_to(main).as_posix(), payload_sha256=sha256_text(payload_text),
     )  # fmt: skip
     return ledger.append(event, dirs)
@@ -325,7 +327,7 @@ def run_session(
             summary += f" slice sha256={record['slice_sha256'][:16]}"
         event = events.make_event(
             source="kgme", actor="kgme.session", kind="note", job="session",
-            key=f"session:{level}:dry-run", summary=summary,
+            key=f"session:{level}:dry-run", summary=conductor.tag(summary),
         )  # fmt: skip
         ledger.append(event, dirs)
         return 0

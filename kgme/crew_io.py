@@ -39,7 +39,18 @@ from collections.abc import Callable
 from datetime import timedelta
 from pathlib import Path, PurePosixPath
 
-from kgme import crew, events, ledger, loop, paths, review, review_io, review_run, workspace
+from kgme import (
+    conductor,
+    crew,
+    events,
+    ledger,
+    loop,
+    paths,
+    review,
+    review_io,
+    review_run,
+    workspace,
+)
 from kgme.adapters import read_adapter
 from kgme.sync_git import run_git
 from kgme.workspace import Task, unit
@@ -182,7 +193,7 @@ def _event(handoff: str, run: str, kind: str, key: str, parent: str | None, summ
         key=key,
         run_id=run,
         parent=parent,
-        summary=events.clip(summary),
+        summary=conductor.tag(events.clip(summary)),
         **more,
     )
 

@@ -46,7 +46,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from kgme import events, ledger, review, review_io
+from kgme import conductor, events, ledger, review, review_io
 
 POLL_SECONDS = 5.0
 GRACE_SECONDS = 10.0
@@ -546,7 +546,7 @@ def _loop_event(kind: str, run: Run, parent: str | None, summary: str, **more) -
     return events.make_event(
         source="kgme", actor="kgme.loop", kind=kind, job=f"review:{run.handoff}",
         key=f"loop:{run.handoff}:{run.run}", parent=parent, run_id=run.run,
-        summary=events.clip(summary), **more,
+        summary=conductor.tag(events.clip(summary)), **more,
     )  # fmt: skip
 
 
