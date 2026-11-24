@@ -6,6 +6,7 @@ created: 2026-11-23T13:30:00-08:00
 modified: 2026-11-23T13:30:00-08:00
 author: cowork
 source: inferred
+sources: [AUDIT-0176, HANDOFF-0075]
 tier: 2
 ---
 

@@ -6,6 +6,7 @@ modified: 2026-11-23T13:30:00-08:00
 status: active
 tier: 2
 source: inferred
+sources: ["Cowork sessions 2026-11-17 to 2026-11-23"]
 author: cowork
 ---
 
