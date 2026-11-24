@@ -191,5 +191,8 @@ audit_folder = "docs/audit/cockpit-design/"
 anthropic = "tier2"
 openai = "tier2"
 ollama-cloud = "code"
+# Nous Portal, Hermes Agent's own provider: no KGME content goes through it, and Hermes runs
+# KGME work on `anthropic` only (HANDOFF-0073, Michou's ruling of 2026-11-18).
+nous = "none"
 # Ollama's Anthropic-compatible server, on this machine; the launcher points ANTHROPIC_BASE_URL here.
 ollama_url = "http://localhost:11434"
