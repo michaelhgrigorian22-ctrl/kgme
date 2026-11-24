@@ -1,11 +1,11 @@
 ---
-id: AUDIT-0176
+id: AUDIT-0180
 type: report
 status: final
 handoff: HANDOFF-0073
 author: claude-code
 source: inferred
-sources: ["HANDOFF-0073", "AUDIT-0171", "AUDIT-0176-review-handoff-0073-cycle-1", "AUDIT-0177", "AUDIT-0178"]
+sources: ["HANDOFF-0073", "AUDIT-0171", "AUDIT-0176-review-handoff-0073-cycle-1", "AUDIT-0177", "AUDIT-0178", "AUDIT-0179"]
 tier: 2
 created: 2026-11-23T12:10:00-08:00
 period: 2026-11-18/2026-11-23
@@ -119,7 +119,7 @@ The hook runs inside Hermes's own process, in the same trust class as KGME's gua
 ## Not verified, and why
 - **No exact unified diff of `config.yaml`.** The edits are given by key, with AUDIT-0171's line numbers.
 - **The toolbox row's sha256 and licence.** These are computed by the script on Michou's machine. A placeholder hash would fail `kgme lint` as blocking.
-- **The cycle-4 pre-landing probes, the post-landing probes and acceptance steps 1 to 6.** These need Michou's config and Hermes running; see "Live probes". The cycle-3 pre-landing probes did run, and passed.
+- **The post-landing probes and acceptance steps 1 to 6.** These need the landed code, Michou's config and Hermes running; see "Live probes". The pre-landing probes are done: cycle 3's passed, and all 4 of cycle 4's passed ("Result, cycle 4" above).
 
 ## Checks
 - `ruff check .` and `ruff format --check .`: clean. `python -m kgme.mods`: 0 blocking.
@@ -164,10 +164,11 @@ Everything below is under `logs/scratch/handoff-0073/` in this worktree.
 - **Scratch files.** The saved patches, test outputs and dispositions under `logs/scratch/` are gitignored scratch.
 
 ## What is left
-1. Michou runs the pre-landing probes again on the cycle-4 code (above), and the PROBE lines are quoted under "Result, cycle 4".
-2. Review cycle 4: `kgme review --handoff HANDOFF-0073` from his own terminal.
-3. On PASS: renumber this report to the next free audit id, land the code on main, run `install.sh`, make the config edits, then run the post-landing probes and acceptance steps 1 to 6.
-4. Close the handoff with `completed:` set to the PASS audit's `created:`.
+Done before landing: the cycle-4 pre-landing probes (all 4 passed, quoted under "Result, cycle 4"); review cycle 4, PASS (AUDIT-0179, 2026-11-24 14:35); landing on main (`751996b`); this report renumbered from AUDIT-0176 to AUDIT-0180 (the id collided with the cycle-1 review); the handoff closed.
+
+Still pending, after landing:
+1. Run `install.sh` and make the `config.yaml` edits.
+2. Run the post-landing probes and acceptance steps 1 to 6, including a real `kgme agent run` dispatch through Hermes.
 
 ## Appendix: the §1 measurement, verbatim (AUDIT-0171)
 Hermes Agent v0.23.2 (2026.9.24, stable) is installed from git at `~/.hermes/hermes-agent`, commit `ae2a81cc` dated 2026-11-16, with `_config_version: 53`. `~/.hermes` was readable. I read only the relevant parts of `config.yaml` with secret-shaped values masked, and I did not open `.env` or `auth.json`. No files were written.

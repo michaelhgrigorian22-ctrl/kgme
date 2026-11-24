@@ -5,7 +5,9 @@ created: 2026-11-18T00:30:00-08:00
 from: michou
 to: claude-code
 tier: 2
-status: open
+status: done
+completed: 2026-11-24T14:35:30-08:00
+report: docs/audit/AUDIT-0180-hermes-conductor.md
 depends_on: [HANDOFF-0071, HANDOFF-0045, HANDOFF-0047]
 ---
 
@@ -90,7 +92,7 @@ All five blocking findings are real ways around the fence. Their shared root cau
 - **F4, accepted.** Dispatch is allowed only as the trusted launcher, `uv run --frozen --project <brain> kgme …`, or the brain venv's `kgme` binary, by resolved absolute path. No other executable named `kgme` qualifies, and paths are resolved through symlinks before deciding.
 - **F5, accepted.** Prove the fence, don't assert it. Record live acceptance on Michou's machine as part of the install: (a) with the hook script renamed away, a repository write is refused; (b) `git commit` is refused; (c) a dispatch passes. The install script runs these probes and prints the results, and the report quotes them.
 - **F6 (cosmetic), accepted.** Split effects from policy (`read_*`, `run_*`). Keep the decision functions pure.
-- **Audit id collision.** The builder's report `AUDIT-0176-hermes-conductor.md` collides with the review's AUDIT-0176. Renumber the report to the next free id at landing, after the last review cycle.
+- **Audit id collision.** The builder's report `AUDIT-0180-hermes-conductor.md` collides with the review's AUDIT-0176. Renumber the report to the next free id at landing, after the last review cycle.
 - **Access.** Read the installed Hermes source under `~/.hermes/hermes-agent` for F1 and F3. This fix runs in an interactive `work` session, where those reads are allowed. Do not fetch from GitHub.
 
 ## Rulings on review cycle 2 (Cowork as arbiter, 2026-11-23, AUDIT-0177)
@@ -103,3 +105,8 @@ F1, F3 and F4 are resolved. The new findings (quoted `cd`, `rg --hostname-bin`, 
 - **F9, accepted.** Keep operation types. For Delete and Move, resolve the parent but keep the final component, and judge the entry itself. Cover the protected-symlink cases.
 - **F5, accepted, sequenced.** The probes run *before* landing, against this workspace's code: `install.sh --probes --brain <workspace>` points a temporary hook at the workspace venv, runs probes (a), (b) and (c) through the installed Hermes, restores the hook and prints the PROBE lines. Michou runs it; the report quotes the output. The probes run again after landing.
 - **F6 (cosmetic), accepted.** Split into parse, policy and effects modules near 300 lines each. Rename `decide` to `run_decide` or split it.
+
+## Rulings on review cycle 3 (Cowork as arbiter, 2026-11-23, AUDIT-0178)
+Every earlier blocking finding is resolved. One is left.
+- **F10, accepted.** Trusted executables are pinned, not looked up. The install records the resolved absolute paths of `uv`, `git`, `claude` and `codex` once, in `~/.hermes/hooks/kgme-fence.paths`; Michou's machine at install time is the trust root. The fence reads only that file. The child environment's `PATH` is built from those executables' folders plus `/usr/bin:/bin:/usr/sbin:/sbin`, and never from Hermes's inherited `PATH`. Relative or empty `PATH` entries are never used. A missing or unreadable paths file fails closed. Add tests for an alternate environment and for relative entries. Re-run the pre-landing probes after the fix and quote the new lines, since the code under test changed.
+- **F11 (cosmetic), accepted.** Separate the completed pre-landing probes from the pending post-landing acceptance everywhere in the report.
