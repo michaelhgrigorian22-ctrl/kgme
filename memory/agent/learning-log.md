@@ -19,3 +19,4 @@ One line per concept Michou has covered while working. Seeded from the sessions 
 - 2026-11-18: orphaned process: a child that keeps running after its parent dies, here test stubs writing 1.27 GB (seen in: logs/ledger-test)
 - 2026-11-18: background job and terminal output: a backgrounded job is suspended when it writes to the terminal (seen in: the run script)
 - 2026-11-18: untracked file: git can't move or commit a file it doesn't track until it's added (seen in: the 0074 handoff)
+- 2026-11-24: diff: the list of what changed between two versions of files, removed lines marked -, added lines +, with a few unchanged lines around each change for context; "staged diff" = the changes marked for the next commit; reviewers read the diff, not the whole codebase (seen in: kgme review, the "diff" data class)

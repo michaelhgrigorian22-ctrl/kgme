@@ -18,6 +18,7 @@ What is unfinished or known to be wrong, in one place (after Rat Stack's `debt.m
 - **A loose builder can't `git add` from its sandbox**, so a loop run can't close a real handoff (2026-11-23). Linked to the paused queue: 0065, 0066, 0067.
 - **Codex can't read its own login from a builder's sandbox.** Every review runs from Michou's terminal.
 - **Review audit ids are taken from the main checkout only,** so they collide with reports written in a workspace (AUDIT-0176, 2026-11-23).
+- **A `work` session run from a workspace fails its session-end hooks** (`session_end` and `kgme sync` exit 2, ten entries on 2026-11-23). It writes `logs/scratch/hook-errors.jsonl` in the workspace, which turns that workspace's `make check` red until the file is moved.
 - **Test stubs can outlive their test** (`tests/fixtures/loop/builder_stub.py`), and tests write to the main checkout's `logs/ledger-test/`.
 - **The guard doesn't refuse `--no-verify`, `git commit -n` or `core.hooksPath` changes.** That rule is only in prompts (HANDOFF-0075, proposed).
 - **Roles:** `cheap` isn't a role level in v1; Bash can't be narrowed by subcommand; rubrics are declared but not scored (0046).
