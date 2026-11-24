@@ -31,3 +31,5 @@ What is unfinished or known to be wrong, in one place (after Rat Stack's `debt.m
 - **`docs/toolbox.md`:** the deepseek-v4.1-flash row has no licence. That's advisory now and blocking from schema 1.8.
 - **Sleep policy (proposal 0012)** undecided. The unattended loop needs the Mac awake.
 - **Hermes is unfenced inside the repo** until 0073 lands and its install runs.
+- **The Hermes fence is not an adversarial boundary** (0073, cycle-2 ruling). It stops accidental and casual writes; an unrestricted shell outside the repo can still reach in. The real fix is OS-level: Hermes sandboxed with the repo read-only, dispatching through a request queue that a KGME runner executes (the shared-store pattern in `kgme-agent-architect/references/orchestration.md`).
+- **The Hermes fence can't protect files outside the repo that trusted programs read** (`~/.gitconfig`, `~/.claude/settings.json`, shell rc files, the uv-managed Python, `~/.hermes/config.yaml`). Only a separate macOS user closes that; it's evaluated with 0038's Tier 1 boundary.
