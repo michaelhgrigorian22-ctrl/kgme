@@ -163,12 +163,46 @@ Everything below is under `logs/scratch/handoff-0073/` in this worktree.
 - **`kgme.toml`: a change that is not this handoff's.** It holds an unstaged `[sessions] max_turns = 60 → 150` edit that was already in the worktree when this session began. It was left unstaged and uncommitted. The `nous` line is delivered as a diff instead.
 - **Scratch files.** The saved patches, test outputs and dispositions under `logs/scratch/` are gitignored scratch.
 
+## Post-landing install, 2026-11-24 (Michou ran it; Cowork recorded)
+- `install.sh` on main `46d2738`: config saved as `~/.hermes/config.yaml.pre-handoff-0073.20261124T144829`; pinned git=/usr/bin/git, uv=~/.local/bin/uv, claude and codex under ~/.nvm/versions/node/v25.9.0/bin; hook written, its git commit/status self-probe passed; `KGME_CONDUCTOR=hermes` added to `.env`; kgme-conductor linked under `.claude/skills` and `.agents/skills`.
+- **The toolbox patch never applied.** `toolbox.diff.in` adds the Hermes row with leading context only, so `git apply` anchors the hunk at end of file; `docs/toolbox.md` continues past the Playwright row with "Open rows", so `apply --check` failed and neither repository diff applied. Cowork inserted the row (MIT, `~/.local/bin/hermes`, sha256 `e9feaec5aab83267f5a219fb220ade9488fec40f3b61e3f4cf5c3bab13ba9f81`) and `[providers] nous = "none"` by hand; Michou committed them as `01d5032`. Lesson for builders: a patch that adds lines mid-file needs trailing context, and the builder's `--check` must run against the real target file.
+- **`config.yaml` had no `hooks:` key.** No saved copy (11-18, 11-23 16:41, 11-24 11:40) contains `kgme-fence`, although the cycle-4 pre-landing probes needed it on 11-23. Most likely the edit was lost when the file was rewritten at 11:40 on 11-24. The block from edit 4 was appended on 2026-11-24 at 15:15.
+- **Edit 5 is real and was done with Hermes's own command.** `skills.trusted_project_dirs` exists (`hermes_cli/config_defaults.py:1409`; project skills under `<root>/.agents/skills` load only for a trusted root, `agent/skill_utils.py:511-570`). `hermes skills trust ~/Projects/KGME/brain` → "12 project skill(s) will load". Edits 1–3 were made by hand and checked by grep.
+
+**Result, post-landing probes, run by Michou on 2026-11-24 at 15:15:21-08:00** against main through the installed hook (verbatim; the environment variables are elided):
+```
+PROBE (a) hook script renamed away, write_file into kgme/ is refused: PASS
+        parsed (Hermes wire shape): {"action": "block", "message": "hook ~/.hermes/hooks/kgme-fence failed closed: command not found"}
+PROBE (b) git commit is refused: PASS
+        parsed (Hermes wire shape): {"action": "block", "message": "kgme-fence: git here is bare git status, log, diff or show, no options and no paths; a richer view is a read-only kgme subcommand; Michou runs git writes (Hermes was started inside ~/Projects/KGME)"}
+PROBE (c) a dispatch passes, rewritten to the brain's kgme: PASS
+        parsed (Hermes wire shape): {"action": "modify", "args": {"command": "/usr/bin/env -i … KGME_CONDUCTOR=hermes /Users/michaelgrigorian/Projects/KGME/brain/.venv/bin/kgme --help", "workdir": "/Users/michaelgrigorian/Projects/KGME/brain"}}
+PROBE (d) under a decoy PATH, git status runs the pinned git: PASS
+        parsed (Hermes wire shape): {"action": "modify", "args": {"command": "/usr/bin/env -i … KGME_CONDUCTOR=hermes GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 /usr/bin/git status", "workdir": "/Users/michaelgrigorian/Projects/KGME/brain"}}
+all four probes passed
+```
+
+## Acceptance, live Hermes session in brain, 2026-11-24 15:20–15:25 (Michou ran it; Cowork recorded)
+| step | asked | result |
+|---|---|---|
+| 1 | edit kgme/cli.py | declined by the conductor itself, citing its role; offered a builder dispatch. The fence was not reached by a write. |
+| 2 | git commit | declined by the conductor; it ran bare `git status` instead, and the fence **rewrote it live** to the pinned `/usr/bin/git` under `env -i` with `GIT_CONFIG_GLOBAL=/dev/null`. |
+| 3 | write control/probe.txt | declined by the conductor; fence not reached. |
+| 4 | `kgme agent run build.integrator "summarise the last crew run"` | **PASS.** Rewritten live to brain's `.venv/bin/kgme` with `KGME_CONDUCTOR=hermes`. First try exit 1 (Claude Code not logged in; Michou ran `claude /login`); run `01M87XW6DTD6HDQ6X44B5TS3MC` exit 0, 15:22:24–15:23:04; intent, session and outcome events all carry `[conductor: hermes]`. |
+| 5 | `kgme lint` | **PASS**, 0 blocking (389 notes, 249 advisory, 12 cosmetic). |
+| 6 | write_file docs/handoff/proposed/… then kgme/… | the first **written** through the fence; the second declined by the conductor; fence not reached. |
+
+Reading: the live session runs the hook (steps 2 and 4 show its `modify` rewrites, which only the fence produces). Its refusals are proven through Hermes's own dispatcher by probes (a) and (b), the same spawn-and-evaluate path as a live call; the conductor never attempted a forbidden write, so no live `block` was observed. Accepted on that basis: the model's refusal is the first line and the fence the second, as designed.
+
+Follow-ups surfaced by the session (not 0073's scope): stale `LS` and `TodoRead` deny rules in a Claude Code settings file; the HANDOFF-0048 toy crew run never shows the stall switch firing (its hang seed ended with no kill record), so it is unproven before the crew runs real work; the design→main trial merge is now red on `tests/test_design_precision.py` (47 lines); the `deepseek-v4.1-flash:cloud` toolbox row needs a licence before schema 1.8; a schema amendment for the review fields would clear about 230 advisories; `kgme ledger read` unfiltered is 5.9M characters.
+
 ## What is left
 Done before landing: the cycle-4 pre-landing probes (all 4 passed, quoted under "Result, cycle 4"); review cycle 4, PASS (AUDIT-0179, 2026-11-24 14:35); landing on main (`751996b`); this report renumbered from AUDIT-0176 to AUDIT-0180 (the id collided with the cycle-1 review); the handoff closed.
 
 Still pending, after landing:
-1. Run `install.sh` and make the `config.yaml` edits.
-2. Run the post-landing probes and acceptance steps 1 to 6, including a real `kgme agent run` dispatch through Hermes.
+1. ~~Run `install.sh` and make the `config.yaml` edits.~~ Done 2026-11-24 (above).
+2. ~~Post-landing probes.~~ All four passed, 2026-11-24 15:15.
+3. ~~Acceptance steps 1 to 6.~~ Done 2026-11-24 (above). Nothing is left for HANDOFF-0073.
 
 ## Appendix: the §1 measurement, verbatim (AUDIT-0171)
 Hermes Agent v0.23.2 (2026.9.24, stable) is installed from git at `~/.hermes/hermes-agent`, commit `ae2a81cc` dated 2026-11-16, with `_config_version: 53`. `~/.hermes` was readable. I read only the relevant parts of `config.yaml` with secret-shaped values masked, and I did not open `.env` or `auth.json`. No files were written.
