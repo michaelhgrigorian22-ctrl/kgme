@@ -2,10 +2,10 @@
 id: HANDOFF-0078
 type: handoff
 created: 2026-11-27T12:50:00-08:00
-from: claude-code
+from: michou
 to: claude-code
 tier: 2
-status: proposed
+status: open
 depends_on: [HANDOFF-0073]
 ---
 
