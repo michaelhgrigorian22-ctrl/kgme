@@ -32,6 +32,7 @@ What is unfinished or known to be wrong, in one place (after Rat Stack's `debt.m
 - **Egress control:** LuLu and host rules (0038) not installed. The cheap lane and design Codex have no host rule.
 - **`docs/toolbox.md`:** the deepseek-v4.1-flash row has no licence. That's advisory now and blocking from schema 1.8.
 - **Sleep policy (proposal 0012)** undecided. The unattended loop needs the Mac awake.
-- **Hermes is unfenced inside the repo** until 0073 lands and its install runs.
 - **The Hermes fence is not an adversarial boundary** (0073, cycle-2 ruling). It stops accidental and casual writes; an unrestricted shell outside the repo can still reach in. The real fix is OS-level: Hermes sandboxed with the repo read-only, dispatching through a request queue that a KGME runner executes (the shared-store pattern in `kgme-agent-architect/references/orchestration.md`).
 - **The Hermes fence can't protect files outside the repo that trusted programs read** (`~/.gitconfig`, `~/.claude/settings.json`, shell rc files, the uv-managed Python, `~/.hermes/config.yaml`). Only a separate macOS user closes that; it's evaluated with 0038's Tier 1 boundary.
+
+- **Hermes Desktop is not fenced** (AUDIT-0180, 2026-11-24). Desktop-sourced tool calls (named `mcp__terminal`, `mcp__write_file`, …) never reach the `kgme-fence` shell hook: a command naming a brain path ran after a gateway restart, in a brain-rooted project, with the hook approved. KGME work runs in the CLI only. To fix: find the desktop tool path in Hermes (a plugin `pre_tool_call` hook may reach it where a shell hook does not); have the fence normalise an `mcp__` prefix and refuse unknown code-running tools.
